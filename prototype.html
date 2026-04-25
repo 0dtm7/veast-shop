@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VEAST — интерактивный прототип</title>
+    <meta name="description" content="Кликабельный HTML-прототип VEAST: аналог Figma для демонстрации пользовательского пути." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .prototype-page { padding: 28px 0 70px; }
+      .prototype-shell { display: grid; grid-template-columns: 280px 1fr; gap: 18px; align-items: start; }
+      .prototype-nav { position: sticky; top: 88px; border: 1px solid var(--line-dark); border-radius: var(--radius); background: var(--paper); padding: 14px; }
+      .prototype-nav a { display: block; padding: 12px 14px; border-radius: 12px; color: var(--ink); font-weight: 800; }
+      .prototype-nav a:hover, .prototype-nav a.active { background: var(--ink); color: var(--paper); }
+      .prototype-screen { min-height: 720px; border: 1px solid var(--line-dark); border-radius: var(--radius); background: var(--paper); overflow: hidden; box-shadow: var(--shadow); }
+      .proto-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+      .proto-logo { font-size: 24px; font-weight: 900; letter-spacing: -.04em; }
+      .proto-menu { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+      .proto-menu a { color: var(--ink); }
+      .proto-content { padding: 24px; }
+      .proto-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; align-items: stretch; }
+      .proto-card, .proto-image, .proto-panel { border: 1px solid var(--line); border-radius: 18px; background: var(--soft); padding: 18px; }
+      .proto-image { display: grid; place-items: center; min-height: 320px; background: linear-gradient(135deg, var(--soft), var(--paper)); }
+      .proto-image strong { font-size: 46px; letter-spacing: -.08em; }
+      .proto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+      .proto-product { border: 1px solid var(--line-dark); border-radius: 18px; background: var(--paper); overflow: hidden; }
+      .proto-product .pic { display: grid; place-items: center; height: 180px; background: var(--soft); font-size: 42px; }
+      .proto-product .body { padding: 14px; display: grid; gap: 8px; }
+      .proto-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 12px; background: var(--ink); color: var(--paper); font-weight: 900; text-transform: uppercase; font-size: 12px; }
+      .proto-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .proto-input { min-height: 48px; border: 1px solid var(--line-dark); border-radius: 12px; padding: 14px; color: var(--muted); }
+      .proto-flow-note { margin: 14px 0 0; color: var(--muted); }
+      .proto-mobile { max-width: 390px; margin: 0 auto; border: 10px solid var(--ink); border-radius: 36px; overflow: hidden; background: var(--paper); }
+      .proto-mobile .proto-content { padding: 16px; }
+      .proto-mobile .proto-grid { grid-template-columns: 1fr; }
+      @media (max-width: 980px) { .prototype-shell { grid-template-columns: 1fr; } .prototype-nav { position: static; } .proto-hero, .proto-form { grid-template-columns: 1fr; } .proto-grid { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 620px) { .proto-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div data-header></div>
+    <main class="prototype-page container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Интерактивный прототип</span></div>
+      <section class="project-hero">
+        <p class="eyebrow">figma alternative / clickable prototype</p>
+        <h1>Интерактивный прототип VEAST</h1>
+        <p class="hero-copy">Это локальный кликабельный HTML-прототип, который можно использовать как аналог Figma: кнопки, карточки и переходы имитируют путь пользователя от главной страницы до подтверждения заказа.</p>
+      </section>
+      <div class="prototype-shell">
+        <nav class="prototype-nav" aria-label="Экраны прототипа">
+          <a class="active" href="#screen-home">01 Главная</a>
+          <a href="#screen-catalog">02 Каталог</a>
+          <a href="#screen-product">03 Карточка товара</a>
+          <a href="#screen-cart">04 Корзина</a>
+          <a href="#screen-checkout">05 Checkout</a>
+          <a href="#screen-thanks">06 Подтверждение</a>
+          <a href="#screen-mobile">07 Mobile</a>
+        </nav>
+        <div class="prototype-stack">
+          <section id="screen-home" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-home">Главная</a><a href="#screen-catalog">Каталог</a><a href="#screen-cart">Корзина</a></div></div>
+            <div class="proto-content">
+              <div class="proto-hero">
+                <div class="proto-image"><strong>ORBIT DROP</strong></div>
+                <div class="proto-card"><p class="eyebrow">commercial fashion</p><h2>VEAST ORBIT DROP</h2><p>Главный экран объясняет стиль бренда и ведёт пользователя в каталог.</p><a class="proto-button" href="#screen-catalog">Перейти в каталог</a></div>
+              </div>
+              <div class="proto-grid"><div class="proto-panel">Drop story</div><div class="proto-panel">Блок доверия</div><div class="proto-panel">FAQ</div></div>
+            </div>
+          </section>
+          <section id="screen-catalog" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-home">Главная</a><a href="#screen-catalog">Каталог</a><a href="#screen-cart">Корзина</a></div></div>
+            <div class="proto-content"><h2>Каталог</h2><div class="proto-panel">Поиск / фильтры / сортировка / активные фильтры</div><div class="proto-grid">
+              <article class="proto-product"><div class="pic">🧥</div><div class="body"><strong>Eclipse Zip Hoodie</strong><span>3200 ₽</span><a class="proto-button" href="#screen-product">Открыть</a></div></article>
+              <article class="proto-product"><div class="pic">🧢</div><div class="body"><strong>Core Cap</strong><span>2700 ₽</span><a class="proto-button" href="#screen-product">Открыть</a></div></article>
+              <article class="proto-product"><div class="pic">👕</div><div class="body"><strong>Signal Tee</strong><span>2000 ₽</span><a class="proto-button" href="#screen-product">Открыть</a></div></article>
+            </div></div>
+          </section>
+          <section id="screen-product" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-catalog">Каталог</a><a href="#screen-cart">Корзина</a></div></div>
+            <div class="proto-content"><div class="proto-hero"><div class="proto-image"><strong>PHOTO</strong></div><div class="proto-card"><p class="eyebrow">Orbit Drop</p><h2>VEAST Eclipse Zip Hoodie</h2><p>Цена, размеры, теги, состав, уход, доставка.</p><div class="proto-panel">Размер: S / M / L / XL</div><a class="proto-button" href="#screen-cart">Добавить в корзину</a></div></div><p class="proto-flow-note">Ниже: full-card, “С чем носить”, похожие товары.</p></div>
+          </section>
+          <section id="screen-cart" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-catalog">Каталог</a><a href="#screen-checkout">Checkout</a></div></div>
+            <div class="proto-content"><h2>Корзина</h2><div class="proto-hero"><div class="proto-panel"><h3>Товар</h3><p>Eclipse Zip Hoodie / размер M / количество 1</p></div><div class="proto-card"><h3>Итого</h3><p>3200 ₽</p><a class="proto-button" href="#screen-checkout">Перейти к оформлению</a></div></div></div>
+          </section>
+          <section id="screen-checkout" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-cart">Корзина</a></div></div>
+            <div class="proto-content"><h2>Оформление заказа</h2><div class="proto-form"><div class="proto-input">Имя</div><div class="proto-input">Телефон</div><div class="proto-input">Email</div><div class="proto-input">Город</div><div class="proto-input">Адрес</div><div class="proto-input">Комментарий</div></div><br><a class="proto-button" href="#screen-thanks">Отправить заказ</a></div>
+          </section>
+          <section id="screen-thanks" class="prototype-screen">
+            <div class="proto-topbar"><div class="proto-logo">VEAST</div><div class="proto-menu"><a href="#screen-home">Главная</a></div></div>
+            <div class="proto-content"><div class="proto-card"><p class="eyebrow">order created</p><h2>Спасибо за заказ</h2><p>Заказ отправлен на backend и сохраняется в data/orders.json.</p><a class="proto-button" href="#screen-home">Вернуться на главную</a></div></div>
+          </section>
+          <section id="screen-mobile" class="prototype-screen">
+            <div class="proto-mobile"><div class="proto-topbar"><div class="proto-logo">VEAST</div><div>☰</div></div><div class="proto-content"><div class="proto-image"><strong>DROP</strong></div><h2>Mobile version</h2><p>Минимум desktop и mobile: карточки становятся в одну колонку, меню упрощается, CTA остаётся заметным.</p><a class="proto-button" href="#screen-catalog">Каталог</a></div></div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <div data-footer></div>
+    <script type="module">import { initCommon } from './app.js'; initCommon('project');</script>
+  </body>
+</html>

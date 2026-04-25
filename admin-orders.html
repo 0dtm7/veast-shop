@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Панель заказов — VEAST</title>
+    <meta name="description" content="Служебная панель VEAST: просмотр заказов, статистики и состояния API." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div data-header></div>
+    <main id="mainContent" class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Панель заказов</span></div>
+      <section class="project-hero admin-hero">
+        <p class="eyebrow">orders dashboard</p>
+        <h1>Панель заказов</h1>
+        <p class="hero-copy">Здесь отображаются заявки, которые проходят серверную проверку и сохраняются в <strong>data/orders.json</strong>.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="checkout.html">Создать заказ</a>
+          <button class="button button-ghost" id="refreshOrders" type="button">Обновить список</button>
+        </div>
+      </section>
+
+      <section class="info-grid backend-stats" id="backendStats" aria-live="polite"></section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div><p class="eyebrow">orders</p><h2>Список заказов</h2></div>
+          <a class="button button-ghost" href="/api/orders" target="_blank" rel="noreferrer">Открыть JSON</a>
+        </div>
+        <div id="ordersApiList" class="order-list"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading"><div><p class="eyebrow">api map</p><h2>Как работает обработка заказа</h2></div></div>
+        <div class="project-grid">
+          <article class="project-card"><h3>GET /api/products</h3><p>Каталог и карточки товара получают актуальные данные из общего списка товаров.</p></article>
+          <article class="project-card"><h3>POST /api/orders</h3><p>Checkout отправляет заказ. Сервер проверяет обязательные поля и товары.</p></article>
+          <article class="project-card"><h3>GET /api/orders</h3><p>Эта страница читает сохранённые заказы и показывает их в интерфейсе.</p></article>
+          <article class="project-card"><h3>data/orders.json</h3><p>Файл хранит созданные заявки и позволяет быстро проверить результат оформления.</p></article>
+        </div>
+      </section>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/admin-orders.js"></script>
+  </body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Каталог — VEAST</title>
+    <meta name="description" content="Каталог VEAST: поиск, фильтры, сортировка, категории, размеры и быстрый переход к покупке одежды." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div data-header></div>
+    <main class="catalog-section container-wide" id="mainContent">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Каталог</span></div>
+
+      <section class="catalog-hero-panel">
+        <div>
+          <p class="eyebrow">shop / conversion screen</p>
+          <h1>Каталог VEAST</h1>
+          <p class="hero-copy">Фильтры, поиск и сортировка помогают пользователю быстрее найти вещь, открыть карточку товара и перейти к оформлению заказа.</p>
+        </div>
+        <div class="catalog-hero-kpi">
+          <span>Цель экрана</span>
+          <strong>выбор товара</strong>
+          <p>Пользователь должен без лишних шагов перейти от каталога к карточке и корзине.</p>
+        </div>
+      </section>
+
+      <div class="section-heading catalog-toolbar">
+        <div>
+          <p class="eyebrow">products</p>
+          <h2>Товары капсулы</h2>
+        </div>
+        <div class="catalog-meta">
+          <span id="resultCount">0 товаров</span>
+          <select id="sortSelect" aria-label="Сортировка">
+            <option value="new">Сначала новинки</option>
+            <option value="price-asc">Цена по возрастанию</option>
+            <option value="price-desc">Цена по убыванию</option>
+            <option value="sale">Сначала скидки</option>
+            <option value="popular">Сначала популярные</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="shop-layout">
+        <aside class="filters" aria-label="Фильтры каталога">
+          <div class="filter-block search-filter">
+            <h3>Поиск</h3>
+            <label class="visually-hidden" for="localSearch">Поиск по каталогу</label>
+            <input id="localSearch" type="search" placeholder="Например: hoodie, cargo, cap" autocomplete="off" />
+            <small>Ищет по названию, коллекции, материалу и описанию.</small>
+          </div>
+
+          <div class="filter-block">
+            <h3>Категория</h3>
+            <div class="segmented" id="categoryFilter"></div>
+          </div>
+
+          <div class="filter-block">
+            <h3>Цена</h3>
+            <div class="price-filter">
+              <label><span>От</span><input id="minPrice" type="number" inputmode="numeric" min="0" step="500" placeholder="0" /></label>
+              <label><span>До</span><input id="maxPrice" type="number" inputmode="numeric" min="0" step="500" placeholder="15000" /></label>
+            </div>
+          </div>
+
+          <div class="filter-block">
+            <h3>Размер</h3>
+            <div class="size-list" id="sizeFilter"></div>
+          </div>
+
+          <div class="filter-block">
+            <h3>Цвет</h3>
+            <div class="swatch-list" id="colorFilter"></div>
+          </div>
+
+          <div class="filter-block compact-filter">
+            <label class="toggle-row"><input id="saleToggle" type="checkbox" /> <span>Только sale</span></label>
+            <label class="toggle-row"><input id="stockToggle" type="checkbox" checked /> <span>Только в наличии</span></label>
+          </div>
+
+          <button class="reset-button" id="resetFilters" type="button">Сбросить фильтры</button>
+        </aside>
+
+        <section class="catalog-results" aria-label="Результаты каталога">
+          <div class="active-filters" id="activeFilters"></div>
+          <div class="product-grid" id="productGrid" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/catalog.js"></script>
+  </body>
+</html>

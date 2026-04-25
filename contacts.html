@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Контакты — VEAST</title><meta name="description" content="Контакты VEAST: форма обратной связи, поддержка покупателя, адреса и коммуникация с брендом." /><link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" /></head>
+  <body>
+    <div data-header></div>
+    <main class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Контакты</span></div>
+      <div class="section-heading"><div><p class="eyebrow">contacts</p><h1>Контакты</h1></div></div>
+      <div class="checkout-layout">
+        <form class="form-card" id="feedbackForm">
+          <h2>Форма обратной связи</h2>
+          <p class="muted">Оставьте вопрос по заказу, размеру, доставке или возврату — мы ответим по указанному email.</p>
+          <div class="form-grid">
+            <div class="field"><label for="name">Имя</label><input id="name" name="name" required /></div>
+            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required /></div>
+            <div class="field full"><label for="message">Сообщение</label><textarea id="message" name="message" required></textarea></div>
+          </div>
+          <button class="button button-primary" type="submit">Отправить</button>
+          <p class="form-message" id="feedbackMessage" role="status"></p>
+        </form>
+        <aside class="summary-card">
+          <h3>VEAST</h3>
+          <p>Email: hello@veast.store</p>
+          <p>Telegram: @veast</p>
+          <p>Город: Москва</p>
+          <p class="muted">Ответим на вопросы по размеру, наличию и оформлению заказа.</p>
+        </aside>
+      </div>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/contacts.js"></script>
+  </body>
+</html>

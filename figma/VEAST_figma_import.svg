@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3370" height="1080" viewBox="0 0 3370 1080">
+<defs>
+<style><![CDATA[.title{font:700 24px Arial,sans-serif;fill:#171a1d}.small{font:700 11px Arial,sans-serif;fill:#7c8991;letter-spacing:1.4px;text-transform:uppercase}.text{font:400 15px Arial,sans-serif;fill:#30363a}.btn{font:700 12px Arial,sans-serif;fill:#fff}.label{font:700 14px Arial,sans-serif;fill:#171a1d}.muted{font:400 12px Arial,sans-serif;fill:#727c83}.screenName{font:800 18px Arial,sans-serif;fill:#171a1d}.arrow{stroke:#171a1d;stroke-width:2;fill:none;marker-end:url(#arrowhead)}]]></style>
+<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#171a1d"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f3f5f6"/>
+<text x="80" y="42" class="title">VEAST — Figma import prototype source</text>
+<text x="80" y="67" class="text">Импортируй этот SVG в Figma. Каждый экран собран как отдельный frame-заготовка; дальше в Prototype mode свяжи кнопки по стрелкам.</text>
+<g id="Frame-Home">
+<rect x="80" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="104" y="132" class="small">VEAST / Home</text>
+<text x="104" y="172" class="screenName">Главная</text>
+<text x="104" y="200" class="muted">Hero VEAST / Drop story / Товары / CTA в каталог</text>
+<rect x="104" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="132" cy="249" r="16" fill="#171a1d"/>
+<text x="156" y="254" class="label">VEAST</text>
+<text x="340" y="254" class="muted">♡  🛒</text>
+<rect x="104" y="300" width="342" height="180" rx="18" fill="#dfe4e7" stroke="#c6cdd2"/>
+<text x="128" y="350" class="small">hero</text><text x="128" y="385" class="title">ORBIT DROP</text>
+<rect x="128" y="420" width="150" height="38" rx="10" fill="#171a1d"/><text x="157" y="444" class="btn">В каталог</text>
+<rect x="104" y="520" width="100" height="96" rx="14" fill="#fff" stroke="#d5dadd"/><text x="116" y="574" class="label">Каталог</text>
+<rect x="216" y="520" width="100" height="96" rx="14" fill="#fff" stroke="#d5dadd"/><text x="228" y="574" class="label">Drop story</text>
+<rect x="328" y="520" width="100" height="96" rx="14" fill="#fff" stroke="#d5dadd"/><text x="340" y="574" class="label">Товары VEAST</text>
+<rect x="104" y="650" width="342" height="150" rx="18" fill="#f4f5f6" stroke="#d5dadd"/><text x="128" y="705" class="label">Drop story</text><text x="128" y="736" class="muted">chrome / washed / Y2K</text>
+</g>
+<path class="arrow" d="M 484 512.0 L 536 512.0"/>
+<g id="Frame-Catalog">
+<rect x="550" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="574" y="132" class="small">VEAST / Catalog</text>
+<text x="574" y="172" class="screenName">Каталог</text>
+<text x="574" y="200" class="muted">Поиск, фильтры, сетка товаров, карточки с packshot</text>
+<rect x="574" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="602" cy="249" r="16" fill="#171a1d"/>
+<text x="626" y="254" class="label">VEAST</text>
+<text x="810" y="254" class="muted">♡  🛒</text>
+<rect x="574" y="300" width="342" height="42" rx="12" fill="#fff" stroke="#c6cdd2"/><text x="594" y="326" class="muted">Поиск и фильтры</text>
+<rect x="574" y="370" width="156" height="190" rx="18" fill="#f7f8f9" stroke="#d5dadd"/>
+<rect x="592" y="388" width="120" height="105" rx="14" fill="#dfe4e7"/>
+<text x="592" y="520" class="label">VEAST Item</text>
+<text x="592" y="543" class="muted">3200 ₽</text>
+<rect x="746" y="370" width="156" height="190" rx="18" fill="#f7f8f9" stroke="#d5dadd"/>
+<rect x="764" y="388" width="120" height="105" rx="14" fill="#dfe4e7"/>
+<text x="764" y="520" class="label">VEAST Item</text>
+<text x="764" y="543" class="muted">3200 ₽</text>
+<rect x="574" y="585" width="156" height="190" rx="18" fill="#f7f8f9" stroke="#d5dadd"/>
+<rect x="592" y="603" width="120" height="105" rx="14" fill="#dfe4e7"/>
+<text x="592" y="735" class="label">VEAST Item</text>
+<text x="592" y="758" class="muted">3200 ₽</text>
+<rect x="746" y="585" width="156" height="190" rx="18" fill="#f7f8f9" stroke="#d5dadd"/>
+<rect x="764" y="603" width="120" height="105" rx="14" fill="#dfe4e7"/>
+<text x="764" y="735" class="label">VEAST Item</text>
+<text x="764" y="758" class="muted">3200 ₽</text>
+</g>
+<path class="arrow" d="M 954 512.0 L 1006 512.0"/>
+<g id="Frame-Product">
+<rect x="1020" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="1044" y="132" class="small">VEAST / Product</text>
+<text x="1044" y="172" class="screenName">Карточка товара</text>
+<text x="1044" y="200" class="muted">Галерея, цена, размер, CTA, с чем носить</text>
+<rect x="1044" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="1072" cy="249" r="16" fill="#171a1d"/>
+<text x="1096" y="254" class="label">VEAST</text>
+<text x="1280" y="254" class="muted">♡  🛒</text>
+<rect x="1044" y="300" width="342" height="240" rx="18" fill="#e3e7ea" stroke="#d5dadd"/><text x="1068" y="420" class="label">Галерея товара</text>
+<text x="1044" y="582" class="title">VEAST Item</text>
+<text x="1044" y="614" class="muted">limited drop · washed cotton · chrome print</text>
+<rect x="1044" y="650" width="70" height="42" rx="12" fill="#171a1d"/><text x="1068" y="676" class="btn">M</text>
+<rect x="1044" y="718" width="342" height="52" rx="14" fill="#171a1d"/><text x="1132" y="750" class="btn">Добавить в корзину</text>
+</g>
+<path class="arrow" d="M 1424 512.0 L 1476 512.0"/>
+<g id="Frame-Cart">
+<rect x="1490" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="1514" y="132" class="small">VEAST / Cart</text>
+<text x="1514" y="172" class="screenName">Корзина</text>
+<text x="1514" y="200" class="muted">Состав заказа, количество, итоговая сумма</text>
+<rect x="1514" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="1542" cy="249" r="16" fill="#171a1d"/>
+<text x="1566" y="254" class="label">VEAST</text>
+<text x="1750" y="254" class="muted">♡  🛒</text>
+<rect x="1514" y="310" width="342" height="90" rx="18" fill="#fff" stroke="#d5dadd"/>
+<rect x="1530" y="326" width="58" height="58" rx="12" fill="#dfe4e7"/>
+<text x="1602" y="354" class="label">Товар VEAST</text><text x="1602" y="378" class="muted">1 × 3200 ₽</text>
+<rect x="1514" y="420" width="342" height="90" rx="18" fill="#fff" stroke="#d5dadd"/>
+<rect x="1530" y="436" width="58" height="58" rx="12" fill="#dfe4e7"/>
+<text x="1602" y="464" class="label">Товар VEAST</text><text x="1602" y="488" class="muted">1 × 3200 ₽</text>
+<rect x="1514" y="610" width="342" height="52" rx="14" fill="#171a1d"/><text x="1612" y="642" class="btn">Оформить заказ</text>
+</g>
+<path class="arrow" d="M 1894 512.0 L 1946 512.0"/>
+<g id="Frame-Checkout">
+<rect x="1960" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="1984" y="132" class="small">VEAST / Checkout</text>
+<text x="1984" y="172" class="screenName">Оформление</text>
+<text x="1984" y="200" class="muted">Форма клиента, согласие, состав заказа</text>
+<rect x="1984" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="2012" cy="249" r="16" fill="#171a1d"/>
+<text x="2036" y="254" class="label">VEAST</text>
+<text x="2220" y="254" class="muted">♡  🛒</text>
+<rect x="1984" y="310" width="342" height="48" rx="12" fill="#fff" stroke="#c6cdd2"/><text x="2004" y="340" class="muted">Имя</text>
+<rect x="1984" y="378" width="342" height="48" rx="12" fill="#fff" stroke="#c6cdd2"/><text x="2004" y="408" class="muted">Телефон</text>
+<rect x="1984" y="446" width="342" height="48" rx="12" fill="#fff" stroke="#c6cdd2"/><text x="2004" y="476" class="muted">Email</text>
+<rect x="1984" y="514" width="342" height="48" rx="12" fill="#fff" stroke="#c6cdd2"/><text x="2004" y="544" class="muted">Адрес</text>
+<rect x="1984" y="630" width="342" height="52" rx="14" fill="#171a1d"/><text x="2082" y="662" class="btn">Отправить заказ</text>
+</g>
+<path class="arrow" d="M 2364 512.0 L 2416 512.0"/>
+<g id="Frame-Thanks">
+<rect x="2430" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="2454" y="132" class="small">VEAST / Thanks</text>
+<text x="2454" y="172" class="screenName">Подтверждение</text>
+<text x="2454" y="200" class="muted">Заказ принят, next steps, ссылка на admin-orders</text>
+<rect x="2454" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="2482" cy="249" r="16" fill="#171a1d"/>
+<text x="2506" y="254" class="label">VEAST</text>
+<text x="2690" y="254" class="muted">♡  🛒</text>
+<circle cx="2625.0" cy="360" r="58" fill="#171a1d"/>
+<text x="2611.0" y="376" class="btn" style="font-size:34px">✓</text>
+<text x="2500" y="470" class="title">Заказ принят</text>
+<text x="2500" y="505" class="muted">Заказ сохранён в data/orders.json</text>
+<rect x="2454" y="590" width="342" height="52" rx="14" fill="#171a1d"/><text x="2532" y="622" class="btn">Открыть admin-orders</text>
+</g>
+<path class="arrow" d="M 2834 512.0 L 2886 512.0"/>
+<g id="Frame-Mobile">
+<rect x="2900" y="90" width="390" height="844" rx="28" fill="#ffffff" stroke="#b7c0c7" stroke-width="2"/>
+<text x="2924" y="132" class="small">VEAST / Mobile</text>
+<text x="2924" y="172" class="screenName">Mobile</text>
+<text x="2924" y="200" class="muted">Адаптивная версия: меню, карточки, checkout в одну колонку</text>
+<rect x="2924" y="222" width="342" height="54" rx="14" fill="#f7f8f9" stroke="#d5dadd"/>
+<circle cx="2952" cy="249" r="16" fill="#171a1d"/>
+<text x="2976" y="254" class="label">VEAST</text>
+<text x="3160" y="254" class="muted">♡  🛒</text>
+<rect x="2924" y="310" width="342" height="72" rx="18" fill="#fff" stroke="#d5dadd"/><text x="2948" y="354" class="label">Бургер</text>
+<rect x="2924" y="410" width="342" height="72" rx="18" fill="#fff" stroke="#d5dadd"/><text x="2948" y="454" class="label">Карточка</text>
+<rect x="2924" y="510" width="342" height="72" rx="18" fill="#fff" stroke="#d5dadd"/><text x="2948" y="554" class="label">CTA</text>
+<rect x="2924" y="610" width="342" height="72" rx="18" fill="#fff" stroke="#d5dadd"/><text x="2948" y="654" class="label">Checkout</text>
+<rect x="2924" y="740" width="342" height="52" rx="14" fill="#171a1d"/><text x="3030" y="772" class="btn">Mobile CTA</text>
+</g>
+</svg>

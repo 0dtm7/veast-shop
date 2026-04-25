@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" role="img" aria-label="veast logo">
+  <defs>
+    <linearGradient id="metal" x1="120" y1="40" x2="380" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.38" stop-color="#d7dde0"/>
+      <stop offset="0.68" stop-color="#f6f8f8"/>
+      <stop offset="1" stop-color="#aeb7bd"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="80" y1="20" x2="420" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c5cdd2"/>
+      <stop offset="0.45" stop-color="#8f989f"/>
+      <stop offset="1" stop-color="#d8dee2"/>
+    </linearGradient>
+    <radialGradient id="sphere" cx="35%" cy="28%" r="65%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#d8e3e8"/>
+      <stop offset="1" stop-color="#9baab2"/>
+    </radialGradient>
+  </defs>
+  <path d="M112 58 C190 116 207 168 226 238 L260 288 L295 238 C314 168 331 116 408 58 C338 158 313 224 260 284 C207 224 182 158 112 58Z" fill="url(#metal)" stroke="url(#edge)" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M118 268 C62 236 139 157 247 105 C326 67 383 58 399 62" fill="none" stroke="#c5ccd0" stroke-width="7" stroke-linecap="round"/>
+  <path d="M334 164 C426 118 478 122 467 178 C452 252 262 301 121 288 C70 283 54 260 70 229" fill="none" stroke="#9ba4aa" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="421" cy="133" r="20" fill="url(#sphere)" stroke="#b4c0c8" stroke-width="4"/>
+  <text x="260" y="314" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="700" letter-spacing="24" fill="#aab2b8">VEAST</text>
+</svg>

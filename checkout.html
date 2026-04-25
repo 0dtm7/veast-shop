@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Оформление заказа — VEAST</title>
+    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, проверка корзины и подтверждение заявки." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div data-header></div>
+    <main id="mainContent" class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><a href="cart.html">Корзина</a><span>/</span><span>Оформление</span></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">checkout</p>
+          <h1>Оформление заказа</h1>
+        </div>
+      </div>
+      <div class="checkout-layout">
+        <form class="form-card" id="checkoutForm" novalidate>
+          <div class="notice-card">
+            <strong>Оформление заказа</strong>
+            <p>После отправки формы заказ проходит проверку, сохраняется и появляется на странице подтверждения.</p>
+          </div>
+          <div class="service-grid checkout-service-grid" aria-label="Условия заказа">
+            <article class="service-card"><span>01</span><strong>Доставка</strong><p>СДЭК, Почта России или самовывоз. Срок 2–5 дней.</p></article>
+            <article class="service-card"><span>02</span><strong>Оплата</strong><p>После подтверждения или картой при получении.</p></article>
+            <article class="service-card"><span>03</span><strong>Возврат</strong><p>14 дней при сохранении товарного вида.</p></article>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="name">Имя</label>
+              <input id="name" name="name" required minlength="2" autocomplete="name" placeholder="Например, Даня" />
+              <small>Минимум 2 символа.</small>
+            </div>
+            <div class="field">
+              <label for="phone">Телефон / Telegram</label>
+              <input id="phone" name="phone" required autocomplete="tel" placeholder="+7... или @username" />
+              <small>Нужно для подтверждения заказа.</small>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required autocomplete="email" placeholder="name@example.com" />
+              <small>На него можно отправить подтверждение.</small>
+            </div>
+            <div class="field">
+              <label for="city">Город</label>
+              <input id="city" name="city" required autocomplete="address-level2" placeholder="Москва" />
+            </div>
+            <div class="field full">
+              <label for="address">Адрес доставки</label>
+              <textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Улица, дом, квартира или пункт выдачи"></textarea>
+            </div>
+            <div class="field">
+              <label for="delivery">Доставка</label>
+              <select id="delivery" name="delivery" required>
+                <option value="СДЭК">СДЭК</option>
+                <option value="Почта России">Почта России</option>
+                <option value="Самовывоз">Самовывоз</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="payment">Оплата</label>
+              <select id="payment" name="payment" required>
+                <option value="После подтверждения">После подтверждения</option>
+                <option value="Картой при получении">Картой при получении</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="comment">Комментарий к заказу</label>
+              <textarea id="comment" name="comment" placeholder="Например: нужна консультация по размеру"></textarea>
+            </div>
+          </div>
+          <label class="policy-check">
+            <input id="privacy" name="privacy" type="checkbox" required />
+            <span>Я согласен с <a href="privacy.html" target="_blank" rel="noreferrer">пользовательским соглашением и политикой конфиденциальности</a> VEAST и понимаю, что данные используются для обработки заказа.</span>
+          </label>
+          <button class="button button-primary full" type="submit">Отправить заказ</button>
+          <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+        </form>
+        <aside class="summary-card" id="checkoutSummary"></aside>
+      </div>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/checkout.js"></script>
+  </body>
+</html>
