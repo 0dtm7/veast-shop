@@ -783,7 +783,7 @@ textarea {
 }
 
 
-/* Product pages, breadcrumbs and responsive states */
+/* ===== VEAST v7: breadcrumbs, size table, product gallery, API errors, adaptive polish ===== */
 .breadcrumbs {
   align-items: center;
   row-gap: 6px;
@@ -1499,7 +1499,7 @@ textarea {
 }
 
 
-/* Legal page and external prototype links */
+/* ===== VEAST v21: legal page and external prototype links ===== */
 .legal-page {
   max-width: 1060px;
 }
@@ -1538,4 +1538,115 @@ textarea {
 :root[data-theme="dark"] .legal-doc .legal-note {
   background: var(--soft-2);
   border-color: var(--line-dark);
+}
+
+
+/* ===== VEAST v15: MVP polish, dark theme cleanup, product CTA icons ===== */
+.product-buybox .card-actions {
+  grid-template-columns: minmax(0, 1fr) 50px 50px;
+  align-items: stretch;
+}
+.product-buybox .square-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.product-buybox .square-button .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.gallery-main {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.gallery-thumbs button {
+  border-radius: 12px;
+}
+.gallery-thumbs button span {
+  color: var(--ink);
+}
+.product-buybox {
+  position: sticky;
+  top: 104px;
+}
+.option-row input[type='number'] {
+  max-width: 104px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-dark);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+.notice-card,
+.policy-check,
+.form-message,
+.mini-service-list span {
+  border-radius: 12px;
+}
+.mobile-nav a.active,
+.desktop-nav a.active {
+  color: var(--ink);
+}
+:root[data-theme="dark"] body {
+  background: linear-gradient(180deg, #06080a, #0a0d10 22%, #090b0d 100%);
+}
+:root[data-theme="dark"] .site-footer {
+  background: rgba(10, 13, 15, .95);
+}
+:root[data-theme="dark"] .enhanced-product .gallery-main,
+:root[data-theme="dark"] .gallery-thumbs button,
+:root[data-theme="dark"] .product-buybox,
+:root[data-theme="dark"] .summary-card,
+:root[data-theme="dark"] .form-card,
+:root[data-theme="dark"] .panel-card,
+:root[data-theme="dark"] .empty-state,
+:root[data-theme="dark"] .cart-row,
+:root[data-theme="dark"] .checkout-item,
+:root[data-theme="dark"] .product-card {
+  border-color: var(--line-dark);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .22);
+}
+:root[data-theme="dark"] .gallery-thumbs button span,
+:root[data-theme="dark"] .product-kpis strong,
+:root[data-theme="dark"] .mini-service-list span,
+:root[data-theme="dark"] .summary-card,
+:root[data-theme="dark"] .notice-card,
+:root[data-theme="dark"] .policy-check {
+  color: var(--ink);
+}
+:root[data-theme="dark"] .gallery-label,
+:root[data-theme="dark"] .gallery-zoom-hint {
+  background: rgba(7, 10, 12, .78);
+  border-color: rgba(255,255,255,.18);
+}
+:root[data-theme="dark"] .size-options button.active,
+:root[data-theme="dark"] .segmented button.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+:root[data-theme="dark"] .product-buybox .square-button,
+:root[data-theme="dark"] .product-buybox input[type='number'] {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--line-dark);
+}
+:root[data-theme="dark"] .button-ghost:hover,
+:root[data-theme="dark"] .icon-button:hover,
+:root[data-theme="dark"] .square-button:hover {
+  background: var(--soft-2);
+}
+@media (max-width: 920px) {
+  .product-buybox {
+    position: static;
+  }
+}
+@media (max-width: 640px) {
+  .product-buybox .card-actions {
+    grid-template-columns: 1fr 46px 46px;
+  }
 }

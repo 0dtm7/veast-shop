@@ -1,10 +1,10 @@
 import { categories, formatPrice, getProductById, products } from './data/products.js';
 
-const CART_KEY = 'veast_cart_v1';
-const FAVORITES_KEY = 'veast_favorites_v1';
-const ORDERS_KEY = 'veast_orders_v1';
-const LAST_ORDER_KEY = 'veast_last_order_v1';
-const THEME_KEY = 'veast_theme_v1';
+const CART_KEY = 'veast_course_cart_v1';
+const FAVORITES_KEY = 'veast_course_favorites_v1';
+const ORDERS_KEY = 'veast_course_orders_v1';
+const LAST_ORDER_KEY = 'veast_course_last_order_v1';
+const THEME_KEY = 'veast_course_theme_v1';
 
 export function readStorage(key, fallback) {
   try {
@@ -189,6 +189,7 @@ export function renderHeader(active = '') {
         <a class="${active === 'favorites' ? 'active' : ''}" href="favorites.html">Избранное</a>
         <a class="${active === 'account' ? 'active' : ''}" href="account.html">Кабинет</a>
         <a class="${active === 'contacts' ? 'active' : ''}" href="contacts.html">Контакты</a>
+        <a class="${active === 'project' ? 'active' : ''}" href="project.html">Проект</a>
       </nav>
       <div class="header-actions">
         <form class="search-box" action="catalog.html" method="get">
@@ -202,11 +203,12 @@ export function renderHeader(active = '') {
       </div>
     </header>
     <nav class="mobile-nav" data-mobile-nav aria-label="Мобильная навигация">
-      <a href="index.html">Главная</a>
-      <a href="catalog.html">Каталог</a>
-      <a href="favorites.html">Избранное</a>
-      <a href="account.html">Кабинет</a>
-      <a href="contacts.html">Контакты</a>
+      <a class="${active === 'home' ? 'active' : ''}" href="index.html">Главная</a>
+      <a class="${active === 'catalog' ? 'active' : ''}" href="catalog.html">Каталог</a>
+      <a class="${active === 'favorites' ? 'active' : ''}" href="favorites.html">Избранное</a>
+      <a class="${active === 'account' ? 'active' : ''}" href="account.html">Кабинет</a>
+      <a class="${active === 'contacts' ? 'active' : ''}" href="contacts.html">Контакты</a>
+      <a class="${active === 'project' ? 'active' : ''}" href="project.html">Проект</a>
     </nav>
   `;
   bindHeader();
@@ -221,7 +223,7 @@ export function renderFooter() {
       <div class="footer-grid container-wide">
         <div>
           <a class="brand footer-brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark.png" alt="" /></span><span>VEAST</span></a>
-          <p>Интернет-магазин одежды в эстетике streetwear, Y2K, techwear и chrome. Каталог, корзина и оформление заказа собраны в один понятный сценарий.</p>
+          <p>Интернет-магазин одежды с измеримым целевым действием: оформление заказа через каталог, карточку товара, корзину и checkout.</p>
         </div>
         <div>
           <h3>Магазин</h3>
@@ -237,12 +239,13 @@ export function renderFooter() {
           <a href="privacy.html">Оферта и конфиденциальность</a>
         </div>
         <div>
-          <h3>Информация</h3>
-          <p>Сервисные страницы и материалы проекта доступны отдельно.</p>
-          <a href="admin-orders.html">Панель заказов</a>
-          <a href="project.html">Документация</a>
-          <a href="prototype.html">Прототип</a>
-          <a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">Figma</a>
+          <h3>Защита проекта</h3>
+          <p>API: /api/products, /api/orders, /api/feedback</p>
+          <p>Тестовый запуск: pnpm dev</p>
+          <a href="admin-orders.html">Backend-заказы</a>
+          <a href="project.html">Страница проекта</a>
+          <a href="prototype.html">Интерактивный прототип</a>
+          <a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">Figma-прототип</a>
         </div>
       </div>
     </footer>

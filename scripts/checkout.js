@@ -64,7 +64,7 @@ function renderSummary() {
     <div class="mini-service-list">
       <span>✓ Возврат 14 дней</span>
       <span>✓ Проверка заказа менеджером</span>
-      <span>✓ Заказ проходит серверную проверку</span>
+      <span>✓ Заказ сохраняется в backend API</span>
     </div>
     <p class="muted">При успешной отправке заказ появится в личном кабинете и в файле data/orders.json при запуске через Node.js.</p>
   `;
@@ -155,7 +155,7 @@ form.addEventListener('submit', async (event) => {
 
   submitButton.disabled = true;
   submitButton.textContent = 'Отправляем заказ...';
-  message.innerHTML = '<span class="api-alert api-alert-loading">Проверяем данные и создаём заказ...</span>';
+  message.innerHTML = '<span class="api-alert api-alert-loading">Создаём заказ через backend API: POST /api/orders...</span>';
 
   let savedOrder = { ...order, savedVia: 'localStorage fallback' };
   try {
@@ -169,11 +169,11 @@ form.addEventListener('submit', async (event) => {
       const status = response.status ? `HTTP ${response.status}` : 'HTTP error';
       throw new Error(`${status}: ${data.error || 'сервер не принял заказ'}`);
     }
-    savedOrder = { ...data.order, savedVia: 'сервер' };
+    savedOrder = { ...data.order, savedVia: 'backend API' };
     message.innerHTML = '<span class="api-alert api-alert-success">Backend подтвердил заказ. Данные сохранены в data/orders.json.</span>';
   } catch (error) {
     const readableError = error instanceof TypeError
-      ? 'Сервер не отвечает. Запусти проект командой npm start и попробуй снова.'
+      ? 'Сервер не отвечает. Для полной backend-демонстрации запусти pnpm dev.'
       : error.message;
     savedOrder = { ...order, savedVia: 'localStorage fallback', apiError: readableError };
     message.innerHTML = `<span class="api-alert api-alert-warning">${escapeHtml(readableError)} Заказ сохранён локально, чтобы пользовательский сценарий не оборвался.</span>`;

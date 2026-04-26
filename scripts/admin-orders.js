@@ -49,8 +49,8 @@ function renderError(error) {
     <div class="empty-state api-error-state">
       <h3>Backend не запущен или endpoint недоступен</h3>
       <p><strong>Что произошло:</strong> ${escapeHtml(error.message)}.</p>
-      <p><strong>Как исправить:</strong> запусти проект командой <code>npm start</code>, открой страницу заново и нажми «Обновить список».</p>
-      <p><strong>Что проверяет эта страница:</strong> GET /api/orders, чтение data/orders.json и отображение заказов.</p>
+      <p><strong>Как исправить:</strong> запусти проект командой <code>pnpm dev</code>, открой страницу заново и нажми «Обновить список».</p>
+      <p><strong>Что проверяет эта страница:</strong> GET /api/orders, чтение data/orders.json и отображение заказов для защиты.</p>
       <div class="inline-actions"><button class="button button-primary" id="retryOrders" type="button">Повторить запрос</button><a class="button button-ghost" href="checkout.html">Создать заказ</a></div>
     </div>
   `;

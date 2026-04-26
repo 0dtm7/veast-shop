@@ -11,7 +11,7 @@ if (!product) {
   container.innerHTML = '<div class="empty-state"><h1>Товар не найден</h1><p>Проверь идентификатор товара или вернись в каталог.</p><a class="button button-primary" href="catalog.html">В каталог</a></div>';
 } else {
   const galleryItems = [product.image, product.imageAlt, ...product.gallery].filter(Boolean);
-  const galleryLabels = ['Вид спереди', 'Вид со спины', 'Деталь логотипа', 'Деталь графики', 'Товар отдельно', 'Деталь'];
+  const galleryLabels = product.galleryLabels || ['Вид спереди', 'Вид со спины', 'Деталь логотипа', 'Деталь графики', 'Товар отдельно', 'Деталь'];
   const related = products.filter((item) => item.id !== product.id && item.category === product.category).slice(0, 4);
   const wearWithProducts = (product.wearWith || []).map((id) => getProductById(id)).filter((item) => item && item.id !== product.id).slice(0, 3);
   const featureTagsHtml = (product.featureTags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('');
@@ -51,7 +51,7 @@ if (!product) {
         <div class="gallery-main">
           <img id="galleryMain" src="${product.image}" alt="${product.title}" />
           <span class="gallery-label">${product.collection}</span>
-          <span class="gallery-zoom-hint">premium photo / detail</span>
+          <span class="gallery-zoom-hint">фото / деталь</span>
         </div>
         <div class="gallery-thumbs">
           ${galleryItems.map((image, index) => `
@@ -90,8 +90,8 @@ if (!product) {
 
         <div class="card-actions">
           <button class="button button-primary product-main-cta" type="button" id="addToCartPrimary">Добавить в корзину</button>
-          <a class="square-button" href="cart.html" aria-label="Открыть корзину">⌑</a>
-          <a class="square-button" href="checkout.html" aria-label="Перейти к оформлению">→</a>
+          <a class="square-button" href="cart.html" aria-label="Открыть корзину" title="Открыть корзину"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 8.4h11.6l-.8 10.1a2 2 0 0 1-2 1.8H9a2 2 0 0 1-2-1.8L6.2 8.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8.4V7a3 3 0 0 1 6 0v1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a>
+          <a class="square-button" href="checkout.html" aria-label="Перейти к оформлению" title="Перейти к оформлению"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m13 7 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
 
         <div class="mini-service-list">
@@ -106,12 +106,12 @@ if (!product) {
     <section class="section">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">styling tips</p>
+          <p class="eyebrow">подбор образа</p>
           <h2>С чем носить</h2>
         </div>
       </div>
       <div class="style-intro">
-        <p>Для ${product.title} мы подобрали позиции из того же VEAST ORBIT DROP, чтобы образ выглядел цельно и его было проще собрать сразу.</p>
+        <p>Блок показывает товар как часть готового образа. Для ${product.title} мы рекомендуем позиции из того же VEAST Orbit Drop, чтобы пользователь сразу видел удачное сочетание и быстрее принимал решение о покупке.</p>
       </div>
       <div class="styling-grid">
         ${wearWithMarkup}
@@ -121,7 +121,7 @@ if (!product) {
     <section class="section">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">product details</p>
+          <p class="eyebrow">детали товара</p>
           <h2>Что важно перед покупкой</h2>
         </div>
       </div>
@@ -136,7 +136,7 @@ if (!product) {
     <section class="section">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">more from drop</p>
+          <p class="eyebrow">ещё из дропа</p>
           <h2>Похожие товары</h2>
         </div>
       </div>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Оформление заказа — VEAST</title>
-    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, проверка корзины и подтверждение заявки." />
+    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, проверка корзины и отправка заказа в backend API." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -23,8 +23,8 @@
       <div class="checkout-layout">
         <form class="form-card" id="checkoutForm" novalidate>
           <div class="notice-card">
-            <strong>Оформление заказа</strong>
-            <p>После отправки формы заказ проходит проверку, сохраняется и появляется на странице подтверждения.</p>
+            <strong>Целевое действие проекта</strong>
+            <p>После отправки формы создаётся заказ: frontend передаёт данные в backend, сервер валидирует поля и сохраняет заявку.</p>
           </div>
           <div class="service-grid checkout-service-grid" aria-label="Условия заказа">
             <article class="service-card"><span>01</span><strong>Доставка</strong><p>СДЭК, Почта России или самовывоз. Срок 2–5 дней.</p></article>

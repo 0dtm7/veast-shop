@@ -220,56 +220,20 @@ async function handleApi(req, res, url) {
 }
 
 async function serveStatic(req, res, url) {
-  const routeMap = {
-    '/': '/index.html',
-    '/index': '/index.html',
-    '/catalog': '/catalog.html',
-    '/catalog.html': '/catalog.html',
-    '/product': '/product.html',
-    '/product.html': '/product.html',
-    '/cart': '/cart.html',
-    '/cart.html': '/cart.html',
-    '/checkout': '/checkout.html',
-    '/checkout.html': '/checkout.html',
-    '/confirmation': '/confirmation.html',
-    '/confirmation.html': '/confirmation.html',
-    '/thanks': '/thanks.html',
-    '/thanks.html': '/thanks.html',
-    '/admin-orders': '/admin-orders.html',
-    '/admin-orders.html': '/admin-orders.html',
-    '/contacts': '/contacts.html',
-    '/contacts.html': '/contacts.html',
-    '/favorites': '/favorites.html',
-    '/favorites.html': '/favorites.html',
-    '/account': '/account.html',
-    '/account.html': '/account.html',
-    '/privacy': '/privacy.html',
-    '/privacy.html': '/privacy.html',
-    '/project': '/project.html',
-    '/project.html': '/project.html',
-    '/prototype': '/prototype.html',
-    '/prototype.html': '/prototype.html',
-  };
-
   let pathname = decodeURIComponent(url.pathname);
-  pathname = routeMap[pathname] || pathname;
-
-  const safePath = path.resolve(__dirname, `.${pathname}`);
-
-  if (!safePath.startsWith(__dirname)) {
-    return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
-  }
-
+  if (pathname === '/') pathname = '/index.html';
+  const safePath = path.normalize(path.join(__dirname, pathname));
+  if (!safePath.startsWith(__dirname)) return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
   try {
     const data = await readFile(safePath);
     const ext = path.extname(safePath).toLowerCase();
-    return send(res, 200, data, mime[ext] || 'application/octet-stream');
+    send(res, 200, data, mime[ext] || 'application/octet-stream');
   } catch {
     try {
       const data = await readFile(path.join(__dirname, '404.html'));
-      return send(res, 404, data, 'text/html; charset=utf-8');
+      send(res, 404, data, 'text/html; charset=utf-8');
     } catch {
-      return send(res, 404, 'Not Found', 'text/plain; charset=utf-8');
+      send(res, 404, 'Not found', 'text/plain; charset=utf-8');
     }
   }
 }

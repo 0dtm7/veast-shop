@@ -13,11 +13,11 @@ form.addEventListener('submit', async (event) => {
       body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error('API недоступен');
-    message.textContent = 'Сообщение отправлено. Мы свяжемся с вами по указанному email.';
+    message.textContent = 'Сообщение отправлено и сохранено через backend.';
   } catch {
-    const local = JSON.parse(localStorage.getItem('veast_feedback_v1') || '[]');
+    const local = JSON.parse(localStorage.getItem('veast_course_feedback_v1') || '[]');
     local.push(payload);
-    localStorage.setItem('veast_feedback_v1', JSON.stringify(local));
+    localStorage.setItem('veast_course_feedback_v1', JSON.stringify(local));
     message.textContent = 'Сообщение сохранено локально. Backend будет работать при запуске через Node.js.';
   }
   form.reset();

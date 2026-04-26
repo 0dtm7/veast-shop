@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VEAST — streetwear интернет-магазин одежды</title>
-    <meta name="description" content="VEAST — интернет-магазин одежды в эстетике streetwear, Y2K, techwear и chrome." />
+    <title>VEAST — коммерческий интернет-магазин одежды</title>
+    <meta name="description" content="VEAST — учебный коммерческий веб-продукт: каталог одежды, оформление заказа и backend API." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -17,12 +17,12 @@
         <img class="hero-media hero-media-orbit" src="assets/hero-orbit-drop.jpg" alt="VEAST Orbit Drop — основной visual главной страницы" />
         <div class="hero-content">
           <img class="hero-logo" src="assets/veast-logo-full.png" alt="VEAST" />
-          <p class="eyebrow">streetwear / y2k / techwear</p>
+          <p class="eyebrow">commercial streetwear product</p>
           <h1>VEAST</h1>
-          <p class="hero-copy">Интернет-магазин одежды с тёмными washed-фактурами, chrome-графикой и свободными streetwear-силуэтами.</p>
+          <p class="hero-copy">Интернет-магазин одежды в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.</p>
           <div class="hero-actions">
             <a class="button button-primary" href="catalog.html">Перейти в каталог</a>
-            <a class="button button-ghost" href="catalog.html?tag=new">Смотреть дроп</a>
+            <a class="button button-ghost" href="project.html">Открыть проект</a>
           </div>
         </div>
       </section>
@@ -34,7 +34,7 @@
         <a class="quick-tile" href="catalog.html?category=accessory"><span>Финиш образа</span><strong>Accessories</strong></a>
       </section>
 
-      <section class="section container-wide drop-story-section" id="orbit-drop">
+      <section class="section container-wide drop-story-section">
         <div class="section-heading">
           <div>
             <p class="eyebrow">drop story</p>
@@ -50,12 +50,12 @@
           <article class="story-card">
             <span>02</span>
             <h3>Washed-фактуры</h3>
-            <p>Эффект выстиранной ткани делает вещи визуально мягче и добавляет ощущение живого streetwear-дропа.</p>
+            <p>Эффект выстиранной ткани делает вещи живыми и не слишком стерильными. За счёт этого коллекция выглядит как реальный streetwear-дроп, а не как набор макетов.</p>
           </article>
           <article class="story-card">
             <span>03</span>
             <h3>Streetwear / Y2K / Techwear</h3>
-            <p>Силуэты, палитра и графика соединяют streetwear-посадку, Y2K-вайб и лёгкий techwear-характер.</p>
+            <p>Силуэты, палитра и графика соединяют streetwear-посадку, Y2K-вайб и лёгкий techwear-характер. Это удобно объясняет идею коллекции на защите.</p>
           </article>
         </div>
       </section>
@@ -63,8 +63,8 @@
       <section class="section container-wide">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">shopping route</p>
-            <h2>Как оформить заказ</h2>
+            <p class="eyebrow">conversion path</p>
+            <h2>Путь к покупке за 4 шага</h2>
           </div>
           <a class="button button-ghost" href="checkout.html">Оформление</a>
         </div>
@@ -97,7 +97,7 @@
         <div class="trust-grid">
           <article class="trust-card"><span>✓</span><h3>Понятный товар</h3><p>В карточке есть цена, размеры, состав, уход, доставка и возврат.</p></article>
           <article class="trust-card"><span>✓</span><h3>Контроль заказа</h3><p>Корзина показывает количество, размер, стоимость позиции и итоговую сумму.</p></article>
-          <article class="trust-card"><span>✓</span><h3>Надёжная заявка</h3><p>После отправки формы заказ проходит проверку и сохраняется в системе.</p></article>
+          <article class="trust-card"><span>✓</span><h3>Backend-процесс</h3><p>Форма заказа отправляет данные в API, где выполняется валидация и сохранение.</p></article>
           <article class="trust-card"><span>✓</span><h3>Приватность</h3><p>Пользователь видит оферту и политику конфиденциальности до отправки контактных данных.</p></article>
         </div>
       </section>
@@ -122,7 +122,7 @@
         </div>
         <div class="faq-list">
           <details open><summary>Можно ли оформить заказ без регистрации?</summary><p>Да. Для основного сценария достаточно корзины и формы оформления заказа.</p></details>
-          <details><summary>Что происходит после отправки формы?</summary><p>Заказ проверяется, сохраняется в системе и отображается на странице подтверждения.</p></details>
+          <details><summary>Что происходит после отправки формы?</summary><p>Frontend отправляет заказ в backend API. Сервер проверяет данные и сохраняет заказ в JSON-файл.</p></details>
           <details><summary>Что будет, если корзина пустая?</summary><p>Сайт показывает пустое состояние и ведёт пользователя обратно в каталог.</p></details>
         </div>
       </section>

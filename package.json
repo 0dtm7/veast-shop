@@ -1,12 +1,13 @@
 {
-  "name": "veast-shop",
-  "version": "1.3.1",
+  "name": "veast-course-commercial-project",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node server.js",
     "start": "node server.js",
-    "dev": "node server.js"
+    "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST streetwear e-commerce website"
+  "description": "VEAST fashion e-commerce MVP prepared for course defence and Render deployment"
 }

@@ -16,12 +16,12 @@ async function loadOrders() {
     const serverOrders = await response.json();
     const merged = [...localOrders];
     serverOrders.forEach((order) => {
-      if (!merged.some((item) => item.id === order.id)) merged.push({ ...order, savedVia: 'сервер' });
+      if (!merged.some((item) => item.id === order.id)) merged.push({ ...order, savedVia: 'backend API' });
     });
     saveLocalOrders(merged);
-    return { orders: merged, apiStatus: 'сервер подключён' };
+    return { orders: merged, apiStatus: 'backend API подключён' };
   } catch (error) {
-    return { orders: localOrders, apiStatus: `сервер недоступен, показаны локальные заказы: ${error.message}` };
+    return { orders: localOrders, apiStatus: `backend недоступен, показаны локальные заказы: ${error.message}` };
   }
 }
 
@@ -34,12 +34,12 @@ function renderOrders(payload) {
     <article class="panel-card account-row">
       <div>
         <h3>${escapeHtml(order.id)}</h3>
-        <p class="muted">${new Date(order.createdAt).toLocaleString('ru-RU')} · ${escapeHtml(order.status || 'Новая заявка')} · ${escapeHtml(order.savedVia || 'сервер/local')}</p>
+        <p class="muted">${new Date(order.createdAt).toLocaleString('ru-RU')} · ${escapeHtml(order.status || 'Новая заявка')} · ${escapeHtml(order.savedVia || 'backend/local')}</p>
       </div>
       <strong>${formatPrice(order.total || 0)}</strong>
     </article>
   `).join('') : '<div class="empty-state"><h3>Заказов пока нет</h3><p>Оформи заказ, чтобы он появился в истории и подтвердил коммерческий сценарий.</p><a class="button button-primary" href="catalog.html">Перейти в каталог</a></div>');
 }
 
-ordersList.innerHTML = '<div class="empty-state"><h3>Загружаем историю заказов</h3><p>Проверяем сохранённые заказы.</p></div>';
+ordersList.innerHTML = '<div class="empty-state"><h3>Загружаем историю заказов</h3><p>Проверяем localStorage и backend API.</p></div>';
 loadOrders().then(renderOrders);
