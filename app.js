@@ -210,6 +210,30 @@ export function renderHeader(active = '') {
       <a class="${active === 'contacts' ? 'active' : ''}" href="contacts.html">Контакты</a>
       <a class="${active === 'project' ? 'active' : ''}" href="project.html">Проект</a>
     </nav>
+    <nav class="mobile-bottom-nav" aria-label="Быстрая мобильная навигация">
+      <a class="${active === 'home' ? 'active' : ''}" href="index.html" aria-label="Главная">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4l8 7.2V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Главная</span>
+      </a>
+      <a class="${active === 'catalog' ? 'active' : ''}" href="catalog.html" aria-label="Каталог">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v7H4V5Zm9 0h7v7h-7V5ZM4 14h7v5H4v-5Zm9 0h7v5h-7v-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Каталог</span>
+      </a>
+      <a class="${active === 'favorites' ? 'active' : ''}" href="favorites.html" aria-label="Избранное">
+        ${heartIcon}
+        <span>Избранное</span>
+        <em data-favorite-count>0</em>
+      </a>
+      <a href="cart.html" aria-label="Корзина">
+        ${cartIcon}
+        <span>Корзина</span>
+        <em data-cart-count>0</em>
+      </a>
+      <a class="${active === 'account' ? 'active' : ''}" href="account.html" aria-label="Кабинет">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 9a7 7 0 0 0-14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Кабинет</span>
+      </a>
+    </nav>
   `;
   bindHeader();
   updateHeaderCounters();
@@ -218,35 +242,69 @@ export function renderHeader(active = '') {
 export function renderFooter() {
   const el = document.querySelector('[data-footer]');
   if (!el) return;
+  const socialLinks = [
+    {
+      label: 'Telegram',
+      href: 'https://t.me/veastshop',
+      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4.8 18 19.1c-.2 1-.8 1.2-1.7.7l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.4-4.9L17.7 6c.4-.4-.1-.6-.6-.2L6 12.8l-4.8-1.5c-1-.3-1-1 .2-1.5L19.9 2.7c.9-.3 1.7.2 1.1 2.1Z" fill="currentColor"/></svg>',
+    },
+    {
+      label: 'VK',
+      href: 'https://vk.com/veastshop',
+      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 7.2c.1 5.6 2.9 9 7.8 9.3h.3v-3.2c2 .2 3.5 1.6 4.1 3.2h2.9c-.8-2.4-2.6-3.9-3.7-4.5 1.1-.7 2.7-2.4 3.1-4.8H16c-.5 1.7-2.1 3.5-3.7 3.7V7.2H9.6v6.4C8 13.2 6.1 11.2 6 7.2H4.2Z" fill="currentColor"/></svg>',
+    },
+    {
+      label: 'Instagram',
+      href: 'https://instagram.com/veast.shop',
+      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg>',
+    },
+    {
+      label: 'Pinterest',
+      href: 'https://pinterest.com/veastshop',
+      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.1 3.5a8.3 8.3 0 0 0-3.2 16l.7-3.1c.1-.4.1-.7 0-1.1-.1-.4-.5-1.2-.5-2 0-1.8 1-3.1 2.3-3.1 1.1 0 1.6.8 1.6 1.8 0 1.1-.7 2.8-1.1 4.4-.3 1.3.7 2.4 2 2.4 2.4 0 4.2-2.5 4.2-6.1 0-3.2-2.3-5.4-5.6-5.4-3.8 0-6 2.9-6 5.8 0 1.1.4 2.3 1 3 .1.1.1.3.1.5l-.4 1.6c-.1.3-.3.4-.6.2-1.7-.8-2.8-3.2-2.8-5.2 0-4.2 3.1-8.1 8.9-8.1 4.7 0 8.3 3.3 8.3 7.8 0 4.6-2.9 8.3-7 8.3-1.4 0-2.7-.7-3.1-1.6l-.9 3.2c-.3 1.1-1.1 2.5-1.6 3.4" fill="currentColor"/></svg>',
+    },
+  ];
+  const socials = socialLinks.map((item) => `
+    <a class="social-link" href="${item.href}" target="_blank" rel="noreferrer" aria-label="VEAST в ${item.label}" title="${item.label}">${item.icon}<span>${item.label}</span></a>
+  `).join('');
+
   el.innerHTML = `
     <footer class="site-footer">
-      <div class="footer-grid container-wide">
-        <div>
-          <a class="brand footer-brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark.png" alt="" /></span><span>VEAST</span></a>
-          <p>Интернет-магазин одежды с измеримым целевым действием: оформление заказа через каталог, карточку товара, корзину и checkout.</p>
+      <div class="footer-grid footer-grid-clean container-wide">
+        <div class="footer-about">
+          <a class="brand footer-brand" href="index.html" aria-label="VEAST, главная"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark.png" alt="" /></span><span>VEAST</span></a>
+          <p>Интернет-магазин одежды в эстетике streetwear / Y2K / techwear. Собери образ, добавь товар в корзину и оформи заказ без лишних шагов.</p>
+          <div class="footer-socials" aria-label="Социальные сети VEAST">
+            <p class="socials-title">Соцсети</p>
+            <div class="social-list">${socials}</div>
+          </div>
         </div>
         <div>
           <h3>Магазин</h3>
-          ${categories.filter((item) => item.id !== 'all').slice(0, 5).map((item) => `<a href="catalog.html?category=${item.id}">${item.title}</a>`).join('')}
+          <a href="catalog.html">Каталог</a>
+          <a href="catalog.html?category=hoodies">Худи</a>
+          <a href="catalog.html?category=tshirts">Футболки</a>
+          <a href="catalog.html?category=outerwear">Верхняя одежда</a>
+          <a href="catalog.html?category=accessories">Аксессуары</a>
         </div>
         <div>
-          <h3>Сервис</h3>
+          <h3>Покупателю</h3>
           <a href="cart.html">Корзина</a>
-          <a href="checkout.html">Оформление</a>
+          <a href="checkout.html">Оформление заказа</a>
           <a href="account.html">Личный кабинет</a>
-          <a href="contacts.html">Обратная связь</a>
-          <a class="telegram-link" href="https://t.me/veastshop" target="_blank" rel="noreferrer">Telegram VEAST</a>
+          <a href="contacts.html">Контакты</a>
           <a href="privacy.html">Оферта и конфиденциальность</a>
         </div>
-        <div>
-          <h3>Защита проекта</h3>
-          <p>API: /api/products, /api/orders, /api/feedback</p>
-          <p>Тестовый запуск: pnpm dev</p>
-          <a href="admin-orders.html">Backend-заказы</a>
-          <a href="project.html">Страница проекта</a>
-          <a href="prototype.html">Интерактивный прототип</a>
-          <a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">Figma-прототип</a>
+        <div class="footer-drop-note">
+          <h3>VEAST Drop</h3>
+          <p>Washed black, chrome graphics, relaxed fit. Минимум шума — максимум образа.</p>
+          <a class="button button-ghost footer-cta" href="catalog.html">Смотреть каталог</a>
         </div>
+      </div>
+      <div class="footer-bottom container-wide">
+        <span>© 2026 VEAST</span>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="privacy.html">Публичная оферта</a>
       </div>
     </footer>
   `;
