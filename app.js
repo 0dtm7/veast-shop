@@ -250,18 +250,8 @@ export function renderFooter() {
     },
     {
       label: 'VK',
-      href: 'https://vk.com/veastshop',
+      href: 'https://vk.com/VEASTshop',
       icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 7.2c.1 5.6 2.9 9 7.8 9.3h.3v-3.2c2 .2 3.5 1.6 4.1 3.2h2.9c-.8-2.4-2.6-3.9-3.7-4.5 1.1-.7 2.7-2.4 3.1-4.8H16c-.5 1.7-2.1 3.5-3.7 3.7V7.2H9.6v6.4C8 13.2 6.1 11.2 6 7.2H4.2Z" fill="currentColor"/></svg>',
-    },
-    {
-      label: 'Instagram',
-      href: 'https://instagram.com/veast.shop',
-      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg>',
-    },
-    {
-      label: 'Pinterest',
-      href: 'https://pinterest.com/veastshop',
-      icon: '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.1 3.5a8.3 8.3 0 0 0-3.2 16l.7-3.1c.1-.4.1-.7 0-1.1-.1-.4-.5-1.2-.5-2 0-1.8 1-3.1 2.3-3.1 1.1 0 1.6.8 1.6 1.8 0 1.1-.7 2.8-1.1 4.4-.3 1.3.7 2.4 2 2.4 2.4 0 4.2-2.5 4.2-6.1 0-3.2-2.3-5.4-5.6-5.4-3.8 0-6 2.9-6 5.8 0 1.1.4 2.3 1 3 .1.1.1.3.1.5l-.4 1.6c-.1.3-.3.4-.6.2-1.7-.8-2.8-3.2-2.8-5.2 0-4.2 3.1-8.1 8.9-8.1 4.7 0 8.3 3.3 8.3 7.8 0 4.6-2.9 8.3-7 8.3-1.4 0-2.7-.7-3.1-1.6l-.9 3.2c-.3 1.1-1.1 2.5-1.6 3.4" fill="currentColor"/></svg>',
     },
   ];
   const socials = socialLinks.map((item) => `
