@@ -6,6 +6,7 @@ const ORDERS_KEY = 'veast_course_orders_v1';
 const LAST_ORDER_KEY = 'veast_course_last_order_v1';
 const THEME_KEY = 'veast_course_theme_v1';
 const LANGUAGE_KEY = 'veast_course_language_v1';
+const LANGUAGE_MIGRATION_KEY = 'veast_force_en_v29';
 
 const I18N_REPLACEMENTS = [
   ['Перейти к содержимому', 'Skip to content'],
@@ -398,7 +399,7 @@ export function productCard(product) {
 
   return [
     '<article class="product-card" data-product-card="' + product.id + '">',
-      '<a class="product-media" href="product.html?id=' + product.id + '" aria-label="Открыть карточку товара ' + escapeHtml(product.title) + '">',
+      '<a class="product-media" href="product.html?id=' + product.id + '" aria-label="' + (isEnglish() ? 'Open product page ' : 'Открыть карточку товара ') + escapeHtml(product.title) + '">',
         '<img class="product-img product-img-front" src="' + (product.cardImage || product.image) + '" alt="' + escapeHtml(product.title) + '" loading="lazy" />',
         '<img class="product-img product-img-back" src="' + (product.cardImageAlt || product.cardImage || product.imageAlt || product.image) + '" alt="' + escapeHtml(product.title) + (isEnglish() ? ', alternate view' : ', второй вид') + '" loading="lazy" />',
         '<div class="badge-row">' + badgeHtml + '</div>',
@@ -617,7 +618,7 @@ function updateThemeButton(theme = getTheme()) {
   document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
     const isDark = theme === 'dark';
     button.setAttribute('aria-pressed', String(isDark));
-    button.setAttribute('title', isDark ? 'Переключить на светлую тему' : 'Переключить на тёмную тему');
+    button.setAttribute('title', isEnglish() ? (isDark ? 'Switch to light theme' : 'Switch to dark theme') : (isDark ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'));
   });
   document.querySelectorAll('[data-theme-icon]').forEach((icon) => {
     icon.textContent = theme === 'dark' ? '☀' : '☾';

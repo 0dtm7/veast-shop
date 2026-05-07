@@ -72,8 +72,8 @@ function validateOrder(order) {
   if (!customer.address || String(customer.address).trim().length < 6) return 'Shipping address is required';
   if (!customer.privacyAccepted) return 'Privacy policy consent is required';
   if (!Array.isArray(order.items) || order.items.length === 0) return 'The order contains no items';
-  if (order.items.some((item) => !item.productId || !item.quantity || Number(item.quantity) <= 0)) return 'Некорректные товары в заказе';
-  if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) return 'Некорректная сумма заказа';
+  if (order.items.some((item) => !item.productId || !item.quantity || Number(item.quantity) <= 0)) return 'Invalid items in order';
+  if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) return 'Invalid order total';
   return null;
 }
 
@@ -81,15 +81,15 @@ function normalizeOrder(order) {
   return {
     id: order.id || `VST-${Date.now()}`,
     createdAt: order.createdAt || new Date().toISOString(),
-    status: order.status || 'Новая заявка',
+    status: order.status || 'New order',
     customer: {
       name: String(order.customer.name).trim(),
       phone: String(order.customer.phone).trim(),
       email: String(order.customer.email).trim(),
       city: String(order.customer.city).trim(),
       address: String(order.customer.address).trim(),
-      delivery: String(order.customer.delivery || 'Не указано'),
-      payment: String(order.customer.payment || 'Не указано'),
+      delivery: String(order.customer.delivery || 'Not specified'),
+      payment: String(order.customer.payment || 'Not specified'),
       comment: String(order.customer.comment || '').trim(),
       privacyAccepted: Boolean(order.customer.privacyAccepted),
     },
@@ -112,7 +112,7 @@ function normalizeOrder(order) {
 function validateFeedback(feedback) {
   if (!feedback.name || String(feedback.name).trim().length < 2) return 'Name must contain at least 2 characters';
   if (!isEmail(feedback.email)) return 'Invalid email address';
-  if (!feedback.message || String(feedback.message).trim().length < 4) return 'Сообщение слишком короткое';
+  if (!feedback.message || String(feedback.message).trim().length < 4) return 'Message is too short';
   return null;
 }
 
@@ -130,13 +130,13 @@ async function validateBusinessOrder(order) {
 
   for (const item of order.items) {
     const product = productMap.get(String(item.productId));
-    if (!product) return `Товар ${item.productId} не найден в каталоге`;
-    if (!product.sizes.includes(String(item.size || 'OS'))) return `Размер ${item.size} недоступен для товара ${product.title}`;
-    if (Number(item.quantity) > product.stock) return `Недостаточно остатков для товара ${product.title}`;
+    if (!product) return `Product ${item.productId} not found in catalog`;
+    if (!product.sizes.includes(String(item.size || 'OS'))) return `Size ${item.size} is not available for ${product.title}`;
+    if (Number(item.quantity) > product.stock) return `Not enough stock available for ${product.title}`;
     calculatedTotal += product.price * Number(item.quantity);
   }
 
-  if (Math.abs(calculatedTotal - Number(order.total)) > 1) return 'Сумма заказа не совпадает с серверным расчётом';
+  if (Math.abs(calculatedTotal - Number(order.total)) > 1) return 'Order total does not match the server calculation';
   return null;
 }
 
@@ -163,7 +163,7 @@ async function handleApi(req, res, url) {
     const id = decodeURIComponent(url.pathname.replace('/api/products/', ''));
     const { products = [] } = await loadProductsModule();
     const product = products.find((item) => item.id === id || item.slug === id);
-    if (!product) return send(res, 404, JSON.stringify({ error: 'Товар не найден' }));
+    if (!product) return send(res, 404, JSON.stringify({ error: 'Product not found' }));
     return send(res, 200, JSON.stringify(product));
   }
 
@@ -175,7 +175,7 @@ async function handleApi(req, res, url) {
     const id = decodeURIComponent(url.pathname.replace('/api/orders/', ''));
     const orders = await readJson(ORDERS_FILE);
     const order = orders.find((item) => item.id === id);
-    if (!order) return send(res, 404, JSON.stringify({ error: 'Заказ не найден' }));
+    if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
     return send(res, 200, JSON.stringify(order));
   }
 
@@ -190,7 +190,7 @@ async function handleApi(req, res, url) {
       await writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
       return send(res, 201, JSON.stringify({ ok: true, order: savedOrder }));
     } catch {
-      return send(res, 400, JSON.stringify({ error: 'Некорректный JSON' }));
+      return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));
     }
   }
 
@@ -212,7 +212,7 @@ async function handleApi(req, res, url) {
       await writeFile(FEEDBACK_FILE, JSON.stringify(list, null, 2), 'utf8');
       return send(res, 201, JSON.stringify({ ok: true, feedback: saved }));
     } catch {
-      return send(res, 400, JSON.stringify({ error: 'Некорректный JSON' }));
+      return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));
     }
   }
 
