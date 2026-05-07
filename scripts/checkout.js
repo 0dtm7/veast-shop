@@ -24,9 +24,9 @@ function renderSummary() {
   const cart = getCart();
   if (!cart.length) {
     summary.innerHTML = `
-      <h3>Заказ</h3>
-      <p class="muted">Корзина пустая. Основной сценарий покупки начинается с выбора товара.</p>
-      <a class="button button-primary full" href="catalog.html">В каталог</a>
+      <h3>Order</h3>
+      <p class="muted">Your cart is empty. The main shopping flow starts with selecting a product.</p>
+      <a class="button button-primary full" href="catalog.html">Go to catalog</a>
     `;
     submitButton.disabled = true;
     return;
@@ -36,12 +36,12 @@ function renderSummary() {
   const total = calculateCart(cart);
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   summary.innerHTML = `
-    <h3>Состав заказа</h3>
+    <h3>Order summary</h3>
     <div class="checkout-steps">
-      <span class="done">1. Товар выбран</span>
-      <span class="done">2. Корзина собрана</span>
-      <span>3. Данные покупателя</span>
-      <span>4. Подтверждение</span>
+      <span class="done">1. Product selected</span>
+      <span class="done">2. Cart ready</span>
+      <span>3. Customer details</span>
+      <span>4. Confirmation</span>
     </div>
     ${cart.map((item) => {
       const product = getProductById(item.productId);
@@ -50,23 +50,23 @@ function renderSummary() {
           <img src="${product.cardImage || product.image}" alt="${escapeHtml(product.title)}" />
           <div>
             <strong>${escapeHtml(product.title)}</strong>
-            <p class="muted">Размер ${escapeHtml(item.size)} · ${item.quantity} шт.</p>
+            <p class="muted">Size ${escapeHtml(item.size)} · ${item.quantity} pc.</p>
             <p>${formatPrice(product.price * item.quantity)}</p>
           </div>
         </div>
       ` : '';
     }).join('')}
-    <div class="total-row"><span>Позиций</span><strong>${count}</strong></div>
-    <div class="total-row"><span>Товары</span><strong>${formatPrice(total)}</strong></div>
-    <div class="total-row"><span>Доставка</span><strong>2–5 дней</strong></div>
-    <div class="total-row"><span>Оплата</span><strong>после подтверждения</strong></div>
-    <div class="total-row total-strong"><span>Итого</span><strong>${formatPrice(total)}</strong></div>
+    <div class="total-row"><span>Items</span><strong>${count}</strong></div>
+    <div class="total-row"><span>Products</span><strong>${formatPrice(total)}</strong></div>
+    <div class="total-row"><span>Shipping</span><strong>2–5 days</strong></div>
+    <div class="total-row"><span>Payment</span><strong>after confirmation</strong></div>
+    <div class="total-row total-strong"><span>Total</span><strong>${formatPrice(total)}</strong></div>
     <div class="mini-service-list">
-      <span>✓ Возврат 14 дней</span>
-      <span>✓ Проверка заказа менеджером</span>
-      <span>✓ Заказ сохраняется в backend API</span>
+      <span>✓ 14-day returns</span>
+      <span>✓ Order review by manager</span>
+      <span>✓ Order saved in backend API</span>
     </div>
-    <p class="muted">При успешной отправке заказ появится в личном кабинете и в файле data/orders.json при запуске через Node.js.</p>
+    <p class="muted">After a successful submission, the order appears in the account page and in data/orders.json when the project runs via Node.js.</p>
   `;
 }
 
@@ -78,12 +78,12 @@ function validateForm(formData) {
   const city = String(formData.city || '').trim();
   const address = String(formData.address || '').trim();
 
-  if (name.length < 2) errors.name = 'Введите имя минимум из 2 символов.';
-  if (phone.length < 5) errors.phone = 'Укажите телефон или Telegram для связи.';
-  if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Введите корректный email.';
-  if (city.length < 2) errors.city = 'Укажите город доставки.';
-  if (address.length < 6) errors.address = 'Укажите адрес или пункт выдачи.';
-  if (!form.privacy.checked) errors.privacy = 'Нужно согласиться с пользовательским соглашением и политикой конфиденциальности.';
+  if (name.length < 2) errors.name = 'Enter a name with at least 2 characters.';
+  if (phone.length < 5) errors.phone = 'Enter a phone number or Telegram handle.';
+  if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Enter a valid email address.';
+  if (city.length < 2) errors.city = 'Enter the delivery city.';
+  if (address.length < 6) errors.address = 'Enter the address or pickup point.';
+  if (!form.privacy.checked) errors.privacy = 'You need to accept the terms and privacy policy.';
 
   return errors;
 }
@@ -137,7 +137,7 @@ form.addEventListener('submit', async (event) => {
   const order = {
     id: `VST-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    status: 'Новая заявка',
+    status: 'New order',
     customer: {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -154,8 +154,8 @@ form.addEventListener('submit', async (event) => {
   };
 
   submitButton.disabled = true;
-  submitButton.textContent = 'Отправляем заказ...';
-  message.innerHTML = '<span class="api-alert api-alert-loading">Создаём заказ через backend API: POST /api/orders...</span>';
+  submitButton.textContent = 'Submitting order...';
+  message.innerHTML = '<span class="api-alert api-alert-loading">Creating order via backend API: POST /api/orders...</span>';
 
   let savedOrder = { ...order, savedVia: 'localStorage fallback' };
   try {
@@ -167,16 +167,16 @@ form.addEventListener('submit', async (event) => {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       const status = response.status ? `HTTP ${response.status}` : 'HTTP error';
-      throw new Error(`${status}: ${data.error || 'сервер не принял заказ'}`);
+      throw new Error(`${status}: ${data.error || 'server rejected the order'}`);
     }
     savedOrder = { ...data.order, savedVia: 'backend API' };
-    message.innerHTML = '<span class="api-alert api-alert-success">Backend подтвердил заказ. Данные сохранены в data/orders.json.</span>';
+    message.innerHTML = '<span class="api-alert api-alert-success">Backend confirmed the order. Data was saved to data/orders.json.</span>';
   } catch (error) {
     const readableError = error instanceof TypeError
-      ? 'Сервер не отвечает. Для полной backend-демонстрации запусти pnpm dev.'
+      ? 'The server is not responding. Run pnpm dev for the full backend demo.'
       : error.message;
     savedOrder = { ...order, savedVia: 'localStorage fallback', apiError: readableError };
-    message.innerHTML = `<span class="api-alert api-alert-warning">${escapeHtml(readableError)} Заказ сохранён локально, чтобы пользовательский сценарий не оборвался.</span>`;
+    message.innerHTML = `<span class="api-alert api-alert-warning">${escapeHtml(readableError)} The order was saved locally so the shopping flow is not interrupted.</span>`;
   }
 
   saveOrderLocally(savedOrder);

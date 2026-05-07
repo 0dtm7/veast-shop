@@ -11,40 +11,40 @@ const order = lastOrder && (!orderId || lastOrder.id === orderId) ? lastOrder : 
 if (!order) {
   container.innerHTML = `
     <p class="eyebrow">success</p>
-    <h1>Заказ создан</h1>
-    <p>Заказ успешно отправлен. Если нужно проверить путь повторно, вернись в каталог и оформи тестовый заказ.</p>
+    <h1>Order created</h1>
+    <p>The order was submitted successfully. If you want to test the flow again, return to the catalog and place another test order.</p>
     <div class="inline-actions">
-      <a class="button button-primary" href="catalog.html">Вернуться в каталог</a>
-      <a class="button button-ghost" href="account.html">Личный кабинет</a>
+      <a class="button button-primary" href="catalog.html">Back to catalog</a>
+      <a class="button button-ghost" href="account.html">Account</a>
     </div>
   `;
 } else {
   container.innerHTML = `
     <p class="eyebrow">commercial action complete</p>
-    <h1>Заказ оформлен</h1>
-    <p>Пользовательский путь покупки завершён: товар выбран, корзина проверена, форма отправлена, заказ сохранён.</p>
+    <h1>Order placed</h1>
+    <p>The shopping journey is complete: the item was selected, the cart was reviewed, the form was submitted and the order was saved.</p>
     <div class="order-confirmation">
-      <div><span>Номер заказа</span><strong>${escapeHtml(order.id)}</strong></div>
-      <div><span>Статус</span><strong>${escapeHtml(order.status || 'Новая заявка')}</strong></div>
-      <div><span>Сумма</span><strong>${formatPrice(order.total || 0)}</strong></div>
-      <div><span>Сохранение</span><strong>${escapeHtml(order.savedVia || 'backend/local')}</strong></div>
+      <div><span>Order number</span><strong>${escapeHtml(order.id)}</strong></div>
+      <div><span>Status</span><strong>${escapeHtml(order.status || 'New order')}</strong></div>
+      <div><span>Amount</span><strong>${formatPrice(order.total || 0)}</strong></div>
+      <div><span>Saved via</span><strong>${escapeHtml(order.savedVia || 'backend/local')}</strong></div>
     </div>
-    <h2>Состав заказа</h2>
+    <h2>Order items</h2>
     <div class="order-mini-list">
       ${(order.items || []).map((item) => `
         <article class="checkout-item">
           ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.product || item.productId)}" />` : ''}
           <div>
             <strong>${escapeHtml(item.product || item.productId)}</strong>
-            <p class="muted">Размер ${escapeHtml(item.size)} · ${item.quantity} шт.</p>
+            <p class="muted">Size ${escapeHtml(item.size)} · ${item.quantity} pc.</p>
             <p>${formatPrice(item.subtotal || item.price * item.quantity || 0)}</p>
           </div>
         </article>
       `).join('')}
     </div>
     <div class="inline-actions">
-      <a class="button button-primary" href="catalog.html">Вернуться в каталог</a>
-      <a class="button button-ghost" href="account.html">Посмотреть кабинет</a>
+      <a class="button button-primary" href="catalog.html">Back to catalog</a>
+      <a class="button button-ghost" href="account.html">View account</a>
     </div>
   `;
 }

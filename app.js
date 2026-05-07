@@ -161,12 +161,23 @@ const CATEGORY_EN = {
   'В наличии': 'In stock',
 };
 
+function enforceEnglishMigration() {
+  try {
+    const migrated = localStorage.getItem(LANGUAGE_MIGRATION_KEY);
+    if (migrated === '1') return;
+    localStorage.setItem(LANGUAGE_KEY, 'en');
+    localStorage.setItem(LANGUAGE_MIGRATION_KEY, '1');
+  } catch {}
+}
+
+enforceEnglishMigration();
+
 export function getLanguage() {
   try {
     const stored = localStorage.getItem(LANGUAGE_KEY);
     if (stored === 'en' || stored === 'ru') return stored;
   } catch {}
-  return 'ru';
+  return 'en';
 }
 
 export function setLanguage(language) {
@@ -289,7 +300,7 @@ export function setTheme(theme) {
   const normalized = theme === 'dark' ? 'dark' : 'light';
   try { localStorage.setItem(THEME_KEY, normalized); } catch {}
   applyTheme(normalized);
-  toast(normalized === 'dark' ? 'Включена тёмная тема VEAST' : 'Включена светлая тема VEAST');
+  toast(isEnglish() ? (normalized === 'dark' ? 'VEAST dark theme enabled' : 'VEAST light theme enabled') : (normalized === 'dark' ? 'Включена тёмная тема VEAST' : 'Включена светлая тема VEAST'));
 }
 
 export function toggleTheme() {
@@ -373,10 +384,10 @@ export function productCard(product) {
   const favorites = new Set(getFavorites());
   const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
   const badgeMap = {
-    new: 'Новинка',
+    new: isEnglish() ? 'New' : 'Новинка',
     sale: 'Sale',
     limited: 'Limited',
-    bestseller: 'Хит',
+    bestseller: isEnglish() ? 'Bestseller' : 'Хит',
     drop: 'Orbit Drop',
   };
   const badges = [...product.badges.map((badge) => badgeMap[badge] || badge), discount ? '-' + discount + '%' : ''].filter(Boolean);
@@ -389,23 +400,23 @@ export function productCard(product) {
     '<article class="product-card" data-product-card="' + product.id + '">',
       '<a class="product-media" href="product.html?id=' + product.id + '" aria-label="Открыть карточку товара ' + escapeHtml(product.title) + '">',
         '<img class="product-img product-img-front" src="' + (product.cardImage || product.image) + '" alt="' + escapeHtml(product.title) + '" loading="lazy" />',
-        '<img class="product-img product-img-back" src="' + (product.cardImageAlt || product.cardImage || product.imageAlt || product.image) + '" alt="' + escapeHtml(product.title) + ', второй вид" loading="lazy" />',
+        '<img class="product-img product-img-back" src="' + (product.cardImageAlt || product.cardImage || product.imageAlt || product.image) + '" alt="' + escapeHtml(product.title) + (isEnglish() ? ', alternate view' : ', второй вид') + '" loading="lazy" />',
         '<div class="badge-row">' + badgeHtml + '</div>',
-        '<div class="media-quick-view">Подробнее</div>',
+        '<div class="media-quick-view">' + (isEnglish() ? 'Details' : 'Подробнее') + '</div>',
       '</a>',
       '<div class="product-info">',
         '<div class="product-line"><span>' + escapeHtml(product.categoryTitle) + '</span><span>' + escapeHtml(product.status) + '</span></div>',
         '<a class="product-title" href="product.html?id=' + product.id + '">' + escapeHtml(product.title) + '</a>',
         '<p class="product-collection">' + escapeHtml(product.collection) + ' · ' + escapeHtml(product.fit) + '</p>',
         '<p class="product-description">' + escapeHtml(product.description) + '</p>',
-        '<div class="mini-tag-row" aria-label="Коммерческие теги товара">' + featureTagsHtml + '</div>',
+        '<div class="mini-tag-row" aria-label="' + (isEnglish() ? 'Product highlights' : 'Коммерческие теги товара') + '">' + featureTagsHtml + '</div>',
         '<div class="price-line"><strong>' + formatPrice(product.price) + '</strong>' + (product.oldPrice ? '<s>' + formatPrice(product.oldPrice) + '</s>' : '') + '</div>',
-        '<div class="sizes-line" aria-label="Доступные размеры">' + sizesHtml + '</div>',
+        '<div class="sizes-line" aria-label="' + (isEnglish() ? 'Available sizes' : 'Доступные размеры') + '">' + sizesHtml + '</div>',
         '<div class="card-actions card-actions-shop">',
-          '<button class="button button-dark" type="button" data-add-to-cart="' + product.id + '">В корзину</button>',
+          '<button class="button button-dark" type="button" data-add-to-cart="' + product.id + '">' + (isEnglish() ? 'Add to cart' : 'В корзину') + '</button>',
           '<button class="square-button favorite-action ' + (favorites.has(product.id) ? 'active' : '') + '" type="button" data-favorite="' + product.id + '" aria-label="Добавить в избранное" aria-pressed="' + favorites.has(product.id) + '">' + heartIcon + '</button>',
         '</div>',
-        '<a class="card-detail-link" href="product.html?id=' + product.id + '">Размеры, состав и доставка</a>',
+        '<a class="card-detail-link" href="product.html?id=' + product.id + '">' + (isEnglish() ? 'Sizes, fabric and shipping' : 'Размеры, состав и доставка') + '</a>',
       '</div>',
     '</article>',
   ].join('');

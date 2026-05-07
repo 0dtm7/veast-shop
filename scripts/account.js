@@ -19,9 +19,9 @@ async function loadOrders() {
       if (!merged.some((item) => item.id === order.id)) merged.push({ ...order, savedVia: 'backend API' });
     });
     saveLocalOrders(merged);
-    return { orders: merged, apiStatus: 'backend API подключён' };
+    return { orders: merged, apiStatus: 'backend API connected' };
   } catch (error) {
-    return { orders: localOrders, apiStatus: `backend недоступен, показаны локальные заказы: ${error.message}` };
+    return { orders: localOrders, apiStatus: `backend unavailable, showing local orders: ${error.message}` };
   }
 }
 
@@ -34,12 +34,12 @@ function renderOrders(payload) {
     <article class="panel-card account-row">
       <div>
         <h3>${escapeHtml(order.id)}</h3>
-        <p class="muted">${new Date(order.createdAt).toLocaleString('ru-RU')} · ${escapeHtml(order.status || 'Новая заявка')} · ${escapeHtml(order.savedVia || 'backend/local')}</p>
+        <p class="muted">${new Date(order.createdAt).toLocaleString('en-US')} · ${escapeHtml(order.status || 'New order')} · ${escapeHtml(order.savedVia || 'backend/local')}</p>
       </div>
       <strong>${formatPrice(order.total || 0)}</strong>
     </article>
-  `).join('') : '<div class="empty-state"><h3>Заказов пока нет</h3><p>Оформи заказ, чтобы он появился в истории и подтвердил коммерческий сценарий.</p><a class="button button-primary" href="catalog.html">Перейти в каталог</a></div>');
+  `).join('') : '<div class="empty-state"><h3>No orders yet</h3><p>Place an order to see it in your history and confirm the commercial flow.</p><a class="button button-primary" href="catalog.html">Go to catalog</a></div>');
 }
 
-ordersList.innerHTML = '<div class="empty-state"><h3>Загружаем историю заказов</h3><p>Проверяем localStorage и backend API.</p></div>';
+ordersList.innerHTML = '<div class="empty-state"><h3>Loading order history</h3><p>Checking localStorage and backend API.</p></div>';
 loadOrders().then(renderOrders);

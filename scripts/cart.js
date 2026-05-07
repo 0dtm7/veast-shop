@@ -10,18 +10,18 @@ function render() {
   if (!cart.length) {
     list.innerHTML = `
       <div class="empty-state cart-empty">
-        <h3>Корзина пустая</h3>
-        <p>Добавь товар из каталога, чтобы продолжить основной коммерческий сценарий VEAST.</p>
+        <h3>Your cart is empty</h3>
+        <p>Add a product from the catalog to continue the main VEAST shopping flow.</p>
         <div class="inline-actions">
-          <a class="button button-primary" href="catalog.html">В каталог</a>
-          <a class="button button-ghost" href="favorites.html">Посмотреть избранное</a>
+          <a class="button button-primary" href="catalog.html">Go to catalog</a>
+          <a class="button button-ghost" href="favorites.html">View favorites</a>
         </div>
       </div>`;
     summary.innerHTML = `
-      <h3>Итого</h3>
-      <div class="total-row"><span>Товары</span><strong>${formatPrice(0)}</strong></div>
-      <p class="muted">Checkout станет доступен после добавления товара.</p>
-      <a class="button button-primary full cart-summary-cta" href="catalog.html">Выбрать товар</a>`;
+      <h3>Summary</h3>
+      <div class="total-row"><span>Products</span><strong>${formatPrice(0)}</strong></div>
+      <p class="muted">Checkout becomes available after you add a product.</p>
+      <a class="button button-primary full cart-summary-cta" href="catalog.html">Choose a product</a>`;
     return;
   }
 
@@ -34,33 +34,33 @@ function render() {
         <div>
           <p class="eyebrow">${escapeHtml(product.categoryTitle)}</p>
           <h3><a href="product.html?id=${product.id}">${escapeHtml(product.title)}</a></h3>
-          <p class="muted">Размер: ${escapeHtml(item.size)} · ${escapeHtml(product.collection)}</p>
-          <p>${formatPrice(product.price)} за единицу</p>
+          <p class="muted">Size: ${escapeHtml(item.size)} · ${escapeHtml(product.collection)}</p>
+          <p>${formatPrice(product.price)} each</p>
         </div>
         <div class="cart-line-side">
-          <div class="qty-control" aria-label="Количество товара">
-            <button data-dec="${escapeHtml(item.lineId)}" type="button" aria-label="Уменьшить количество">−</button>
+          <div class="qty-control" aria-label="Product quantity">
+            <button data-dec="${escapeHtml(item.lineId)}" type="button" aria-label="Decrease quantity">−</button>
             <strong>${item.quantity}</strong>
-            <button data-inc="${escapeHtml(item.lineId)}" type="button" aria-label="Увеличить количество">+</button>
+            <button data-inc="${escapeHtml(item.lineId)}" type="button" aria-label="Increase quantity">+</button>
           </div>
           <strong>${formatPrice(product.price * item.quantity)}</strong>
         </div>
       </div>
-      <button class="square-button" data-remove-line="${escapeHtml(item.lineId)}" aria-label="Удалить">×</button>
+      <button class="square-button" data-remove-line="${escapeHtml(item.lineId)}" aria-label="Remove">×</button>
     </article>`;
   }).join('');
 
   const total = calculateCart(cart);
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-  summary.innerHTML = `<h3>Итого</h3>
-    <div class="total-row"><span>Позиций</span><strong>${count}</strong></div>
-    <div class="total-row"><span>Товары</span><strong>${formatPrice(total)}</strong></div>
-    <div class="total-row"><span>Доставка</span><strong>после заявки</strong></div>
-    <div class="total-row total-strong"><span>К оплате</span><strong>${formatPrice(total)}</strong></div>
-    <p class="muted">Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта.</p>
-    <a class="button button-primary full cart-summary-cta checkout-cta" href="checkout.html">Оформить заказ</a>
-    <a class="button button-ghost full product-secondary-action" href="catalog.html">Продолжить покупки</a>
-    <button class="button button-ghost full product-secondary-action" id="clearCart" type="button">Очистить корзину</button>`;
+  summary.innerHTML = `<h3>Summary</h3>
+    <div class="total-row"><span>Items</span><strong>${count}</strong></div>
+    <div class="total-row"><span>Products</span><strong>${formatPrice(total)}</strong></div>
+    <div class="total-row"><span>Shipping</span><strong>after confirmation</strong></div>
+    <div class="total-row total-strong"><span>Total due</span><strong>${formatPrice(total)}</strong></div>
+    <p class="muted">Next step: checkout. This is the main measurable conversion action of the site.</p>
+    <a class="button button-primary full cart-summary-cta checkout-cta" href="checkout.html">Proceed to checkout</a>
+    <a class="button button-ghost full product-secondary-action" href="catalog.html">Continue shopping</a>
+    <button class="button button-ghost full product-secondary-action" id="clearCart" type="button">Clear cart</button>`;
 }
 
 document.addEventListener('click', (event) => {

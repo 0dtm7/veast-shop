@@ -65,13 +65,13 @@ function isEmail(value = '') {
 
 function validateOrder(order) {
   const customer = order.customer || {};
-  if (!customer.name || String(customer.name).trim().length < 2) return 'Имя должно содержать минимум 2 символа';
-  if (!customer.phone || String(customer.phone).trim().length < 5) return 'Не указан телефон или Telegram';
-  if (!isEmail(customer.email)) return 'Некорректный email';
-  if (!customer.city || String(customer.city).trim().length < 2) return 'Не указан город';
-  if (!customer.address || String(customer.address).trim().length < 6) return 'Не указан адрес доставки';
-  if (!customer.privacyAccepted) return 'Не принято согласие с политикой конфиденциальности';
-  if (!Array.isArray(order.items) || order.items.length === 0) return 'В заказе нет товаров';
+  if (!customer.name || String(customer.name).trim().length < 2) return 'Name must contain at least 2 characters';
+  if (!customer.phone || String(customer.phone).trim().length < 5) return 'Phone number or Telegram is required';
+  if (!isEmail(customer.email)) return 'Invalid email address';
+  if (!customer.city || String(customer.city).trim().length < 2) return 'City is required';
+  if (!customer.address || String(customer.address).trim().length < 6) return 'Shipping address is required';
+  if (!customer.privacyAccepted) return 'Privacy policy consent is required';
+  if (!Array.isArray(order.items) || order.items.length === 0) return 'The order contains no items';
   if (order.items.some((item) => !item.productId || !item.quantity || Number(item.quantity) <= 0)) return 'Некорректные товары в заказе';
   if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) return 'Некорректная сумма заказа';
   return null;
@@ -110,8 +110,8 @@ function normalizeOrder(order) {
 }
 
 function validateFeedback(feedback) {
-  if (!feedback.name || String(feedback.name).trim().length < 2) return 'Имя должно содержать минимум 2 символа';
-  if (!isEmail(feedback.email)) return 'Некорректный email';
+  if (!feedback.name || String(feedback.name).trim().length < 2) return 'Name must contain at least 2 characters';
+  if (!isEmail(feedback.email)) return 'Invalid email address';
   if (!feedback.message || String(feedback.message).trim().length < 4) return 'Сообщение слишком короткое';
   return null;
 }
