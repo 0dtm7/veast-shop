@@ -9,5 +9,5 @@
     "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST fashion e-commerce MVP prepared for course defence and Render deployment"
+  "description": "VEAST commercial course project v3"
 }

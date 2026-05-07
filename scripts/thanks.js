@@ -10,7 +10,7 @@ const order = lastOrder && (!orderId || lastOrder.id === orderId) ? lastOrder : 
 
 if (!order) {
   container.innerHTML = `
-    <p class="eyebrow">заказ принят</p>
+    <p class="eyebrow">success</p>
     <h1>Заказ создан</h1>
     <p>Заказ успешно отправлен. Если нужно проверить путь повторно, вернись в каталог и оформи тестовый заказ.</p>
     <div class="inline-actions">
@@ -20,9 +20,9 @@ if (!order) {
   `;
 } else {
   container.innerHTML = `
-    <p class="eyebrow">заказ оформлен</p>
+    <p class="eyebrow">commercial action complete</p>
     <h1>Заказ оформлен</h1>
-    <p>Покупательский сценарий завершён: товар выбран, корзина проверена, форма отправлена, заказ сохранён.</p>
+    <p>Пользовательский путь покупки завершён: товар выбран, корзина проверена, форма отправлена, заказ сохранён.</p>
     <div class="order-confirmation">
       <div><span>Номер заказа</span><strong>${escapeHtml(order.id)}</strong></div>
       <div><span>Статус</span><strong>${escapeHtml(order.status || 'Новая заявка')}</strong></div>
