@@ -21,7 +21,7 @@ function render() {
       <h3>Итого</h3>
       <div class="total-row"><span>Товары</span><strong>${formatPrice(0)}</strong></div>
       <p class="muted">Checkout станет доступен после добавления товара.</p>
-      <a class="button button-primary full" href="catalog.html">Выбрать товар</a>`;
+      <a class="button button-primary full cart-summary-cta" href="catalog.html">Выбрать товар</a>`;
     return;
   }
 
@@ -58,7 +58,7 @@ function render() {
     <div class="total-row"><span>Доставка</span><strong>после заявки</strong></div>
     <div class="total-row total-strong"><span>К оплате</span><strong>${formatPrice(total)}</strong></div>
     <p class="muted">Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта.</p>
-    <a class="button button-primary full" href="checkout.html">Оформить заказ</a>
+    <a class="button button-primary full cart-summary-cta checkout-cta" href="checkout.html">Оформить заказ</a>
     <a class="button button-ghost full product-secondary-action" href="catalog.html">Продолжить покупки</a>
     <button class="button button-ghost full product-secondary-action" id="clearCart" type="button">Очистить корзину</button>`;
 }

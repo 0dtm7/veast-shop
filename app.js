@@ -66,6 +66,12 @@ const I18N_REPLACEMENTS = [
   ['S: талия 38 / длина 103, M: 40 / 105, L: 42 / 107 см.', 'S: waist 38 / length 103, M: 40 / 105, L: 42 / 107 cm.'],
   ['Свободные cargo-брюки', 'Loose cargo pants'],
   ['Базовый низ', 'A base layer'],
+  ['Коммерческий fashion-проект', 'Commercial fashion project'],
+  ['Коммерческий fashion продукт', 'Commercial fashion product'],
+  ['Распродажа', 'Sale'],
+  ['Финальный акцент', 'Final touch'],
+  ['Выбор', 'Selection'],
+  ['Заказ', 'Order'],
 ];
 
 const PRODUCT_EN = {
@@ -172,7 +178,7 @@ export function isEnglish() {
 export function formatPrice(value) {
   const price = Number(value) || 0;
   if (isEnglish()) {
-    const dollars = Math.max(1, Math.round(price / 100));
+    const dollars = Math.max(0, Math.round(price / 100));
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -491,7 +497,7 @@ export function renderFooter() {
         tg: 'Telegram',
         vk: 'VK',
         ctaTitle: 'VEAST Drop',
-        ctaText: 'Washed black, chrome graphics, relaxed fit. Минимум шума — максимум образа.',
+        ctaText: 'Выстиранный чёрный, хромовая графика и свободная посадка. Меньше шума — больше образа.',
         cta: 'Смотреть каталог',
       };
 
@@ -503,7 +509,7 @@ export function renderFooter() {
           <p>${labels.about}</p>
           <div class="footer-socials" aria-label="${labels.socials}">
             <a href="https://t.me/veastshop" target="_blank" rel="noreferrer">${labels.tg}</a>
-            <a href="https://vk.com" target="_blank" rel="noreferrer">${labels.vk}</a>
+            <a href="https://vk.com/veastshop" target="_blank" rel="noreferrer">${labels.vk}</a>
           </div>
         </div>
         <div class="footer-column">
@@ -525,7 +531,7 @@ export function renderFooter() {
         <div class="footer-cta">
           <p class="eyebrow">${labels.ctaTitle}</p>
           <p>${labels.ctaText}</p>
-          <a class="button button-ghost" href="catalog.html">${labels.cta}</a>
+          <a class="button button-ghost full footer-cta-button" href="catalog.html">${labels.cta}</a>
         </div>
       </div>
       <div class="footer-bottom container-wide">
