@@ -2292,3 +2292,63 @@ a.button {
 :root:not([data-theme="dark"]) .footer-brand > span:last-child {
   color: #11161b;
 }
+
+
+/* ===== VEAST v28 hotfix: hard reset for footer logo row ===== */
+.footer-about .footer-brand,
+.site-footer .footer-brand {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: auto !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 0 16px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+.footer-about .footer-brand .brand-mark,
+.site-footer .footer-brand .brand-mark {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
+  flex: 0 0 54px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  vertical-align: middle !important;
+}
+
+.footer-about .footer-brand .brand-logo,
+.site-footer .footer-brand .brand-logo {
+  display: block !important;
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
+  object-fit: contain !important;
+}
+
+.footer-about .footer-brand > span:last-child,
+.site-footer .footer-brand > span:last-child {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 19px !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.04em !important;
+  transform: none !important;
+  align-self: center !important;
+  white-space: nowrap !important;
+}
