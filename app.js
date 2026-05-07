@@ -426,7 +426,7 @@ export function renderHeader(active = '') {
     <a class="skip-link" href="#mainContent">${labels.skip}</a>
     <header class="site-header">
       <a class="brand" href="index.html" aria-label="VEAST">
-        <span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark.png" alt="" /></span>
+        <span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark-strong.png" alt="" /></span>
         <span>VEAST</span>
       </a>
       <nav class="desktop-nav" aria-label="Main navigation">
@@ -514,7 +514,7 @@ export function renderFooter() {
     <footer class="site-footer clean-footer">
       <div class="footer-grid container-wide">
         <div class="footer-about">
-          <a class="brand footer-brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark.png" alt="" /></span><span>VEAST</span></a>
+          <a class="brand footer-brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark-strong.png" alt="" /></span><span>VEAST</span></a>
           <p>${labels.about}</p>
           <div class="footer-socials" aria-label="${labels.socials}">
             <a href="https://t.me/veastshop" target="_blank" rel="noreferrer">${labels.tg}</a>
