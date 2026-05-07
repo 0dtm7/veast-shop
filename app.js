@@ -72,6 +72,15 @@ const I18N_REPLACEMENTS = [
   ['Финальный акцент', 'Final touch'],
   ['Выбор', 'Selection'],
   ['Заказ', 'Order'],
+  ['коммерческий fashion-проект', 'Commercial fashion project'],
+  ['В минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'built in a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
+  ['в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'built in a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
+  ['Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'Main flow: choose a product, add it to cart and place an order.'],
+  ['Открыть проект', 'Open project'],
+  ['Скидки', 'Discounts'],
+  ['Слой сверху', 'Top layer'],
+  ['Финиш образа', 'Final touch'],
+  ['Например: hoodie, cargo, cap', 'For example: hoodie, cargo, cap'],
 ];
 
 const PRODUCT_EN = {
