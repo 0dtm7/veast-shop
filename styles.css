@@ -2258,3 +2258,37 @@ a.button {
   width: 64px;
   height: 64px;
 }
+
+
+/* ===== VEAST v27 hotfix: tidy footer logo lockup ===== */
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  margin: 0 0 16px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.footer-brand .brand-mark {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+}
+
+.footer-brand > span:last-child {
+  display: inline-block;
+  color: #eef3f7;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+:root:not([data-theme="dark"]) .footer-brand > span:last-child {
+  color: #11161b;
+}
