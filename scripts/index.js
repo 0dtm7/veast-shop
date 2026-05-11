@@ -5,7 +5,7 @@ document.getElementById('homeProducts').innerHTML = products.slice(0, 6).map(pro
 const lookbookImage = document.querySelector('[data-lookbook-rotator]');
 const lookbookImages = [
   { src: 'assets/veast-premium/orbit-puffer-jacket-front.jpg', alt: 'VEAST Orbit Puffer Jacket — вид спереди' },
-  { src: 'assets/veast-premium/orbit-puffer-jacket-back-new.jpg', alt: 'VEAST Orbit Puffer Jacket — вид со спины' },
+  { src: 'assets/veast-premium/orbit-puffer-jacket-back-user-exact.png', alt: 'VEAST Orbit Puffer Jacket — вид со спины' },
   { src: 'assets/veast-premium/orbit-puffer-jacket-detail1.jpg', alt: 'VEAST Orbit Puffer Jacket — деталь логотипа' },
   { src: 'assets/veast-premium/orbit-puffer-jacket-detail2.jpg', alt: 'VEAST Orbit Puffer Jacket — деталь графики' },
   { src: 'assets/veast-premium/orbit-puffer-jacket-product.jpg', alt: 'VEAST Orbit Puffer Jacket — товар отдельно' },
