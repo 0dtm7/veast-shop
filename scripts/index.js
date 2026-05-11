@@ -4,12 +4,11 @@ document.getElementById('homeProducts').innerHTML = products.slice(0, 6).map(pro
 
 const lookbookImage = document.querySelector('[data-lookbook-rotator]');
 const lookbookImages = [
-  { src: 'assets/veast-premium/chrome-cargo-pants-v22-front.jpg', alt: 'VEAST Chrome Cargo Pants — вид спереди' },
-  { src: 'assets/veast-premium/chrome-cargo-pants-v22-back.jpg', alt: 'VEAST Chrome Cargo Pants — вид со спины' },
-  { src: 'assets/veast-premium/chrome-cargo-pants-v22-detail.jpg', alt: 'VEAST Chrome Cargo Pants — деталь графики' },
-  { src: 'assets/veast-premium/chrome-cargo-pants-v22-product.jpg', alt: 'VEAST Chrome Cargo Pants — товар отдельно' },
   { src: 'assets/veast-premium/orbit-puffer-jacket-front.jpg', alt: 'VEAST Orbit Puffer Jacket — вид спереди' },
   { src: 'assets/veast-premium/orbit-puffer-jacket-back.jpg', alt: 'VEAST Orbit Puffer Jacket — вид со спины' },
+  { src: 'assets/veast-premium/orbit-puffer-jacket-detail1.jpg', alt: 'VEAST Orbit Puffer Jacket — деталь логотипа' },
+  { src: 'assets/veast-premium/orbit-puffer-jacket-detail2.jpg', alt: 'VEAST Orbit Puffer Jacket — деталь графики' },
+  { src: 'assets/veast-premium/orbit-puffer-jacket-product.jpg', alt: 'VEAST Orbit Puffer Jacket — товар отдельно' },
 ];
 
 if (lookbookImage && lookbookImages.length > 1) {
