@@ -55,7 +55,7 @@ export const products = [
     badges: ["limited", "bestseller"],
     featureTags: ["limited drop", "winter layer", "chrome print", "relaxed fit"],
     wearWith: ["vst-orbit-hoodie", "vst-core-cap"],
-    cardImage: 'assets/veast-premium/orbit-puffer-jacket-front.jpg',
+    cardImage: 'assets/veast-premium/orbit-puffer-jacket-product.jpg',
     cardImageAlt: 'assets/veast-premium/orbit-puffer-jacket-back.jpg',
     image: 'assets/veast-premium/orbit-puffer-jacket-front.jpg',
     imageAlt: 'assets/veast-premium/orbit-puffer-jacket-back.jpg',
