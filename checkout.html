@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Checkout — VEAST</title>
-    <meta name="description" content="VEAST checkout: customer details, shipping, cart review and order submission to the backend API." />
+    <title>Оформление заказа — VEAST</title>
+    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, проверка корзины и отправка заказа в backend API." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -13,73 +13,28 @@
   <body>
     <div data-header></div>
     <main id="mainContent" class="page-section container-wide">
-      <div class="breadcrumbs"><a href="index.html">Home</a><span>/</span><a href="cart.html">Cart</a><span>/</span><span>Checkout</span></div>
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">checkout</p>
-          <h1>Checkout</h1>
-        </div>
-      </div>
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><a href="cart.html">Корзина</a><span>/</span><span>Оформление</span></div>
+      <div class="section-heading"><div><p class="eyebrow">checkout</p><h1>Оформление заказа</h1></div></div>
       <div class="checkout-layout">
         <form class="form-card" id="checkoutForm" novalidate>
-          <div class="notice-card">
-            <strong>Core project action</strong>
-            <p>After the form is submitted, an order is created: the frontend sends data to the backend, the server validates the fields and saves the order.</p>
-          </div>
-          <div class="service-grid checkout-service-grid" aria-label="Order terms">
-            <article class="service-card"><span>01</span><strong>Shipping</strong><p>Courier delivery, local post or pickup. Estimated time: 2–5 days.</p></article>
-            <article class="service-card"><span>02</span><strong>Payment</strong><p>After confirmation or by card upon delivery.</p></article>
-            <article class="service-card"><span>03</span><strong>Returns</strong><p>14 days if the item remains in original condition.</p></article>
+          <div class="notice-card"><strong>Целевое действие проекта</strong><p>После отправки формы создаётся заказ: frontend передаёт данные в backend, сервер валидирует поля и сохраняет заявку.</p></div>
+          <div class="service-grid checkout-service-grid" aria-label="Условия заказа">
+            <article class="service-card"><span>01</span><strong>Доставка</strong><p>СДЭК, Почта России или самовывоз. Срок 2–5 дней.</p></article>
+            <article class="service-card"><span>02</span><strong>Оплата</strong><p>После подтверждения или картой при получении.</p></article>
+            <article class="service-card"><span>03</span><strong>Возврат</strong><p>14 дней при сохранении товарного вида.</p></article>
           </div>
           <div class="form-grid">
-            <div class="field">
-              <label for="name">Name</label>
-              <input id="name" name="name" required minlength="2" autocomplete="name" placeholder="For example, Daniel" />
-              <small>At least 2 characters.</small>
-            </div>
-            <div class="field">
-              <label for="phone">Phone / Telegram</label>
-              <input id="phone" name="phone" required autocomplete="tel" placeholder="+1... or @username" />
-              <small>Needed to confirm the order.</small>
-            </div>
-            <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" required autocomplete="email" placeholder="name@example.com" />
-              <small>A confirmation can be sent there.</small>
-            </div>
-            <div class="field">
-              <label for="city">City</label>
-              <input id="city" name="city" required autocomplete="address-level2" placeholder="New York" />
-            </div>
-            <div class="field full">
-              <label for="address">Shipping address</label>
-              <textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Street, building, apartment or pickup point"></textarea>
-            </div>
-            <div class="field">
-              <label for="delivery">Shipping</label>
-              <select id="delivery" name="delivery" required>
-                <option value="Courier">Courier</option>
-                <option value="Post">Post</option>
-                <option value="Pickup">Pickup</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="payment">Payment</label>
-              <select id="payment" name="payment" required>
-                <option value="After confirmation">After confirmation</option>
-                <option value="Card on delivery">Card on delivery</option>
-              </select>
-            </div>
-            <div class="field full">
-              <label for="comment">Order note</label>
-              <textarea id="comment" name="comment" placeholder="For example: I need help with sizing"></textarea>
-            </div>
+            <div class="field"><label for="name">Имя</label><input id="name" name="name" required minlength="2" autocomplete="name" placeholder="Например, Даня" /><small>Минимум 2 символа.</small></div>
+            <div class="field"><label for="phone">Телефон / Telegram</label><input id="phone" name="phone" required autocomplete="tel" placeholder="+7... или @username" /><small>Нужно для подтверждения заказа.</small></div>
+            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="email" placeholder="name@example.com" /><small>На него можно отправить подтверждение.</small></div>
+            <div class="field"><label for="city">Город</label><input id="city" name="city" required autocomplete="address-level2" placeholder="Москва" /></div>
+            <div class="field full"><label for="address">Адрес доставки</label><textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Улица, дом, квартира или пункт выдачи"></textarea></div>
+            <div class="field"><label for="delivery">Доставка</label><select id="delivery" name="delivery" required><option value="СДЭК">СДЭК</option><option value="Почта России">Почта России</option><option value="Самовывоз">Самовывоз</option></select></div>
+            <div class="field"><label for="payment">Оплата</label><select id="payment" name="payment" required><option value="После подтверждения">После подтверждения</option><option value="Картой при получении">Картой при получении</option></select></div>
+            <div class="field full"><label for="comment">Комментарий к заказу</label><textarea id="comment" name="comment" placeholder="Например: нужна консультация по размеру"></textarea></div>
           </div>
-          <label class="policy-check">
-            <input id="privacy" name="privacy" type="checkbox" required />
-            <span>I agree with the VEAST <a href="privacy.html" target="_blank" rel="noreferrer">terms and privacy policy</a> and understand that the data is used to process the order.</span>
-          </label>
-          <button class="button button-primary full" type="submit">Submit order</button>
+          <label class="policy-check"><input id="privacy" name="privacy" type="checkbox" required /><span>Я согласен с <a href="privacy.html" target="_blank" rel="noreferrer">пользовательским соглашением и политикой конфиденциальности</a> VEAST и понимаю, что данные используются для обработки заказа.</span></label>
+          <button class="button button-primary full" type="submit">Отправить заказ</button>
           <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
         </form>
         <aside class="summary-card" id="checkoutSummary"></aside>

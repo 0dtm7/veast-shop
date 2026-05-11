@@ -6,7 +6,6 @@ const ORDERS_KEY = 'veast_course_orders_v1';
 const LAST_ORDER_KEY = 'veast_course_last_order_v1';
 const THEME_KEY = 'veast_course_theme_v1';
 const LANGUAGE_KEY = 'veast_course_language_v1';
-const LANGUAGE_MIGRATION_KEY = 'veast_force_en_v29';
 
 const I18N_REPLACEMENTS = [
   ['Перейти к содержимому', 'Skip to content'],
@@ -82,6 +81,87 @@ const I18N_REPLACEMENTS = [
   ['Слой сверху', 'Top layer'],
   ['Финиш образа', 'Final touch'],
   ['Например: hoodie, cargo, cap', 'For example: hoodie, cargo, cap'],
+  ['Учебный коммерческий веб-продукт: каталог одежды, оформление заказа и backend API.', 'A commercial training web product: fashion catalog, checkout flow and backend API.'],
+  ['Интернет-магазин одежды в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'A fashion e-commerce store built around a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
+  ['Перейти в каталог', 'Open catalog'],
+  ['Быстрые разделы', 'Quick links'],
+  ['Chrome-графика', 'Chrome graphics'],
+  ['Основной визуальный акцент коллекции — холодный хромовый знак VEAST и орбитальные принты, которые создают ощущение технологичного бренда.', 'The key visual accent of the collection is the cold chrome VEAST symbol and orbital prints that create a clear techwear identity.'],
+  ['Washed-фактуры', 'Washed textures'],
+  ['Эффект выстиранной ткани делает вещи живыми и не слишком стерильными. За счёт этого коллекция выглядит как реальный streetwear-дроп, а не как набор макетов.', 'The washed fabric finish makes the pieces feel real and wearable. It helps the collection look like an actual streetwear drop rather than a set of mockups.'],
+  ['Силуэты, палитра и графика соединяют streetwear-посадку, Y2K-вайб и лёгкий techwear-характер. Это удобно объясняет идею коллекции на защите.', 'Silhouettes, palette and graphics combine a streetwear fit, Y2K vibe and a light techwear attitude. It makes the collection concept easy to explain in a presentation.'],
+  ['Путь к покупке за 4 шага', 'Purchase flow in 4 steps'],
+  ['Пользователь открывает каталог через меню, поиск или быстрый раздел.', 'The user opens the catalog through the menu, search or a quick tile.'],
+  ['Фильтрует товары по категории, размеру, цвету и цене.', 'They filter products by category, size, color and price.'],
+  ['Карточка', 'Product page'],
+  ['Проверяет фото, состав, размерную сетку, доставку и возврат.', 'They check photos, fabric, size guide, shipping and returns.'],
+  ['Добавляет товар в корзину, заполняет форму, получает подтверждение.', 'They add the item to cart, fill out the form and get confirmation.'],
+  ['Товары VEAST', 'VEAST products'],
+  ['Смотреть все', 'View all'],
+  ['Почему можно оформить заказ', 'Why checkout feels trustworthy'],
+  ['Понятный товар', 'Clear product info'],
+  ['В карточке есть цена, размеры, состав, уход, доставка и возврат.', 'Each product page includes price, sizes, fabric, care, shipping and returns.'],
+  ['Контроль заказа', 'Order control'],
+  ['Корзина показывает количество, размер, стоимость позиции и итоговую сумму.', 'The cart shows quantity, size, line price and total amount.'],
+  ['Backend-процесс', 'Backend flow'],
+  ['Форма заказа отправляет данные в API, где выполняется валидация и сохранение.', 'The checkout form sends data to the API, where it is validated and saved.'],
+  ['Приватность', 'Privacy'],
+  ['Пользователь видит оферту и политику конфиденциальности до отправки контактных данных.', 'The user sees the public offer and privacy policy before submitting contact details.'],
+  ['Один дроп — один визуальный язык', 'One drop — one visual language'],
+  ['VEAST ORBIT DROP собран вокруг тёмных washed-фактур, холодной chrome-графики и свободных streetwear-силуэтов. Поэтому каталог, карточки товара и главная страница выглядят как единая коллекция, а не как набор случайных позиций.', 'VEAST ORBIT DROP is built around dark washed textures, cold chrome graphics and relaxed streetwear silhouettes. That is why the catalog, product pages and home page feel like one coherent collection instead of a random set of items.'],
+  ['В каталоге пользователь видит чистый товар, а внутри карточки — модель, детали и полный визуал. Такой подход делает сайт ближе к настоящему fashion-магазину и помогает быстрее понять вещь перед покупкой.', 'In the catalog the user sees a clean product image, while inside the product page they get the model shot, details and the full visual context. This makes the site feel closer to a real fashion store and helps users understand the item before buying.'],
+  ['Частые вопросы', 'Frequently asked questions'],
+  ['Можно ли оформить заказ без регистрации?', 'Can I place an order without registration?'],
+  ['Да. Для основного сценария достаточно корзины и формы оформления заказа.', 'Yes. The main flow only requires the cart and the checkout form.'],
+  ['Что происходит после отправки формы?', 'What happens after I submit the form?'],
+  ['Frontend отправляет заказ в backend API. Сервер проверяет данные и сохраняет заказ в JSON-файл.', 'The frontend sends the order to the backend API. The server validates the data and saves the order to a JSON file.'],
+  ['Что будет, если корзина пустая?', 'What happens if the cart is empty?'],
+  ['Сайт показывает пустое состояние и ведёт пользователя обратно в каталог.', 'The site shows an empty state and takes the user back to the catalog.'],
+  ['Корзина пуста', 'Your cart is empty'],
+  ['Добавь товар из каталога, чтобы продолжить основной коммерческий сценарий VEAST.', 'Add a product from the catalog to continue the main VEAST shopping flow.'],
+  ['В каталог', 'Go to catalog'],
+  ['Посмотреть избранное', 'View favorites'],
+  ['Итого', 'Summary'],
+  ['Товары', 'Products'],
+  ['Checkout станет доступен после добавления товара.', 'Checkout becomes available after you add a product.'],
+  ['Выбрать товар', 'Choose a product'],
+  ['Позиций', 'Items'],
+  ['Доставка', 'Shipping'],
+  ['после заявки', 'after confirmation'],
+  ['К оплате', 'Total due'],
+  ['Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта.', 'Next step: checkout. This is the main measurable conversion action of the site.'],
+  ['Оформить заказ', 'Proceed to checkout'],
+  ['Продолжить покупки', 'Continue shopping'],
+  ['Очистить корзину', 'Clear cart'],
+  ['Целевое действие проекта', 'Core project action'],
+  ['После отправки формы создаётся заказ: frontend передаёт данные в backend, сервер валидирует поля и сохраняет заявку.', 'After the form is submitted, an order is created: the frontend sends data to the backend, the server validates the fields and saves the order.'],
+  ['Условия заказа', 'Order terms'],
+  ['СДЭК, Почта России или самовывоз. Срок 2–5 дней.', 'Courier delivery, local post or pickup. Estimated time: 2–5 days.'],
+  ['Оплата', 'Payment'],
+  ['После подтверждения или картой при получении.', 'After confirmation or by card upon delivery.'],
+  ['Возврат', 'Returns'],
+  ['14 дней при сохранении товарного вида.', '14 days if the item remains in original condition.'],
+  ['Имя', 'Name'],
+  ['Например, Даня', 'For example, Daniel'],
+  ['Минимум 2 символа.', 'At least 2 characters.'],
+  ['Телефон / Telegram', 'Phone / Telegram'],
+  ['Нужно для подтверждения заказа.', 'Needed to confirm the order.'],
+  ['На него можно отправить подтверждение.', 'A confirmation can be sent there.'],
+  ['Город', 'City'],
+  ['Москва', 'New York'],
+  ['Адрес доставки', 'Shipping address'],
+  ['Улица, дом, квартира или пункт выдачи', 'Street, building, apartment or pickup point'],
+  ['СДЭК', 'Courier'],
+  ['Почта России', 'Post'],
+  ['Самовывоз', 'Pickup'],
+  ['После подтверждения', 'After confirmation'],
+  ['Картой при получении', 'Card on delivery'],
+  ['Комментарий к заказу', 'Order note'],
+  ['Например: нужна консультация по размеру', 'For example: I need help with sizing'],
+  ['Я согласен с', 'I agree with the VEAST'],
+  ['пользовательским соглашением и политикой конфиденциальности', 'terms and privacy policy'],
+  ['и понимаю, что данные используются для обработки заказа.', 'and understand that the data is used to process the order.'],
+  ['Отправить заказ', 'Submit order'],
 ];
 
 const PRODUCT_EN = {
@@ -162,23 +242,12 @@ const CATEGORY_EN = {
   'В наличии': 'In stock',
 };
 
-function enforceEnglishMigration() {
-  try {
-    const migrated = localStorage.getItem(LANGUAGE_MIGRATION_KEY);
-    if (migrated === '1') return;
-    localStorage.setItem(LANGUAGE_KEY, 'en');
-    localStorage.setItem(LANGUAGE_MIGRATION_KEY, '1');
-  } catch {}
-}
-
-enforceEnglishMigration();
-
 export function getLanguage() {
   try {
     const stored = localStorage.getItem(LANGUAGE_KEY);
     if (stored === 'en' || stored === 'ru') return stored;
   } catch {}
-  return 'en';
+  return 'ru';
 }
 
 export function setLanguage(language) {
