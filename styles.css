@@ -2352,3 +2352,15 @@ a.button {
   align-self: center !important;
   white-space: nowrap !important;
 }
+
+
+/* ===== VEAST v31: rotating Orbit Drop lookbook visual ===== */
+.lookbook-featured-media {
+  transition: opacity .24s ease, filter .24s ease, transform .24s ease;
+}
+
+.lookbook-featured-media.is-switching {
+  opacity: .14;
+  filter: blur(8px) saturate(.9);
+  transform: scale(.992);
+}
