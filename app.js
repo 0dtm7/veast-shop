@@ -6,6 +6,7 @@ const ORDERS_KEY = 'veast_course_orders_v1';
 const LAST_ORDER_KEY = 'veast_course_last_order_v1';
 const THEME_KEY = 'veast_course_theme_v1';
 const LANGUAGE_KEY = 'veast_course_language_v1';
+const LANGUAGE_MIGRATION_KEY = 'veast_force_en_v29';
 
 const I18N_REPLACEMENTS = [
   ['Перейти к содержимому', 'Skip to content'],
@@ -81,257 +82,6 @@ const I18N_REPLACEMENTS = [
   ['Слой сверху', 'Top layer'],
   ['Финиш образа', 'Final touch'],
   ['Например: hoodie, cargo, cap', 'For example: hoodie, cargo, cap'],
-];
-
-const I18N_REVERSE_REPLACEMENTS = [
-  [
-    "Commercial fashion project",
-    "коммерческий fashion-проект"
-  ],
-  [
-    "A fashion e-commerce store built around a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.",
-    "Интернет-магазин одежды в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ."
-  ],
-  [
-    "Open catalog",
-    "Перейти в каталог"
-  ],
-  [
-    "Open project",
-    "Открыть проект"
-  ],
-  [
-    "All items",
-    "Все позиции"
-  ],
-  [
-    "Discounts",
-    "Скидки"
-  ],
-  [
-    "Catalog",
-    "Каталог"
-  ],
-  [
-    "Sale",
-    "Распродажа"
-  ],
-  [
-    "Top layer",
-    "Слой сверху"
-  ],
-  [
-    "Outerwear",
-    "Верхняя одежда"
-  ],
-  [
-    "Final touch",
-    "Финиш образа"
-  ],
-  [
-    "Accessories",
-    "Аксессуары"
-  ],
-  [
-    "One drop — one visual language",
-    "Один дроп — один визуальный язык"
-  ],
-  [
-    "VEAST ORBIT DROP is built around dark washed textures, cold chrome graphics and relaxed streetwear silhouettes. That is why the catalog, product pages and home page feel like one coherent collection instead of a random set of items.",
-    "VEAST ORBIT DROP собран вокруг тёмных washed-фактур, холодной chrome-графики и свободных streetwear-силуэтов. Поэтому каталог, карточки товара и главная страница выглядят как единая коллекция, а не как набор случайных позиций."
-  ],
-  [
-    "In the catalog the user sees a clean product image, while inside the product page they get the model shot, details and the full visual context. This makes the site feel closer to a real fashion store and helps users understand the item before buying.",
-    "В каталоге пользователь видит чистый товар, а внутри карточки — модель, детали и полный визуал. Такой подход делает сайт ближе к настоящему fashion-магазину и помогает быстрее понять вещь перед покупкой."
-  ],
-  [
-    "Frequently asked questions",
-    "Частые вопросы"
-  ],
-  [
-    "Can I place an order without registration?",
-    "Можно ли оформить заказ без регистрации?"
-  ],
-  [
-    "Yes. The main flow only requires the cart and the checkout form.",
-    "Да. Для основного сценария достаточно корзины и формы оформления заказа."
-  ],
-  [
-    "What happens after I submit the form?",
-    "Что происходит после отправки формы?"
-  ],
-  [
-    "The frontend sends the order to the backend API. The server validates the data and saves the order to a JSON file.",
-    "Frontend отправляет заказ в backend API. Сервер проверяет данные и сохраняет заказ в JSON-файл."
-  ],
-  [
-    "What happens if the cart is empty?",
-    "Что будет, если корзина пустая?"
-  ],
-  [
-    "The site shows an empty state and takes the user back to the catalog.",
-    "Сайт показывает пустое состояние и ведёт пользователя обратно в каталог."
-  ],
-  [
-    "Cart",
-    "Корзина"
-  ],
-  [
-    "Summary",
-    "Итого"
-  ],
-  [
-    "Items",
-    "Позиций"
-  ],
-  [
-    "Products",
-    "Товары"
-  ],
-  [
-    "Shipping",
-    "Доставка"
-  ],
-  [
-    "after confirmation",
-    "после подтверждения"
-  ],
-  [
-    "after request",
-    "после заявки"
-  ],
-  [
-    "Total due",
-    "К оплате"
-  ],
-  [
-    "Next step: checkout. This is the main measurable conversion action of the site.",
-    "Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта."
-  ],
-  [
-    "Proceed to checkout",
-    "Оформить заказ"
-  ],
-  [
-    "Continue shopping",
-    "Продолжить покупки"
-  ],
-  [
-    "Clear cart",
-    "Очистить корзину"
-  ],
-  [
-    "Your cart is empty",
-    "Корзина пустая"
-  ],
-  [
-    "Add a product from the catalog to continue the main VEAST shopping flow.",
-    "Добавь товар из каталога, чтобы продолжить основной коммерческий сценарий VEAST."
-  ],
-  [
-    "Go to catalog",
-    "В каталог"
-  ],
-  [
-    "View favorites",
-    "Посмотреть избранное"
-  ],
-  [
-    "Choose a product",
-    "Выбрать товар"
-  ],
-  [
-    "Size:",
-    "Размер:"
-  ],
-  [
-    "each",
-    "за единицу"
-  ],
-  [
-    "Order summary",
-    "Состав заказа"
-  ],
-  [
-    "1. Product selected",
-    "1. Товар выбран"
-  ],
-  [
-    "2. Cart ready",
-    "2. Корзина собрана"
-  ],
-  [
-    "3. Customer details",
-    "3. Данные покупателя"
-  ],
-  [
-    "4. Confirmation",
-    "4. Подтверждение"
-  ],
-  [
-    "Size ",
-    "Размер "
-  ],
-  [
-    " pc.",
-    " шт."
-  ],
-  [
-    "2–5 days",
-    "2–5 дней"
-  ],
-  [
-    "Payment",
-    "Оплата"
-  ],
-  [
-    "Total",
-    "Итого"
-  ],
-  [
-    "✓ 14-day returns",
-    "✓ Возврат 14 дней"
-  ],
-  [
-    "✓ Order review by manager",
-    "✓ Проверка заказа менеджером"
-  ],
-  [
-    "✓ Order saved in backend API",
-    "✓ Заказ сохраняется в backend API"
-  ],
-  [
-    "After a successful submission, the order appears in the account page and in data/orders.json when the project runs via Node.js.",
-    "При успешной отправке заказ появится в личном кабинете и в файле data/orders.json при запуске через Node.js."
-  ],
-  [
-    "Core project action",
-    "Целевое действие проекта"
-  ],
-  [
-    "Checkout",
-    "Оформление заказа"
-  ],
-  [
-    "Order placed",
-    "Заказ оформлен"
-  ],
-  [
-    "Order created",
-    "Заказ создан"
-  ],
-  [
-    "Order items",
-    "Состав заказа"
-  ],
-  [
-    "Back to catalog",
-    "Вернуться в каталог"
-  ],
-  [
-    "Account",
-    "Кабинет"
-  ]
 ];
 
 const PRODUCT_EN = {
@@ -412,12 +162,23 @@ const CATEGORY_EN = {
   'В наличии': 'In stock',
 };
 
+function enforceEnglishMigration() {
+  try {
+    const migrated = localStorage.getItem(LANGUAGE_MIGRATION_KEY);
+    if (migrated === '1') return;
+    localStorage.setItem(LANGUAGE_KEY, 'en');
+    localStorage.setItem(LANGUAGE_MIGRATION_KEY, '1');
+  } catch {}
+}
+
+enforceEnglishMigration();
+
 export function getLanguage() {
   try {
     const stored = localStorage.getItem(LANGUAGE_KEY);
     if (stored === 'en' || stored === 'ru') return stored;
   } catch {}
-  return 'ru';
+  return 'en';
 }
 
 export function setLanguage(language) {
@@ -467,19 +228,17 @@ export function localizeProduct(product) {
 }
 
 export function translateText(value = '') {
+  if (!isEnglish()) return value;
   let output = String(value);
-  const pairs = (isEnglish() ? I18N_REPLACEMENTS : I18N_REVERSE_REPLACEMENTS)
-    .slice()
-    .sort((a, b) => b[0].length - a[0].length);
-  pairs.forEach(([from, to]) => {
-    output = output.split(from).join(to);
+  I18N_REPLACEMENTS.forEach(([ru, en]) => {
+    output = output.split(ru).join(en);
   });
   return output;
 }
 
 export function translateStaticPage() {
-  if (!document.body) return;
-  document.documentElement.lang = getLanguage();
+  if (!isEnglish() || !document.body) return;
+  document.documentElement.lang = 'en';
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -493,6 +252,7 @@ export function translateStaticPage() {
 }
 
 export function scheduleTranslation() {
+  if (!isEnglish()) return;
   translateStaticPage();
   requestAnimationFrame(translateStaticPage);
   window.setTimeout(translateStaticPage, 80);
@@ -655,7 +415,7 @@ export function productCard(product) {
         '<div class="sizes-line" aria-label="' + (isEnglish() ? 'Available sizes' : 'Доступные размеры') + '">' + sizesHtml + '</div>',
         '<div class="card-actions card-actions-shop">',
           '<button class="button button-dark" type="button" data-add-to-cart="' + product.id + '">' + (isEnglish() ? 'Add to cart' : 'В корзину') + '</button>',
-          '<button class="square-button favorite-action ' + (favorites.has(product.id) ? 'active' : '') + '" type="button" data-favorite="' + product.id + '" aria-label="" + (isEnglish() ? "Add to favorites" : "Добавить в избранное") + " aria-pressed="' + favorites.has(product.id) + '">' + heartIcon + '</button>',
+          '<button class="square-button favorite-action ' + (favorites.has(product.id) ? 'active' : '') + '" type="button" data-favorite="' + product.id + '" aria-label="Добавить в избранное" aria-pressed="' + favorites.has(product.id) + '">' + heartIcon + '</button>',
         '</div>',
         '<a class="card-detail-link" href="product.html?id=' + product.id + '">' + (isEnglish() ? 'Sizes, fabric and shipping' : 'Размеры, состав и доставка') + '</a>',
       '</div>',

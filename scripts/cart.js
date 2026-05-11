@@ -1,5 +1,4 @@
-import { calculateCart, changeCartQuantity, clearCart, escapeHtml, formatPrice, getCart, getProductById, initCommon,
-  scheduleTranslation, removeFromCart } from '../app.js';
+import { calculateCart, changeCartQuantity, clearCart, escapeHtml, formatPrice, getCart, getProductById, initCommon, removeFromCart } from '../app.js';
 
 initCommon('');
 
@@ -23,7 +22,6 @@ function render() {
       <div class="total-row"><span>Products</span><strong>${formatPrice(0)}</strong></div>
       <p class="muted">Checkout becomes available after you add a product.</p>
       <a class="button button-primary full cart-summary-cta" href="catalog.html">Choose a product</a>`;
-    requestAnimationFrame(scheduleTranslation);
     return;
   }
 
@@ -63,7 +61,6 @@ function render() {
     <a class="button button-primary full cart-summary-cta checkout-cta" href="checkout.html">Proceed to checkout</a>
     <a class="button button-ghost full product-secondary-action" href="catalog.html">Continue shopping</a>
     <button class="button button-ghost full product-secondary-action" id="clearCart" type="button">Clear cart</button>`;
-  requestAnimationFrame(scheduleTranslation);
 }
 
 document.addEventListener('click', (event) => {

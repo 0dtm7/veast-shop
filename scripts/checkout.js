@@ -7,7 +7,6 @@ import {
   getCart,
   getProductById,
   initCommon,
-  scheduleTranslation,
   saveLastOrder,
   saveLocalOrders,
   getLocalOrders,
@@ -30,7 +29,6 @@ function renderSummary() {
       <a class="button button-primary full" href="catalog.html">Go to catalog</a>
     `;
     submitButton.disabled = true;
-    requestAnimationFrame(scheduleTranslation);
     return;
   }
 
@@ -70,7 +68,6 @@ function renderSummary() {
     </div>
     <p class="muted">After a successful submission, the order appears in the account page and in data/orders.json when the project runs via Node.js.</p>
   `;
-  requestAnimationFrame(scheduleTranslation);
 }
 
 function validateForm(formData) {

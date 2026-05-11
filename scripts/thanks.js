@@ -1,4 +1,4 @@
-import { escapeHtml, formatPrice, getLastOrder, initCommon, scheduleTranslation } from '../app.js';
+import { escapeHtml, formatPrice, getLastOrder, initCommon } from '../app.js';
 
 initCommon('');
 
@@ -48,5 +48,3 @@ if (!order) {
     </div>
   `;
 }
-
-requestAnimationFrame(scheduleTranslation);
