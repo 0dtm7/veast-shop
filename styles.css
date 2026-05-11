@@ -2364,3 +2364,62 @@ a.button {
   filter: blur(8px) saturate(.9);
   transform: scale(.992);
 }
+
+
+/* ===== VEAST v37: commercial homepage sections ===== */
+.section-lead {
+  max-width: 860px;
+  margin: -4px 0 20px;
+  color: var(--graphite);
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.75;
+}
+
+.featured-look-section > div {
+  gap: 12px;
+}
+
+.lookbook-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.clean-steps-grid .stat-card {
+  min-height: 154px;
+}
+
+.service-grid .trust-card span {
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.service-grid .trust-card p {
+  color: var(--graphite);
+}
+
+:root[data-theme="dark"] .section-lead,
+:root[data-theme="dark"] .service-grid .trust-card p {
+  color: var(--muted);
+}
+
+@media (max-width: 1180px) {
+  .service-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .section-lead {
+    margin-bottom: 16px;
+  }
+
+  .lookbook-actions {
+    display: grid;
+  }
+
+  .service-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "veast-course-commercial-project",
-  "version": "1.3.0",
+  "version": "1.3.7",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,5 @@
     "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST commercial course project v3"
+  "description": "VEAST commercial fashion e-commerce project v37"
 }
