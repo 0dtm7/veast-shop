@@ -192,3 +192,10 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 - `account.html` показывает только заказы, оформленные в текущем браузере.
 - Telegram-привязка закрепляет заказ за конкретным `chat_id`; другой Telegram не может перепривязать уже связанный заказ.
 - В футере сайта добавлена ссылка на `admin-orders.html`; сама админка защищена ключом администратора.
+
+
+## v41 — Telegram webhook fix
+
+- Telegram API requests now use Node HTTPS with IPv4 preference instead of global fetch.
+- `/api/telegram/set-webhook` now returns a clearer error if Render cannot reach Telegram or the bot token is wrong.
+- Keep `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `PUBLIC_BASE_URL`, and `ADMIN_STATUS_KEY` only in Render Environment Variables.

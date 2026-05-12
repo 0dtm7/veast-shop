@@ -1,6 +1,6 @@
 {
   "name": "veast-course-commercial-project",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,5 @@
     "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST commercial fashion e-commerce project v40 with Telegram order binding privacy fixes"
+  "description": "VEAST commercial fashion e-commerce project v41 with Telegram webhook setup fix"
 }

@@ -251,10 +251,16 @@ async function setupWebhook() {
       body: JSON.stringify({}),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.ok) throw new Error(data.error || data.telegram?.description || 'Telegram webhook не подключился');
+    if (!response.ok || !data.ok) {
+      const details = [data.error, data.telegram?.description, data.telegram?.code, data.telegram?.hint].filter(Boolean).join(' — ');
+      throw new Error(details || 'Telegram webhook не подключился');
+    }
     setAdminMessage(`Webhook подключён: ${data.webhookUrl}`, 'api-alert api-alert-success');
   } catch (error) {
-    setAdminMessage(error.message, 'error-text');
+    const text = error.message === 'Failed to fetch'
+      ? 'Админка не смогла достучаться до backend. Проверь, что сайт задеплоился и открылся именно через https://veast-shop-nsdh.onrender.com/admin-orders.html.'
+      : error.message;
+    setAdminMessage(text, 'error-text');
   }
 }
 

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import https from 'node:https';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -12,10 +13,10 @@ const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.js');
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_BOT_USERNAME = (process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').replace(/^@/, '');
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com';
-const ADMIN_STATUS_KEY = process.env.ADMIN_STATUS_KEY || 'veast-admin-demo';
+const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
+const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').trim().replace(/^@/, '');
+const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
+const ADMIN_STATUS_KEY = String(process.env.ADMIN_STATUS_KEY || 'veast-admin-demo').trim();
 
 const ORDER_STATUSES = {
   created: {
@@ -264,21 +265,55 @@ function isAdminRequest(req, url) {
   return clean(headerKey || queryKey) === ADMIN_STATUS_KEY;
 }
 
-async function telegramApi(method, payload) {
+function telegramApi(method, payload = {}) {
   if (!TELEGRAM_BOT_TOKEN) {
-    return { ok: false, skipped: true, description: 'TELEGRAM_BOT_TOKEN is not configured' };
+    return Promise.resolve({ ok: false, skipped: true, description: 'TELEGRAM_BOT_TOKEN is not configured' });
   }
 
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+  const body = JSON.stringify(payload);
+  const requestOptions = {
+    hostname: 'api.telegram.org',
+    path: `/bot${TELEGRAM_BOT_TOKEN}/${method}`,
+    method: 'POST',
+    family: 4,
+    timeout: 15000,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
+
+  return new Promise((resolve) => {
+    const request = https.request(requestOptions, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { raw += chunk; });
+      response.on('end', () => {
+        try {
+          const parsed = raw ? JSON.parse(raw) : {};
+          resolve({ ok: Boolean(parsed.ok), httpStatus: response.statusCode, ...parsed });
+        } catch (error) {
+          resolve({ ok: false, httpStatus: response.statusCode, description: `Telegram returned non-JSON response: ${raw.slice(0, 120)}` });
+        }
+      });
     });
-    return await response.json().catch(() => ({ ok: response.ok }));
-  } catch (error) {
-    return { ok: false, description: error.message };
-  }
+
+    request.on('timeout', () => {
+      request.destroy(new Error('Telegram API request timed out'));
+    });
+
+    request.on('error', (error) => {
+      resolve({
+        ok: false,
+        description: error.message || 'Telegram API request failed',
+        code: error.code || null,
+        hint: 'Check TELEGRAM_BOT_TOKEN in Render Environment Variables, then redeploy and press “Подключить webhook” again.',
+      });
+    });
+
+    request.write(body);
+    request.end();
+  });
 }
 
 async function sendTelegramMessage(chatId, text) {
@@ -431,13 +466,18 @@ async function handleSetTelegramWebhook(req, res, url) {
 
   const webhookUrl = `${baseUrl.replace(/\/+$/, '')}/api/telegram/webhook`;
   const result = await telegramApi('setWebhook', { url: webhookUrl });
-  return send(res, 200, JSON.stringify({
+  return send(res, result.ok ? 200 : 502, JSON.stringify({
     ok: Boolean(result.ok),
     webhookUrl,
     telegram: {
       ok: Boolean(result.ok),
       description: result.description || null,
+      errorCode: result.error_code || null,
+      httpStatus: result.httpStatus || null,
+      code: result.code || null,
+      hint: result.hint || null,
       skipped: Boolean(result.skipped),
+      tokenConfigured: Boolean(TELEGRAM_BOT_TOKEN),
     },
   }));
 }
@@ -520,6 +560,12 @@ async function handleApi(req, res, url) {
 
   if (url.pathname === '/api/telegram/set-webhook' && (req.method === 'GET' || req.method === 'POST')) {
     return handleSetTelegramWebhook(req, res, url);
+  }
+
+  if (url.pathname === '/api/telegram/webhook-info' && (req.method === 'GET' || req.method === 'POST')) {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    const result = await telegramApi('getWebhookInfo', {});
+    return send(res, result.ok ? 200 : 502, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
   }
 
   const statusRoute = url.pathname.match(/^\/api\/orders\/([^/]+)\/status$/);
