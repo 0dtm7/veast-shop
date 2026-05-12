@@ -6,6 +6,7 @@ const stats = document.getElementById('backendStats');
 const list = document.getElementById('ordersApiList');
 const refresh = document.getElementById('refreshOrders');
 const webhookButton = document.getElementById('setupTelegramWebhook');
+const ordersJsonLink = document.getElementById('openOrdersJson');
 const adminKeyForm = document.getElementById('adminKeyForm');
 const adminKeyInput = document.getElementById('adminKeyInput');
 const adminMessage = document.getElementById('adminMessage');
@@ -35,13 +36,20 @@ function getAdminKey() {
   return adminKeyInput.value.trim();
 }
 
+function updateOrdersJsonLink() {
+  const key = getAdminKey();
+  if (!ordersJsonLink) return;
+  ordersJsonLink.href = key ? `/api/orders?key=${encodeURIComponent(key)}` : '#';
+  ordersJsonLink.setAttribute('aria-disabled', key ? 'false' : 'true');
+}
+
 function setAdminMessage(text, type = '') {
   adminMessage.innerHTML = text ? `<span class="${type}">${escapeHtml(text)}</span>` : '';
 }
 
 function renderLoading() {
   stats.innerHTML = '<article class="info-card"><h3>API</h3><p>Загружаем...</p></article>';
-  list.innerHTML = '<div class="empty-state"><h3>Загружаем заказы</h3><p>Проверяем GET /api/orders.</p></div>';
+  list.innerHTML = '<div class="empty-state"><h3>Загружаем заказы</h3><p>Проверяем защищённый GET /api/orders.</p></div>';
 }
 
 function formatDate(value) {
@@ -174,12 +182,20 @@ function renderError(error) {
 }
 
 async function loadOrders() {
+  updateOrdersJsonLink();
+  const adminKey = getAdminKey();
+  if (!adminKey) {
+    stats.innerHTML = '<article class="info-card"><h3>API</h3><p>Нужен ключ</p></article>';
+    list.innerHTML = '<div class="empty-state"><h3>Введите ADMIN_STATUS_KEY</h3><p>Список заказов закрыт от обычных посетителей. Введите ключ администратора и нажмите “Сохранить ключ”.</p></div>';
+    return;
+  }
+
   renderLoading();
   try {
-    const response = await fetch('/api/orders');
-    if (!response.ok) throw new Error('GET /api/orders вернул ошибку');
-    const orders = await response.json();
-    renderOrders(Array.isArray(orders) ? orders : []);
+    const response = await fetch('/api/orders', { headers: { 'x-admin-key': adminKey } });
+    const data = await response.json().catch(() => []);
+    if (!response.ok) throw new Error(data.error || 'GET /api/orders вернул ошибку');
+    renderOrders(Array.isArray(data) ? data : []);
   } catch (error) {
     renderError(error);
   }
@@ -244,11 +260,14 @@ async function setupWebhook() {
 
 const savedKey = localStorage.getItem(ADMIN_KEY_STORAGE) || '';
 adminKeyInput.value = savedKey;
+updateOrdersJsonLink();
 
 adminKeyForm.addEventListener('submit', (event) => {
   event.preventDefault();
   localStorage.setItem(ADMIN_KEY_STORAGE, getAdminKey());
-  setAdminMessage('Ключ сохранён в этом браузере.', 'api-alert api-alert-success');
+  updateOrdersJsonLink();
+  setAdminMessage('Ключ сохранён в этом браузере. Загружаем заказы.', 'api-alert api-alert-success');
+  loadOrders();
 });
 
 refresh.addEventListener('click', loadOrders);

@@ -184,3 +184,11 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 ## v39 Render-ready Telegram setup
 
 В этой версии `PUBLIC_BASE_URL` уже настроен под `https://veast-shop-nsdh.onrender.com`. Секреты не зашиты в код: `TELEGRAM_BOT_TOKEN` и `ADMIN_STATUS_KEY` нужно добавить только в Render Environment Variables.
+
+
+## Telegram order status privacy fix
+
+- `/api/orders` теперь доступен только с `ADMIN_STATUS_KEY`, чтобы обычные посетители не видели чужие заказы.
+- `account.html` показывает только заказы, оформленные в текущем браузере.
+- Telegram-привязка закрепляет заказ за конкретным `chat_id`; другой Telegram не может перепривязать уже связанный заказ.
+- В футере сайта добавлена ссылка на `admin-orders.html`; сама админка защищена ключом администратора.

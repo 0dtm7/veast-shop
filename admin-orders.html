@@ -30,12 +30,12 @@
         <div>
           <p class="eyebrow">admin key</p>
           <h2>Ключ администратора</h2>
-          <p class="muted">Нужен только для изменения статусов. Локально по умолчанию можно использовать <code>veast-admin-demo</code>, на Render лучше задать свой <code>ADMIN_STATUS_KEY</code>.</p>
+          <p class="muted">Ключ открывает список заказов, изменение статусов и подключение Telegram webhook. Без ключа заказы не показываются другим посетителям сайта.</p>
         </div>
         <form class="admin-key-form" id="adminKeyForm">
           <label class="field">
             <span>ADMIN_STATUS_KEY</span>
-            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="veast-admin-demo" />
+            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="ADMIN_STATUS_KEY" />
           </label>
           <button class="button button-primary" type="submit">Сохранить ключ</button>
         </form>
@@ -47,7 +47,7 @@
       <section class="section">
         <div class="section-heading">
           <div><p class="eyebrow">orders api</p><h2>Заказы и Telegram-статусы</h2></div>
-          <a class="button button-ghost" href="/api/orders" target="_blank" rel="noreferrer">Открыть JSON</a>
+          <a class="button button-ghost" id="openOrdersJson" href="#" target="_blank" rel="noreferrer">Открыть JSON</a>
         </div>
         <div id="ordersApiList" class="order-list"></div>
       </section>

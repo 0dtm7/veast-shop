@@ -594,6 +594,7 @@ export function renderFooter() {
         contacts: 'Contacts',
         privacy: 'Privacy policy',
         offer: 'Public offer',
+        admin: 'Admin panel',
         tg: 'Telegram',
         vk: 'VK',
         ctaTitle: 'VEAST Drop',
@@ -616,6 +617,7 @@ export function renderFooter() {
         contacts: 'Контакты',
         privacy: 'Политика конфиденциальности',
         offer: 'Публичная оферта',
+        admin: 'Админка',
         tg: 'Telegram',
         vk: 'VK',
         ctaTitle: 'VEAST Drop',
@@ -660,6 +662,7 @@ export function renderFooter() {
         <span>© 2026 VEAST</span>
         <a href="privacy.html">${labels.privacy}</a>
         <a href="privacy.html">${labels.offer}</a>
+        <a href="admin-orders.html">${labels.admin}</a>
       </div>
     </footer>
   `;

@@ -366,10 +366,21 @@ async function handleTelegramWebhook(req, res) {
         return send(res, 200, JSON.stringify({ ok: true, linked: false }));
       }
 
+      const alreadyLinkedChatId = clean(normalizedOrders[index].telegramChatId || '');
+      if (alreadyLinkedChatId && alreadyLinkedChatId !== chatId) {
+        await sendTelegramMessage(chatId, [
+          'VEAST',
+          '',
+          'Этот заказ уже привязан к другому Telegram.',
+          'Если это ваш заказ, оформите новую привязку со страницы подтверждения или обратитесь в поддержку VEAST.',
+        ].join('\n'));
+        return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: 'already_linked' }));
+      }
+
       normalizedOrders[index] = {
         ...normalizedOrders[index],
         telegramChatId: chatId,
-        telegramLinkedAt: new Date().toISOString(),
+        telegramLinkedAt: normalizedOrders[index].telegramLinkedAt || new Date().toISOString(),
       };
 
       await writeFile(ORDERS_FILE, JSON.stringify(normalizedOrders, null, 2), 'utf8');
@@ -536,6 +547,9 @@ async function handleApi(req, res, url) {
   }
 
   if (url.pathname === '/api/orders' && req.method === 'GET') {
+    if (!isAdminRequest(req, url)) {
+      return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    }
     return send(res, 200, JSON.stringify((await readJson(ORDERS_FILE)).map(publicOrder)));
   }
 
