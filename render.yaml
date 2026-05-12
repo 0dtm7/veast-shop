@@ -1,8 +1,16 @@
 services:
   - type: web
-    name: veast-shop
+    name: veast-shop-nsdh
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /api/health
+    buildCommand: pnpm install
+    startCommand: pnpm start
+    envVars:
+      - key: TELEGRAM_BOT_USERNAME
+        value: VEAST_Order_Bot
+      - key: PUBLIC_BASE_URL
+        value: https://veast-shop-nsdh.onrender.com
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ADMIN_STATUS_KEY
+        sync: false

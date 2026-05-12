@@ -1,6 +1,6 @@
 {
   "name": "veast-course-commercial-project",
-  "version": "1.3.7",
+  "version": "1.3.9",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,5 @@
     "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST commercial fashion e-commerce project v37"
+  "description": "VEAST commercial fashion e-commerce project v39 with Telegram order status bot and Render URL setup"
 }

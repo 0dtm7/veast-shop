@@ -2423,3 +2423,211 @@ a.button {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== VEAST v38: Telegram order status module ===== */
+.telegram-order-card,
+.admin-control-panel,
+.order-status-form,
+.status-details {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 8px);
+  background: var(--soft);
+}
+
+.telegram-order-card {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: clamp(16px, 2vw, 22px);
+}
+
+.telegram-order-card h2,
+.admin-control-panel h2 {
+  margin: 0;
+  letter-spacing: -.04em;
+}
+
+.telegram-order-card p,
+.admin-control-panel p {
+  margin: 0;
+}
+
+.admin-control-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(280px, 440px);
+  gap: 20px;
+  align-items: end;
+  margin: 24px 0;
+  padding: clamp(18px, 2vw, 24px);
+}
+
+.admin-key-form {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-key-form .field {
+  margin: 0;
+}
+
+.order-admin-card {
+  gap: 18px;
+}
+
+.order-admin-head {
+  align-items: flex-start;
+}
+
+.order-admin-meta {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  text-align: right;
+}
+
+.status-pill {
+  display: inline-flex;
+  width: max-content;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.status-pill-ok {
+  color: var(--ink);
+  border-color: var(--line-dark);
+}
+
+.telegram-admin-line {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+
+.telegram-admin-line span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.telegram-admin-line a {
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.order-status-form {
+  padding: clamp(14px, 2vw, 18px);
+}
+
+.order-status-form .form-grid {
+  margin: 0;
+}
+
+.order-status-form textarea {
+  min-height: 92px;
+}
+
+.status-details {
+  padding: 14px 16px;
+}
+
+.status-details summary {
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: 12px;
+}
+
+.status-history {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.status-history-item {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.status-history-item strong {
+  font-size: 14px;
+}
+
+.status-history-item span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-history-item p {
+  margin: 0;
+}
+
+:root[data-theme="dark"] .telegram-order-card,
+:root[data-theme="dark"] .admin-control-panel,
+:root[data-theme="dark"] .order-status-form,
+:root[data-theme="dark"] .status-details {
+  background: var(--soft-2);
+  border-color: var(--line-dark);
+}
+
+:root[data-theme="dark"] .status-history-item,
+:root[data-theme="dark"] .status-pill {
+  background: var(--paper);
+  border-color: var(--line-dark);
+}
+
+@media (max-width: 920px) {
+  .admin-control-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .order-admin-head {
+    grid-template-columns: 1fr;
+  }
+
+  .order-admin-meta {
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .telegram-order-card,
+  .admin-control-panel,
+  .order-status-form,
+  .status-details {
+    border-radius: 18px;
+  }
+
+  .telegram-admin-line {
+    font-size: 13px;
+  }
+}
+
+.admin-key-form .field > span,
+.order-status-form .field > span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 850;
+  font-size: 13px;
+  text-transform: uppercase;
+}

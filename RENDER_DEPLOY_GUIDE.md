@@ -1,58 +1,53 @@
-# VEAST: деплой на Render
+# Render deploy guide — VEAST + Telegram bot
 
-## 1. Подготовка репозитория
+## 1. Переменные окружения
 
-1. Распаковать архив.
-2. Открыть папку `VEAST_render_ready`.
-3. Создать GitHub-репозиторий `veast-shop`.
-4. Загрузить в репозиторий содержимое папки `VEAST_render_ready`, а не сам ZIP-архив.
+В Render открой свой Web Service → Environment и добавь:
 
-В корне репозитория должны лежать файлы:
-
-```text
-package.json
-server.js
-render.yaml
-index.html
-catalog.html
-checkout.html
-data/
-assets/
-scripts/
-styles.css
+```env
+TELEGRAM_BOT_TOKEN=токен_от_BotFather
+TELEGRAM_BOT_USERNAME=VEAST_Order_Bot
+PUBLIC_BASE_URL=https://veast-shop-nsdh.onrender.com
+ADMIN_STATUS_KEY=любой_секретный_ключ
 ```
 
-## 2. Настройки Render
+`TELEGRAM_BOT_TOKEN` нельзя выкладывать в GitHub.
 
-На Render выбрать **New → Web Service**, подключить GitHub-репозиторий и указать:
+## 2. Запуск
 
-```text
-Language: Node
-Branch: main
-Root Directory: оставить пустым, если package.json лежит в корне репозитория
-Build Command: npm install
-Start Command: npm start
-Health Check Path: /api/health
+Render должен запускать проект командой:
+
+```bash
+pnpm start
 ```
 
-Если в репозитории случайно лежит папка `VEAST_render_ready`, а файлы находятся внутри неё, в поле **Root Directory** нужно написать:
+или
 
-```text
-VEAST_render_ready
+```bash
+node server.js
 ```
 
-## 3. Проверка после деплоя
+## 3. Подключение Telegram webhook
 
-После успешного деплоя открыть:
+После деплоя открой:
 
 ```text
-/
-/catalog.html
-/product.html?id=vst-eclipse-zip-hoodie
-/checkout.html
-/admin-orders.html
-/api/health
-/api/products
+https://veast-shop-nsdh.onrender.com/admin-orders.html
 ```
 
-`/api/health` должен вернуть JSON со значением `ok: true`.
+Введи `ADMIN_STATUS_KEY` и нажми кнопку **«Подключить webhook»**.
+
+После этого Telegram будет отправлять сообщения бота на:
+
+```text
+https://veast-shop-nsdh.onrender.com/api/telegram/webhook
+```
+
+## 4. Проверка сценария
+
+1. Оформи заказ на сайте.
+2. На странице подтверждения нажми **«Получать статус в Telegram»**.
+3. Нажми Start в боте.
+4. Вернись в `admin-orders.html`.
+5. Поменяй статус заказа и нажми **«Обновить статус и отправить в Telegram»**.
+6. Проверь, что бот прислал уведомление.

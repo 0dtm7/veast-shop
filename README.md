@@ -45,7 +45,8 @@ http://localhost:3000
 - Контакты и форма обратной связи.
 - Оферта, пользовательское соглашение и политика конфиденциальности.
 - Страница проекта / дизайн-документ.
-- Страница `admin-orders.html` для демонстрации backend-заказов на защите.
+- Страница `admin-orders.html` для демонстрации backend-заказов, управления статусами и отправки Telegram-уведомлений.
+- Telegram-бот `@VEAST_Order_Bot`: привязка заказа через кнопку на странице подтверждения, команда `/status`, webhook и уведомления о статусе доставки.
 - Backend API на Node.js без внешних зависимостей.
 - Telegram-канал VEAST: https://t.me/veastshop
 
@@ -58,7 +59,67 @@ http://localhost:3000
 - `POST /api/orders` — создание заказа.
 - `GET /api/orders` — список сохранённых заказов.
 - `GET /api/orders/:id` — конкретный заказ.
+- `GET /api/orders/:id/status` — публичный статус заказа.
+- `POST /api/orders/:id/status` — обновление статуса заказа администратором.
+- `POST /api/telegram/webhook` — webhook для Telegram-бота.
+- `GET/POST /api/telegram/set-webhook` — подключение Telegram webhook через admin key.
 - `POST /api/feedback` — сохранение обращения из формы контактов.
+
+
+## Telegram-статусы заказов
+
+В проект добавлен первый практичный вариант Telegram-интеграции: статусы доставки обновляются вручную через `admin-orders.html`, а бот автоматически отправляет сообщение клиенту.
+
+Сценарий:
+
+1. Пользователь оформляет заказ на сайте.
+2. Backend сохраняет заказ в `data/orders.json` и создаёт `telegramLinkToken`.
+3. На странице `thanks.html` появляется кнопка **«Получать статус в Telegram»**.
+4. Пользователь открывает `@VEAST_Order_Bot`, заказ привязывается к его Telegram chat id.
+5. Администратор открывает `admin-orders.html`, меняет статус, службу доставки, трек-номер и комментарий.
+6. Backend сохраняет историю статусов и отправляет клиенту уведомление в Telegram.
+
+Команды бота:
+
+```text
+/start — привязать заказ по ссылке
+/status — посмотреть текущий статус заказа
+/help — помощь
+```
+
+Статусы:
+
+```text
+created — заказ создан
+packed — заказ собран
+shipped — передан в доставку
+in_transit — в пути
+ready_for_pickup — ожидает получения
+delivered — заказ получен
+```
+
+Переменные окружения для локального запуска и Render:
+
+```env
+TELEGRAM_BOT_TOKEN=токен_от_BotFather
+TELEGRAM_BOT_USERNAME=VEAST_Order_Bot
+PUBLIC_BASE_URL=https://veast-shop-nsdh.onrender.com
+ADMIN_STATUS_KEY=любой_секретный_ключ
+```
+
+Локально, если `ADMIN_STATUS_KEY` не задан, работает демо-ключ:
+
+```text
+veast-admin-demo
+```
+
+После деплоя на Render нужно открыть:
+
+```text
+https://veast-shop-nsdh.onrender.com/admin-orders.html
+```
+
+Ввести `ADMIN_STATUS_KEY` и нажать **«Подключить webhook»**. Это вызовет endpoint `/api/telegram/set-webhook` и подключит Telegram к сайту.
 
 ## Что показывать на защите
 
@@ -118,3 +179,8 @@ http://localhost:3000
 - инструкция: `figma/README_FIGMA_IMPORT.md` и `docs/interactive-prototype-link.md`.
 
 Настоящая Figma-ссылка уже добавлена: https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1. SVG-файл оставлен как резервная заготовка для импорта.
+
+
+## v39 Render-ready Telegram setup
+
+В этой версии `PUBLIC_BASE_URL` уже настроен под `https://veast-shop-nsdh.onrender.com`. Секреты не зашиты в код: `TELEGRAM_BOT_TOKEN` и `ADMIN_STATUS_KEY` нужно добавить только в Render Environment Variables.

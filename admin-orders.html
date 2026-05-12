@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Backend orders — VEAST</title>
-    <meta name="description" content="VEAST backend demo: API orders, stats, JSON persistence and server logic validation." />
+    <title>Статусы заказов — VEAST</title>
+    <meta name="description" content="Админ-страница VEAST для просмотра заказов, обновления статусов доставки и отправки уведомлений в Telegram." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -13,34 +13,52 @@
   <body>
     <div data-header></div>
     <main id="mainContent" class="page-section container-wide">
-      <div class="breadcrumbs"><a href="index.html">Home</a><span>/</span><a href="project.html">Project</a><span>/</span><span>Backend orders</span></div>
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><a href="project.html">Проект</a><span>/</span><span>Заказы</span></div>
+
       <section class="project-hero admin-hero">
-        <p class="eyebrow">backend demonstration</p>
-        <h1>Order demo</h1>
-        <p class="hero-copy">This page is used for the presentation: it shows that a submitted order goes through the API, is validated on the server and saved to <strong>data/orders.json</strong>.</p>
+        <p class="eyebrow">order control center</p>
+        <h1>Статусы заказов VEAST</h1>
+        <p class="hero-copy">Мини-админка для проекта: здесь видно заказы из backend API, можно задать службу доставки, трек-номер, текущий статус и отправить уведомление клиенту в Telegram.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="checkout.html">Create order</a>
-          <button class="button button-ghost" id="refreshOrders" type="button">Refresh list</button>
+          <a class="button button-primary" href="checkout.html">Создать тестовый заказ</a>
+          <button class="button button-ghost" id="refreshOrders" type="button">Обновить список</button>
+          <button class="button button-ghost" id="setupTelegramWebhook" type="button">Подключить webhook</button>
         </div>
+      </section>
+
+      <section class="admin-control-panel panel-card">
+        <div>
+          <p class="eyebrow">admin key</p>
+          <h2>Ключ администратора</h2>
+          <p class="muted">Нужен только для изменения статусов. Локально по умолчанию можно использовать <code>veast-admin-demo</code>, на Render лучше задать свой <code>ADMIN_STATUS_KEY</code>.</p>
+        </div>
+        <form class="admin-key-form" id="adminKeyForm">
+          <label class="field">
+            <span>ADMIN_STATUS_KEY</span>
+            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="veast-admin-demo" />
+          </label>
+          <button class="button button-primary" type="submit">Сохранить ключ</button>
+        </form>
+        <p class="form-message" id="adminMessage" role="status" aria-live="polite"></p>
       </section>
 
       <section class="info-grid backend-stats" id="backendStats" aria-live="polite"></section>
 
       <section class="section">
         <div class="section-heading">
-          <div><p class="eyebrow">orders api</p><h2>Order list from backend API</h2></div>
+          <div><p class="eyebrow">orders api</p><h2>Заказы и Telegram-статусы</h2></div>
           <a class="button button-ghost" href="/api/orders" target="_blank" rel="noreferrer">Открыть JSON</a>
         </div>
         <div id="ordersApiList" class="order-list"></div>
       </section>
 
       <section class="section">
-        <div class="section-heading"><div><p class="eyebrow">api map</p><h2>What to show in the demo</h2></div></div>
+        <div class="section-heading"><div><p class="eyebrow">telegram flow</p><h2>Как показывать на защите</h2></div></div>
         <div class="project-grid">
-          <article class="project-card"><h3>GET /api/products</h3><p>Frontend receives products for the catalog, product pages and favorites.</p></article>
-          <article class="project-card"><h3>POST /api/orders</h3><p>Checkout sends the order. The server validates required fields and items.</p></article>
-          <article class="project-card"><h3>GET /api/orders</h3><p>This page reads saved orders and shows them in the interface.</p></article>
-          <article class="project-card"><h3>data/orders.json</h3><p>The JSON file acts as a training data store confirming the business process.</p></article>
+          <article class="project-card"><h3>1. Checkout</h3><p>Пользователь оформляет заказ. Backend валидирует данные и сохраняет заказ в <strong>data/orders.json</strong>.</p></article>
+          <article class="project-card"><h3>2. Telegram</h3><p>На странице подтверждения появляется кнопка “Получать статус в Telegram”. Она привязывает заказ к боту <strong>@VEAST_Order_Bot</strong>.</p></article>
+          <article class="project-card"><h3>3. Админка</h3><p>Администратор меняет статус, службу доставки, трек-номер и комментарий по заказу.</p></article>
+          <article class="project-card"><h3>4. Уведомление</h3><p>После обновления backend сохраняет историю статусов и отправляет клиенту сообщение в Telegram.</p></article>
         </div>
       </section>
     </main>
