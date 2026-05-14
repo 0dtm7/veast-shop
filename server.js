@@ -1,7 +1,6 @@
 import http from 'node:http';
 import https from 'node:https';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
@@ -11,7 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
-const DB_PATH = process.env.VEAST_DB_PATH || path.join(DATA_DIR, 'veast.sqlite');
+const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
+const DATABASE_SSL = String(process.env.DATABASE_SSL || process.env.PGSSLMODE || '').trim().toLowerCase();
 const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.js');
 
@@ -26,7 +26,7 @@ const CDEK_DEFAULT_LOCATION = String(process.env.CDEK_DEFAULT_LOCATION || 'Мо�
 const CDEK_API_BASE_URL = normalizeCdekApiBaseUrl(process.env.CDEK_API_BASE_URL || 'https://api.cdek.ru/v2');
 const CDEK_WIDGET_VERSION = '3.11.1';
 let cdekTokenCache = { token: '', expiresAt: 0 };
-let db = null;
+let pgPool = null;
 
 function normalizeCdekApiBaseUrl(value) {
   const raw = String(value || '').trim().replace(/\/+$/, '');
@@ -78,7 +78,6 @@ const mime = {
 
 async function ensureDataFiles() {
   await mkdir(DATA_DIR, { recursive: true });
-  await mkdir(path.dirname(DB_PATH), { recursive: true });
   if (!existsSync(ORDERS_FILE)) await writeFile(ORDERS_FILE, '[]', 'utf8');
   if (!existsSync(FEEDBACK_FILE)) await writeFile(FEEDBACK_FILE, '[]', 'utf8');
   await initDatabase();
@@ -99,14 +98,48 @@ async function readJson(file) {
   catch { return []; }
 }
 
+async function writeJson(file, data) {
+  await writeFile(file, JSON.stringify(data, null, 2), 'utf8');
+}
 
-function getDb() {
-  if (!db) throw new Error('VEAST SQLite database is not initialized');
-  return db;
+function getDatabaseMode() {
+  return DATABASE_URL ? 'postgresql' : 'json-fallback';
+}
+
+async function getPgPool() {
+  if (!DATABASE_URL) return null;
+  if (pgPool) return pgPool;
+
+  const pg = await import('pg');
+  const Pool = pg.Pool || pg.default?.Pool;
+  const ssl = (DATABASE_SSL === 'require' || DATABASE_SSL === 'true')
+    ? { rejectUnauthorized: false }
+    : undefined;
+
+  pgPool = new Pool({
+    connectionString: DATABASE_URL,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ...(ssl ? { ssl } : {}),
+  });
+
+  pgPool.on('error', (error) => {
+    console.error('VEAST PostgreSQL pool error:', error.message);
+  });
+
+  return pgPool;
+}
+
+async function pgQuery(sql, params = []) {
+  const pool = await getPgPool();
+  if (!pool) throw new Error('DATABASE_URL is not configured');
+  return pool.query(sql, params);
 }
 
 function parseDbJson(value, fallback = null) {
   if (!value) return fallback;
+  if (typeof value === 'object') return value;
   try { return JSON.parse(value); }
   catch { return fallback; }
 }
@@ -116,14 +149,16 @@ function boolToInt(value) {
 }
 
 function intToBool(value) {
-  return Number(value) === 1;
+  return value === true || Number(value) === 1;
 }
 
 async function initDatabase() {
-  db = new DatabaseSync(DB_PATH);
-  db.exec('PRAGMA foreign_keys = ON');
-  db.exec('PRAGMA journal_mode = WAL');
-  db.exec(`
+  if (!DATABASE_URL) {
+    console.warn('DATABASE_URL is not configured. VEAST will use temporary JSON fallback for orders. Add PostgreSQL DATABASE_URL on Render for persistent orders.');
+    return;
+  }
+
+  await pgQuery(`
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
       created_at TEXT NOT NULL,
@@ -138,10 +173,10 @@ async function initDatabase() {
       customer_delivery TEXT,
       customer_payment TEXT,
       customer_comment TEXT,
-      privacy_accepted INTEGER DEFAULT 0,
-      total REAL NOT NULL,
+      privacy_accepted BOOLEAN DEFAULT FALSE,
+      total NUMERIC(12, 2) NOT NULL,
       delivery_provider TEXT,
-      delivery_point_json TEXT,
+      delivery_point_json JSONB,
       tracking_number TEXT,
       current_location TEXT,
       telegram_chat_id TEXT,
@@ -152,31 +187,29 @@ async function initDatabase() {
     );
 
     CREATE TABLE IF NOT EXISTS order_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id TEXT NOT NULL,
+      id BIGSERIAL PRIMARY KEY,
+      order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
       line_id TEXT,
       product_id TEXT NOT NULL,
       product TEXT,
       category TEXT,
       size TEXT,
       quantity INTEGER NOT NULL,
-      price REAL NOT NULL,
-      subtotal REAL NOT NULL,
-      image TEXT,
-      FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+      price NUMERIC(12, 2) NOT NULL,
+      subtotal NUMERIC(12, 2) NOT NULL,
+      image TEXT
     );
 
     CREATE TABLE IF NOT EXISTS order_status_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id TEXT NOT NULL,
+      id BIGSERIAL PRIMARY KEY,
+      order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
       status_key TEXT NOT NULL,
       status TEXT NOT NULL,
       text TEXT,
       delivery_provider TEXT,
       tracking_number TEXT,
       current_location TEXT,
-      date TEXT NOT NULL,
-      FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+      date TEXT NOT NULL
     );
 
     CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
@@ -190,16 +223,17 @@ async function initDatabase() {
 }
 
 async function migrateLegacyOrdersJson() {
-  const database = getDb();
-  const countRow = database.prepare('SELECT COUNT(*) AS count FROM orders').get();
-  if (Number(countRow?.count || 0) > 0) return;
+  if (!DATABASE_URL) return;
+
+  const countResult = await pgQuery('SELECT COUNT(*)::int AS count FROM orders');
+  if (Number(countResult.rows?.[0]?.count || 0) > 0) return;
 
   const legacyOrders = await readJson(ORDERS_FILE);
   if (!Array.isArray(legacyOrders) || legacyOrders.length === 0) return;
 
   for (const legacyOrder of legacyOrders) {
     try {
-      saveOrderToDatabase(ensureOrderStatusFields(legacyOrder));
+      await saveOrderToDatabase(ensureOrderStatusFields(legacyOrder));
     } catch (error) {
       console.error(`Legacy order migration failed: ${legacyOrder?.id || 'unknown'}`, error.message);
     }
@@ -259,42 +293,83 @@ function orderRowToPublicOrder(row, items = [], history = []) {
   return publicOrder(order);
 }
 
-function getOrderItems(orderId) {
-  return getDb().prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC').all(orderId);
+async function readFallbackOrders() {
+  const orders = await readJson(ORDERS_FILE);
+  return Array.isArray(orders) ? orders.map(ensureOrderStatusFields) : [];
 }
 
-function getOrderHistory(orderId) {
-  return getDb().prepare('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY id ASC').all(orderId);
+async function writeFallbackOrders(orders) {
+  await writeJson(ORDERS_FILE, orders.map(ensureOrderStatusFields));
 }
 
-function getAllOrdersFromDatabase() {
-  const rows = getDb().prepare('SELECT * FROM orders ORDER BY datetime(created_at) ASC, id ASC').all();
-  return rows.map((row) => orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id)));
+async function getOrderItems(orderId) {
+  if (!DATABASE_URL) return [];
+  const result = await pgQuery('SELECT * FROM order_items WHERE order_id = $1 ORDER BY id ASC', [orderId]);
+  return result.rows;
 }
 
-function getOrderFromDatabase(orderId) {
-  const row = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+async function getOrderHistory(orderId) {
+  if (!DATABASE_URL) return [];
+  const result = await pgQuery('SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY id ASC', [orderId]);
+  return result.rows;
+}
+
+async function getAllOrdersFromDatabase() {
+  if (!DATABASE_URL) return readFallbackOrders();
+  const result = await pgQuery('SELECT * FROM orders ORDER BY created_at ASC, id ASC');
+  const orders = [];
+  for (const row of result.rows) {
+    orders.push(orderRowToPublicOrder(row, await getOrderItems(row.id), await getOrderHistory(row.id)));
+  }
+  return orders;
+}
+
+async function getOrderFromDatabase(orderId) {
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    return orders.find((order) => order.id === orderId) || null;
+  }
+
+  const result = await pgQuery('SELECT * FROM orders WHERE id = $1', [orderId]);
+  const row = result.rows?.[0];
   if (!row) return null;
-  return orderRowToPublicOrder(row, getOrderItems(orderId), getOrderHistory(orderId));
+  return orderRowToPublicOrder(row, await getOrderItems(orderId), await getOrderHistory(orderId));
 }
 
-function getOrdersByTelegramChatId(chatId) {
-  const rows = getDb().prepare('SELECT * FROM orders WHERE telegram_chat_id = ? ORDER BY datetime(created_at) ASC, id ASC').all(String(chatId));
-  return rows.map((row) => orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id)));
+async function getOrdersByTelegramChatId(chatId) {
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    return orders.filter((order) => String(order.telegramChatId || '') === String(chatId));
+  }
+
+  const result = await pgQuery('SELECT * FROM orders WHERE telegram_chat_id = $1 ORDER BY created_at ASC, id ASC', [String(chatId)]);
+  const orders = [];
+  for (const row of result.rows) {
+    orders.push(orderRowToPublicOrder(row, await getOrderItems(row.id), await getOrderHistory(row.id)));
+  }
+  return orders;
 }
 
-function getOrderByTelegramToken(token) {
-  const row = getDb().prepare('SELECT * FROM orders WHERE telegram_link_token = ?').get(token);
+async function getOrderByTelegramToken(token) {
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    return orders.find((order) => order.telegramLinkToken === token) || null;
+  }
+
+  const result = await pgQuery('SELECT * FROM orders WHERE telegram_link_token = $1', [token]);
+  const row = result.rows?.[0];
   if (!row) return null;
-  return orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id));
+  return orderRowToPublicOrder(row, await getOrderItems(row.id), await getOrderHistory(row.id));
 }
 
-function insertHistoryEntry(orderId, entry) {
-  getDb().prepare(`
+async function insertHistoryEntry(orderId, entry, client = null) {
+  if (!DATABASE_URL) return;
+  const runner = client || (await getPgPool());
+  await runner.query(`
     INSERT INTO order_status_history (
       order_id, status_key, status, text, delivery_provider, tracking_number, current_location, date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  `, [
     orderId,
     entry.statusKey || normalizeStatusKey(entry.status_key),
     entry.status || getStatusInfo(entry.statusKey || entry.status_key).label,
@@ -303,27 +378,36 @@ function insertHistoryEntry(orderId, entry) {
     entry.trackingNumber || entry.tracking_number || '',
     entry.currentLocation || entry.current_location || '',
     entry.date || new Date().toISOString(),
-  );
+  ]);
 }
 
-function saveOrderToDatabase(order) {
-  const database = getDb();
+async function saveOrderToDatabase(order) {
   const normalized = ensureOrderStatusFields(order);
-  const customer = normalized.customer || {};
   const now = new Date().toISOString();
+
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    orders.push({ ...normalized, updatedAt: now });
+    await writeFallbackOrders(orders);
+    return ensureOrderStatusFields({ ...normalized, updatedAt: now });
+  }
+
+  const pool = await getPgPool();
+  const client = await pool.connect();
+  const customer = normalized.customer || {};
   const deliveryPoint = normalizeDeliveryPoint(normalized.deliveryPoint);
 
-  database.exec('BEGIN');
   try {
-    database.prepare(`
+    await client.query('BEGIN');
+    await client.query(`
       INSERT INTO orders (
         id, created_at, status_key, status, status_text,
         customer_name, customer_phone, customer_email, customer_city, customer_address,
         customer_delivery, customer_payment, customer_comment, privacy_accepted,
         total, delivery_provider, delivery_point_json, tracking_number, current_location,
         telegram_chat_id, telegram_linked_at, telegram_link_token, server_saved_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17::jsonb, $18, $19, $20, $21, $22, $23, $24)
+    `, [
       normalized.id,
       normalized.createdAt || now,
       normalizeStatusKey(normalized.statusKey),
@@ -337,7 +421,7 @@ function saveOrderToDatabase(order) {
       customer.delivery || '',
       customer.payment || '',
       customer.comment || '',
-      boolToInt(customer.privacyAccepted),
+      Boolean(customer.privacyAccepted),
       Number(normalized.total || 0),
       normalized.deliveryProvider || customer.delivery || '',
       deliveryPoint ? JSON.stringify(deliveryPoint) : null,
@@ -348,16 +432,14 @@ function saveOrderToDatabase(order) {
       normalized.telegramLinkToken || createTelegramToken(),
       normalized.serverSavedAt || now,
       now,
-    );
-
-    const insertItem = database.prepare(`
-      INSERT INTO order_items (
-        order_id, line_id, product_id, product, category, size, quantity, price, subtotal, image
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    ]);
 
     for (const item of normalized.items || []) {
-      insertItem.run(
+      await client.query(`
+        INSERT INTO order_items (
+          order_id, line_id, product_id, product, category, size, quantity, price, subtotal, image
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `, [
         normalized.id,
         item.lineId || '',
         item.productId || '',
@@ -368,34 +450,46 @@ function saveOrderToDatabase(order) {
         Number(item.price || 0),
         Number(item.subtotal || 0),
         item.image || '',
-      );
+      ]);
     }
 
     const history = Array.isArray(normalized.statusHistory) && normalized.statusHistory.length
       ? normalized.statusHistory
       : [makeStatusHistoryEntry(normalized, normalized.statusKey, normalized.statusText)];
-    for (const entry of history) insertHistoryEntry(normalized.id, entry);
+    for (const entry of history) await insertHistoryEntry(normalized.id, entry, client);
 
-    database.exec('COMMIT');
+    await client.query('COMMIT');
     return getOrderFromDatabase(normalized.id);
   } catch (error) {
-    database.exec('ROLLBACK');
+    await client.query('ROLLBACK');
     throw error;
+  } finally {
+    client.release();
   }
 }
 
-function updateOrderTelegramBinding(orderId, chatId) {
+async function updateOrderTelegramBinding(orderId, chatId) {
   const linkedAt = new Date().toISOString();
-  getDb().prepare(`
+
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    const index = orders.findIndex((order) => order.id === orderId);
+    if (index < 0) return null;
+    orders[index] = { ...orders[index], telegramChatId: String(chatId), telegramLinkedAt: orders[index].telegramLinkedAt || linkedAt, updatedAt: linkedAt };
+    await writeFallbackOrders(orders);
+    return ensureOrderStatusFields(orders[index]);
+  }
+
+  await pgQuery(`
     UPDATE orders
-    SET telegram_chat_id = ?, telegram_linked_at = COALESCE(telegram_linked_at, ?), updated_at = ?
-    WHERE id = ?
-  `).run(String(chatId), linkedAt, linkedAt, orderId);
+    SET telegram_chat_id = $1, telegram_linked_at = COALESCE(telegram_linked_at, $2), updated_at = $3
+    WHERE id = $4
+  `, [String(chatId), linkedAt, linkedAt, orderId]);
   return getOrderFromDatabase(orderId);
 }
 
-function updateOrderStatusInDatabase(orderId, updates = {}) {
-  const order = getOrderFromDatabase(orderId);
+async function updateOrderStatusInDatabase(orderId, updates = {}) {
+  const order = await getOrderFromDatabase(orderId);
   if (!order) return null;
 
   const statusKey = normalizeStatusKey(updates.statusKey || updates.status || order.statusKey);
@@ -415,33 +509,68 @@ function updateOrderStatusInDatabase(orderId, updates = {}) {
     deliveryProvider,
     trackingNumber,
     currentLocation,
+    updatedAt: now,
   };
   const entry = makeStatusHistoryEntry(updatedOrder, statusKey, statusText);
 
-  const database = getDb();
-  database.exec('BEGIN');
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    const index = orders.findIndex((item) => item.id === orderId);
+    if (index < 0) return null;
+    orders[index] = {
+      ...orders[index],
+      statusKey,
+      status: info.label,
+      statusText,
+      deliveryProvider,
+      trackingNumber,
+      currentLocation,
+      updatedAt: now,
+      statusHistory: [...(orders[index].statusHistory || []), entry],
+    };
+    await writeFallbackOrders(orders);
+    return ensureOrderStatusFields(orders[index]);
+  }
+
+  const pool = await getPgPool();
+  const client = await pool.connect();
   try {
-    database.prepare(`
+    await client.query('BEGIN');
+    await client.query(`
       UPDATE orders
-      SET status_key = ?, status = ?, status_text = ?, delivery_provider = ?, tracking_number = ?, current_location = ?, updated_at = ?
-      WHERE id = ?
-    `).run(statusKey, info.label, statusText, deliveryProvider, trackingNumber, currentLocation, now, orderId);
-    insertHistoryEntry(orderId, entry);
-    database.exec('COMMIT');
+      SET status_key = $1, status = $2, status_text = $3, delivery_provider = $4, tracking_number = $5, current_location = $6, updated_at = $7
+      WHERE id = $8
+    `, [statusKey, info.label, statusText, deliveryProvider, trackingNumber, currentLocation, now, orderId]);
+    await insertHistoryEntry(orderId, entry, client);
+    await client.query('COMMIT');
   } catch (error) {
-    database.exec('ROLLBACK');
+    await client.query('ROLLBACK');
     throw error;
+  } finally {
+    client.release();
   }
 
   return getOrderFromDatabase(orderId);
 }
 
-function getDatabaseStats() {
-  const row = getDb().prepare('SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS totalRevenue FROM orders').get();
+async function getDatabaseStats() {
+  if (!DATABASE_URL) {
+    const orders = await readFallbackOrders();
+    return {
+      orders: orders.length,
+      totalRevenue: orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
+      database: getDatabaseMode(),
+      persistent: false,
+    };
+  }
+
+  const result = await pgQuery('SELECT COUNT(*)::int AS orders, COALESCE(SUM(total), 0)::numeric AS total_revenue FROM orders');
+  const row = result.rows?.[0] || {};
   return {
-    orders: Number(row?.orders || 0),
-    totalRevenue: Number(row?.totalRevenue || 0),
-    dbPath: DB_PATH,
+    orders: Number(row.orders || 0),
+    totalRevenue: Number(row.total_revenue || 0),
+    database: getDatabaseMode(),
+    persistent: true,
   };
 }
 
@@ -969,7 +1098,7 @@ async function handleTelegramWebhook(req, res) {
 
     if (text.startsWith('/start')) {
       const payload = clean(text.split(/\s+/)[1] || '');
-      const targetOrder = payload ? getOrderByTelegramToken(payload) : null;
+      const targetOrder = payload ? await getOrderByTelegramToken(payload) : null;
 
       if (!payload || !targetOrder) {
         await sendTelegramMessage(chatId, [
@@ -992,13 +1121,13 @@ async function handleTelegramWebhook(req, res) {
         return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: 'already_linked' }));
       }
 
-      const linkedOrder = updateOrderTelegramBinding(targetOrder.id, chatId);
+      const linkedOrder = await updateOrderTelegramBinding(targetOrder.id, chatId);
       await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkedOrder));
       return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: linkedOrder.id }));
     }
 
     if (text.startsWith('/status')) {
-      const linkedOrders = getOrdersByTelegramChatId(chatId);
+      const linkedOrders = await getOrdersByTelegramChatId(chatId);
       await sendTelegramMessage(chatId, buildOrdersStatusMessage(linkedOrders));
       return send(res, 200, JSON.stringify({ ok: true }));
     }
@@ -1061,7 +1190,7 @@ async function handleOrderStatusUpdate(req, res, url, orderId) {
 
   try {
     const body = await parseBody(req);
-    const order = updateOrderStatusInDatabase(orderId, body);
+    const order = await updateOrderStatusInDatabase(orderId, body);
     if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
 
     const telegram = order.telegramChatId
@@ -1086,13 +1215,13 @@ async function handleApi(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
 
   if (url.pathname === '/api/health' && req.method === 'GET') {
-    return send(res, 200, JSON.stringify({ ok: true, project: 'VEAST', database: 'sqlite', dbPath: DB_PATH, timestamp: new Date().toISOString() }));
+    return send(res, 200, JSON.stringify({ ok: true, project: 'VEAST', database: getDatabaseMode(), persistent: Boolean(DATABASE_URL), timestamp: new Date().toISOString() }));
   }
 
   if (url.pathname === '/api/stats' && req.method === 'GET') {
     const feedback = await readJson(FEEDBACK_FILE);
-    const orderStats = getDatabaseStats();
-    return send(res, 200, JSON.stringify({ ok: true, orders: orderStats.orders, feedback: feedback.length, totalRevenue: orderStats.totalRevenue, database: 'sqlite' }));
+    const orderStats = await getDatabaseStats();
+    return send(res, 200, JSON.stringify({ ok: true, orders: orderStats.orders, feedback: feedback.length, totalRevenue: orderStats.totalRevenue, database: orderStats.database, persistent: orderStats.persistent }));
   }
 
   if (url.pathname === '/api/products' && req.method === 'GET') {
@@ -1133,7 +1262,7 @@ async function handleApi(req, res, url) {
   const statusRoute = url.pathname.match(/^\/api\/orders\/([^/]+)\/status$/);
   if (statusRoute && req.method === 'GET') {
     const id = decodeURIComponent(statusRoute[1]);
-    const order = getOrderFromDatabase(id);
+    const order = await getOrderFromDatabase(id);
     if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
     return send(res, 200, JSON.stringify({
       id: order.id,
@@ -1158,12 +1287,12 @@ async function handleApi(req, res, url) {
     if (!isAdminRequest(req, url)) {
       return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
     }
-    return send(res, 200, JSON.stringify(getAllOrdersFromDatabase().map(publicOrder)));
+    return send(res, 200, JSON.stringify((await getAllOrdersFromDatabase()).map(publicOrder)));
   }
 
   if (url.pathname.startsWith('/api/orders/') && req.method === 'GET') {
     const id = decodeURIComponent(url.pathname.replace('/api/orders/', ''));
-    const order = getOrderFromDatabase(id);
+    const order = await getOrderFromDatabase(id);
     if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
     return send(res, 200, JSON.stringify(order));
   }
@@ -1173,7 +1302,7 @@ async function handleApi(req, res, url) {
       const order = await parseBody(req);
       const error = await validateBusinessOrder(order);
       if (error) return send(res, 400, JSON.stringify({ error }));
-      const savedOrder = saveOrderToDatabase(normalizeOrder(order));
+      const savedOrder = await saveOrderToDatabase(normalizeOrder(order));
       return send(res, 201, JSON.stringify({ ok: true, order: publicOrder(savedOrder) }));
     } catch {
       return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));

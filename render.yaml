@@ -3,9 +3,11 @@ services:
     name: veast-shop-nsdh
     env: node
     plan: free
-    buildCommand: pnpm install
-    startCommand: pnpm start
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
+      - key: DATABASE_URL
+        sync: false
       - key: TELEGRAM_BOT_USERNAME
         value: VEAST_Order_Bot
       - key: PUBLIC_BASE_URL
@@ -14,8 +16,6 @@ services:
         sync: false
       - key: ADMIN_STATUS_KEY
         sync: false
-      - key: VEAST_DB_PATH
-        value: data/veast.sqlite
       - key: CDEK_CLIENT_ID
         sync: false
       - key: CDEK_CLIENT_SECRET

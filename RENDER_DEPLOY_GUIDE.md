@@ -1,62 +1,100 @@
-# Render deploy guide — VEAST + Telegram bot
+# Render deploy guide — VEAST v46
 
-## 1. Переменные окружения
+## Что изменилось в v46
 
-В Render открой свой Web Service → Environment и добавь:
+В v46 заказы перенесены с SQLite-файла на PostgreSQL. Это нужно потому, что на Render Free нельзя подключить Persistent Disk, а обычные файлы сервиса могут обнуляться после redeploy/restart.
+
+Теперь постоянное хранение заказов работает через переменную:
 
 ```env
+DATABASE_URL=...
+```
+
+СДЭК-карта ПВЗ, Telegram-бот, админка заказов и уведомления остаются.
+
+## 1. Создай PostgreSQL на Render
+
+1. В Render нажми **New**.
+2. Выбери **PostgreSQL**.
+3. Создай базу, например `veast-orders-db`.
+4. После создания скопируй **Internal Database URL**.
+5. В Web Service `veast-shop-nsdh` открой **Environment**.
+6. Добавь переменную:
+
+```env
+DATABASE_URL=скопированный_Internal_Database_URL
+```
+
+Используй именно Internal Database URL, если база и сайт находятся внутри Render.
+
+## 2. Переменные окружения Web Service
+
+В Render → `veast-shop-nsdh` → **Environment Variables** должны быть:
+
+```env
+DATABASE_URL=internal_database_url_из_Render_PostgreSQL
+
 TELEGRAM_BOT_TOKEN=токен_от_BotFather
 TELEGRAM_BOT_USERNAME=VEAST_Order_Bot
 PUBLIC_BASE_URL=https://veast-shop-nsdh.onrender.com
-ADMIN_STATUS_KEY=любой_секретный_ключ
-CDEK_CLIENT_ID=идентификатор_аккаунта_интеграции_СДЭК
-CDEK_CLIENT_SECRET=пароль_аккаунта_интеграции_СДЭК
+ADMIN_STATUS_KEY=290729veastshop
+
+CDEK_CLIENT_ID=wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
+CDEK_CLIENT_SECRET=RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
+CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2
 CDEK_FROM_CITY=Москва
 CDEK_DEFAULT_LOCATION=Москва
-VEAST_DB_PATH=data/veast.sqlite
 ```
 
-`TELEGRAM_BOT_TOKEN`, `CDEK_CLIENT_SECRET` и другие секреты нельзя выкладывать в GitHub. SQLite-файл базы тоже не нужно коммитить — он создаётся сервером автоматически.
+`TELEGRAM_BOT_TOKEN`, `ADMIN_STATUS_KEY`, `DATABASE_URL` и CDEK-ключи нельзя выкладывать в GitHub.
 
-## 1.1. карта ПВЗ СДЭК пунктов выдачи
+## 3. СДЭК-карта ПВЗ
 
-В checkout подключена стабильная карта ПВЗ СДЭК через API СДЭК и OpenStreetMap/Leaflet. Для работы на Render нужны `CDEK_CLIENT_ID`, `CDEK_CLIENT_SECRET` и `CDEK_API_BASE_URL`. Ключ Яндекс.Карт больше не нужен.
+Checkout использует стабильную карту ПВЗ через API СДЭК и OpenStreetMap/Leaflet.
 
-Данные СДЭК берутся в личном кабинете СДЭК: раздел **Интеграция** → **Создать ключ**. В тестовом режиме можно использовать публичные тестовые ключи из документации и `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`.
-
-После добавления переменных нажми **Save, rebuild, and deploy**.
-
-## 1.2. SQLite mini database
-
-В v43 заказы сохраняются не в `data/orders.json`, а в SQLite mini database. По умолчанию путь такой:
+Для теста можно использовать тестовые ключи СДЭК из документации:
 
 ```env
-VEAST_DB_PATH=data/veast.sqlite
+CDEK_CLIENT_ID=wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
+CDEK_CLIENT_SECRET=RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
+CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2
 ```
 
-Этого достаточно для демонстрации и защиты. Если нужна более надёжная сохранность между redeploy/restart на Render, подключи Persistent Disk и поменяй путь:
+Когда будет боевой договор СДЭК, поменяй на боевые ключи и URL:
 
 ```env
-VEAST_DB_PATH=/var/data/veast.sqlite
+CDEK_API_BASE_URL=https://api.cdek.ru/v2
 ```
 
-При первом запуске сервер сам создаст таблицы `orders`, `order_items` и `order_status_history`. Если в `data/orders.json` уже были старые заказы, они автоматически перенесутся в SQLite при первом запуске пустой базы.
+Ключ Яндекс.Карт больше не нужен.
 
-## 2. Запуск
+## 4. Запуск и деплой
 
 Render должен запускать проект командой:
 
 ```bash
-pnpm start
+npm start
 ```
 
-или
+или:
 
 ```bash
 node server.js
 ```
 
-## 3. Подключение Telegram webhook
+После изменения переменных нажми:
+
+```text
+Save, rebuild, and deploy
+```
+
+или:
+
+```text
+Manual Deploy → Deploy latest commit
+```
+
+## 5. Подключение Telegram webhook
 
 После деплоя открой:
 
@@ -64,23 +102,50 @@ node server.js
 https://veast-shop-nsdh.onrender.com/admin-orders.html
 ```
 
-Введи `ADMIN_STATUS_KEY` и нажми кнопку **«Подключить webhook»**.
+Введи `ADMIN_STATUS_KEY` и нажми **«Подключить webhook»**.
 
-После этого Telegram будет отправлять сообщения бота на:
+Webhook будет установлен на:
 
 ```text
 https://veast-shop-nsdh.onrender.com/api/telegram/webhook
 ```
 
-## 4. Проверка сценария
+## 6. Проверка сценария
 
 1. Оформи заказ на сайте.
-2. На странице подтверждения нажми **«Получать статус в Telegram»**.
-3. Нажми Start в боте.
-4. Вернись в `admin-orders.html`.
-5. Поменяй статус заказа и нажми **«Обновить статус и отправить в Telegram»**.
-6. Проверь, что бот прислал уведомление.
+2. На checkout выбери ПВЗ СДЭК на карте.
+3. После оформления нажми **«Получать статус в Telegram»**.
+4. Нажми Start в `@VEAST_Order_Bot`.
+5. Открой `admin-orders.html`.
+6. Введи админ-ключ.
+7. Измени статус заказа.
+8. Проверь, что бот отправил сообщение с новым статусом и ПВЗ.
+9. Сделай redeploy и проверь, что заказ остался в админке.
 
+## 7. Диагностика
 
-### CDEK test environment note
-For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. The pickup map uses OpenStreetMap/Leaflet, so a Yandex Maps key is no longer required.
+Проверка backend:
+
+```text
+https://veast-shop-nsdh.onrender.com/api/health
+```
+
+Если всё подключено правильно, там будет:
+
+```json
+{
+  "database": "postgresql",
+  "persistent": true
+}
+```
+
+Если отображается:
+
+```json
+{
+  "database": "json-fallback",
+  "persistent": false
+}
+```
+
+значит `DATABASE_URL` не добавлен или не применился после деплоя.

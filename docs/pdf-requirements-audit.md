@@ -20,8 +20,8 @@
 | Интерактивный прототип Figma | https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1 и `docs/interactive-prototype.md` | Закрыто |
 | UI-дизайн: сетка, цвет, иерархия, коммерческая цель | `styles.css`, `project.html`, `docs/design-document.md` | Закрыто |
 | Frontend: HTML/CSS/JS, адаптив, состояния, ошибки | HTML-страницы, `styles.css`, `scripts/*.js` | Закрыто |
-| Backend: API, хранение, формы, валидация | `server.js`, `data/orders.json`, `admin-orders.html` | Закрыто |
-| Полноценный бизнес-процесс | checkout → `POST /api/orders` → `data/orders.json` → thanks/admin-orders | Закрыто |
+| Backend: API, хранение, формы, валидация | `server.js`, `PostgreSQL-базе заказов`, `admin-orders.html` | Закрыто |
+| Полноценный бизнес-процесс | checkout → `POST /api/orders` → `PostgreSQL-базе заказов` → thanks/admin-orders | Закрыто |
 | Юзабилити-тестирование 5 пользователей | `docs/testing-plan.md`, `docs/usability-testing-report.md` | Нужно провести и заполнить результаты |
 | Итоговая защита | `docs/defense-plan.md`, `project.html`, README | Подготовлено |
 
