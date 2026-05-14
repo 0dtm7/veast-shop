@@ -92,7 +92,7 @@ function render() {
   grid.innerHTML = list.length ? list.map(productCard).join('') : `
     <div class="empty-state catalog-empty">
       <h3>Ничего не найдено</h3>
-      <p>Измени поиск, убери часть фильтров или вернись ко всей капсуле. Пустое состояние помогает пользователю не застрять в каталоге.</p>
+      <p>Измени поиск, убери часть фильтров или вернись ко всей капсуле VEAST.</p>
       <button class="button button-primary" id="emptyReset" type="button">Сбросить фильтры</button>
     </div>
   `;

@@ -13,7 +13,7 @@ const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const DATABASE_SSL = String(process.env.DATABASE_SSL || process.env.PGSSLMODE || '').trim().toLowerCase();
 const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
-const PRODUCTS_FILE = path.join(DATA_DIR, 'products.js');
+const PRODUCTS_FILE = path.join(__dirname, 'scripts', 'products.js');
 
 const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').trim().replace(/^@/, '');

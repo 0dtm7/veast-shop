@@ -1,4 +1,4 @@
-import { categories, formatPrice as formatRubPrice, getProductById, products } from './data/products.js';
+import { categories, formatPrice as formatRubPrice, getProductById, products } from './scripts/products.js';
 
 const CART_KEY = 'veast_cart_v1';
 const FAVORITES_KEY = 'veast_favorites_v1';
