@@ -18,7 +18,7 @@
       <section class="project-hero admin-hero">
         <p class="eyebrow">order control center</p>
         <h1>Статусы заказов VEAST</h1>
-        <p class="hero-copy">Мини-админка для проекта: здесь видно заказы из backend API, можно задать службу доставки, трек-номер, текущий статус и отправить уведомление клиенту в Telegram.</p>
+        <p class="hero-copy">Мини-админка для проекта: здесь видно заказы из SQLite mini database, можно задать службу доставки, трек-номер, текущий статус и отправить уведомление клиенту в Telegram.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="checkout.html">Создать тестовый заказ</a>
           <button class="button button-ghost" id="refreshOrders" type="button">Обновить список</button>
@@ -47,7 +47,7 @@
       <section class="section">
         <div class="section-heading">
           <div><p class="eyebrow">orders api</p><h2>Заказы и Telegram-статусы</h2></div>
-          <a class="button button-ghost" id="openOrdersJson" href="#" target="_blank" rel="noreferrer">Открыть JSON</a>
+          <a class="button button-ghost" id="openOrdersJson" href="#" target="_blank" rel="noreferrer">Открыть API JSON</a>
         </div>
         <div id="ordersApiList" class="order-list"></div>
       </section>
@@ -55,10 +55,10 @@
       <section class="section">
         <div class="section-heading"><div><p class="eyebrow">telegram flow</p><h2>Как показывать на защите</h2></div></div>
         <div class="project-grid">
-          <article class="project-card"><h3>1. Checkout</h3><p>Пользователь оформляет заказ. Backend валидирует данные и сохраняет заказ в <strong>data/orders.json</strong>.</p></article>
+          <article class="project-card"><h3>1. Checkout</h3><p>Пользователь оформляет заказ. Backend валидирует данные и сохраняет заказ в <strong>SQLite mini database</strong>.</p></article>
           <article class="project-card"><h3>2. Telegram</h3><p>На странице подтверждения появляется кнопка “Получать статус в Telegram”. Она привязывает заказ к боту <strong>@VEAST_Order_Bot</strong>.</p></article>
           <article class="project-card"><h3>3. Админка</h3><p>Администратор меняет статус, службу доставки, трек-номер и комментарий по заказу.</p></article>
-          <article class="project-card"><h3>4. Уведомление</h3><p>После обновления backend сохраняет историю статусов и отправляет клиенту сообщение в Telegram.</p></article>
+          <article class="project-card"><h3>4. Уведомление</h3><p>После обновления backend сохраняет историю статусов в SQLite и отправляет клиенту сообщение в Telegram.</p></article>
         </div>
       </section>
     </main>

@@ -3,3 +3,11 @@ node_modules/
 .DS_Store
 data/orders.local.json
 data/feedback.local.json
+
+# SQLite runtime database files
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal

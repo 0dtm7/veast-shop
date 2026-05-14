@@ -14,3 +14,15 @@ services:
         sync: false
       - key: ADMIN_STATUS_KEY
         sync: false
+      - key: VEAST_DB_PATH
+        value: data/veast.sqlite
+      - key: CDEK_CLIENT_ID
+        sync: false
+      - key: CDEK_CLIENT_SECRET
+        sync: false
+      - key: CDEK_FROM_CITY
+        value: Москва
+      - key: CDEK_DEFAULT_LOCATION
+        value: Москва
+      - key: YANDEX_MAPS_API_KEY
+        sync: false

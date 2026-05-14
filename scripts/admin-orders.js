@@ -67,6 +67,20 @@ function providerOptionsHtml(active = '') {
   return providers.map((provider) => `<option value="${escapeHtml(provider)}" ${provider === active ? 'selected' : ''}>${provider ? escapeHtml(provider) : 'Не выбрано'}</option>`).join('');
 }
 
+function deliveryPointHtml(order) {
+  const point = order.deliveryPoint;
+  if (!point) return '';
+  const title = [point.providerTitle || 'СДЭК', point.code ? `ПВЗ ${point.code}` : point.name].filter(Boolean).join(' · ');
+  const details = [point.city, point.address, point.workTime ? `График: ${point.workTime}` : ''].filter(Boolean).join(' · ');
+  return `
+    <div class="delivery-point-admin">
+      <span>Пункт выдачи</span>
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(details || 'Адрес не указан')}</p>
+    </div>
+  `;
+}
+
 function historyHtml(order) {
   const history = Array.isArray(order.statusHistory) ? order.statusHistory.slice().reverse() : [];
   if (!history.length) return '<p class="muted">История статусов пока пустая.</p>';
@@ -123,6 +137,8 @@ function renderOrders(orders) {
             </div>
           `).join('')}
         </div>
+
+        ${deliveryPointHtml(order)}
 
         ${order.telegramBotLink ? `
           <div class="telegram-admin-line">

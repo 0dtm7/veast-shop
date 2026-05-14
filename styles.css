@@ -2631,3 +2631,48 @@ a.button {
   font-size: 13px;
   text-transform: uppercase;
 }
+
+/* CDEK pickup widget */
+.pickup-field[hidden] { display: none !important; }
+.pickup-select-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line-dark);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(245,245,242,.92));
+}
+.pickup-select-card strong { display: block; margin-bottom: 4px; font-size: 15px; }
+.pickup-select-card p { margin: 0; }
+.pickup-select-card-active {
+  border-color: #1d7f45;
+  box-shadow: 0 0 0 4px rgba(29,127,69,.09);
+}
+.cdek-widget-root { position: relative; z-index: 80; }
+#address[readonly] { background: var(--soft); cursor: default; }
+.delivery-point-admin {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.delivery-point-admin span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.delivery-point-admin strong { display: block; margin-bottom: 4px; }
+.delivery-point-admin p { margin: 0; color: var(--muted); }
+:root[data-theme="dark"] .pickup-select-card,
+:root[data-theme="dark"] .delivery-point-admin { background: rgba(255,255,255,.04); }
+@media (max-width: 640px) {
+  .pickup-select-card { align-items: stretch; flex-direction: column; }
+  .pickup-select-card .button { width: 100%; }
+}

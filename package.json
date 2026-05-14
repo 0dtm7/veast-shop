@@ -1,6 +1,6 @@
 {
   "name": "veast-course-commercial-project",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,8 @@
     "check": "node -e \"process.env.VEAST_CHECK='1'; import('./server.js')\""
   },
   "dependencies": {},
-  "description": "VEAST commercial fashion e-commerce project v41 with Telegram webhook setup fix"
+  "description": "VEAST commercial fashion e-commerce project v43 with CDEK pickup widget and SQLite order database",
+  "engines": {
+    "node": ">=22.16.0"
+  }
 }

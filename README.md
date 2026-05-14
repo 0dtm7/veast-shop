@@ -2,7 +2,7 @@
 
 VEAST — индивидуальный итоговый комплексный проект по дисциплинам МДК.08.01, МДК.08.02 и МДК.09.01. Формат проекта — коммерческий интернет-магазин одежды в эстетике streetwear / Y2K / techwear / chrome.
 
-Главное измеримое целевое действие: пользователь выбирает товар в каталоге, открывает карточку товара, добавляет товар в корзину, заполняет checkout-форму и получает подтверждение заказа. При запуске через Node.js заказ проходит серверную валидацию и сохраняется в `data/orders.json`.
+Главное измеримое целевое действие: пользователь выбирает товар в каталоге, открывает карточку товара, добавляет товар в корзину, заполняет checkout-форму и получает подтверждение заказа. При запуске через Node.js заказ проходит серверную валидацию и сохраняется в SQLite mini database (`data/veast.sqlite` или путь из `VEAST_DB_PATH`).
 
 ## Запуск
 
@@ -47,7 +47,7 @@ http://localhost:3000
 - Страница проекта / дизайн-документ.
 - Страница `admin-orders.html` для демонстрации backend-заказов, управления статусами и отправки Telegram-уведомлений.
 - Telegram-бот `@VEAST_Order_Bot`: привязка заказа через кнопку на странице подтверждения, команда `/status`, webhook и уведомления о статусе доставки.
-- Backend API на Node.js без внешних зависимостей.
+- Backend API на Node.js без внешних npm-зависимостей, с SQLite mini database через встроенный `node:sqlite`.
 - Telegram-канал VEAST: https://t.me/veastshop
 
 ## Backend API
@@ -65,6 +65,49 @@ http://localhost:3000
 - `GET/POST /api/telegram/set-webhook` — подключение Telegram webhook через admin key.
 - `POST /api/feedback` — сохранение обращения из формы контактов.
 
+## SQLite mini database
+
+В версии v43 заказы переведены с `data/orders.json` на SQLite mini database. При первом запуске сервер создаёт файл базы и таблицы:
+
+```text
+orders
+order_items
+order_status_history
+```
+
+Что хранится в базе:
+
+```text
+номер заказа
+данные клиента
+товары заказа
+выбранный пункт СДЭК
+статус заказа
+трек-номер
+история статусов
+Telegram chat id и токен привязки
+```
+
+По умолчанию база создаётся здесь:
+
+```text
+data/veast.sqlite
+```
+
+Путь можно изменить переменной окружения:
+
+```env
+VEAST_DB_PATH=data/veast.sqlite
+```
+
+Для максимально надёжного хранения на Render можно подключить Persistent Disk и поставить:
+
+```env
+VEAST_DB_PATH=/var/data/veast.sqlite
+```
+
+`data/orders.json` оставлен только как legacy-файл: если при первом запуске в нём уже есть старые заказы, сервер перенесёт их в SQLite.
+
 
 ## Telegram-статусы заказов
 
@@ -73,11 +116,11 @@ http://localhost:3000
 Сценарий:
 
 1. Пользователь оформляет заказ на сайте.
-2. Backend сохраняет заказ в `data/orders.json` и создаёт `telegramLinkToken`.
+2. Backend сохраняет заказ в SQLite mini database и создаёт `telegramLinkToken`.
 3. На странице `thanks.html` появляется кнопка **«Получать статус в Telegram»**.
 4. Пользователь открывает `@VEAST_Order_Bot`, заказ привязывается к его Telegram chat id.
 5. Администратор открывает `admin-orders.html`, меняет статус, службу доставки, трек-номер и комментарий.
-6. Backend сохраняет историю статусов и отправляет клиенту уведомление в Telegram.
+6. Backend сохраняет историю статусов в SQLite и отправляет клиенту уведомление в Telegram.
 
 Команды бота:
 
@@ -125,7 +168,7 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 
 1. Главная → каталог → карточка товара → корзина → оформление заказа → подтверждение.
 2. Страница `admin-orders.html`, где отображаются заказы из backend API.
-3. Файл `data/orders.json`, в котором появляется сохранённый заказ.
+3. SQLite mini database: заказы, товары, история статусов и Telegram-привязки хранятся в таблицах `orders`, `order_items`, `order_status_history`.
 4. Страница `project.html`, где собрана логика проекта под критерии итоговой работы.
 5. Папка `docs/`, где лежат дизайн-документ, карта сайта, план тестирования, план защиты и проверка соответствия PDF.
 
@@ -199,3 +242,29 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 - Telegram API requests now use Node HTTPS with IPv4 preference instead of global fetch.
 - `/api/telegram/set-webhook` now returns a clearer error if Render cannot reach Telegram or the bot token is wrong.
 - Keep `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `PUBLIC_BASE_URL`, and `ADMIN_STATUS_KEY` only in Render Environment Variables.
+
+## СДЭК-виджет пунктов выдачи
+
+В оформлении заказа добавлен выбор пункта выдачи СДЭК на карте. Пользователь нажимает **«Выбрать на карте»**, выбирает ПВЗ в официальном виджете, после чего сайт сохраняет город, адрес, код ПВЗ и данные пункта в заказ. Выбранный пункт отображается в админке и добавляется в Telegram-сообщения по статусу заказа.
+
+Для работы на Render нужны переменные окружения:
+
+```env
+CDEK_CLIENT_ID=идентификатор_аккаунта_интеграции_СДЭК
+CDEK_CLIENT_SECRET=пароль_аккаунта_интеграции_СДЭК
+CDEK_FROM_CITY=Москва
+CDEK_DEFAULT_LOCATION=Москва
+YANDEX_MAPS_API_KEY=ключ_Яндекс_Карт
+```
+
+Секреты не хранить в GitHub. Добавлять их только в Render Environment Variables.
+
+
+## v43 — CDEK widget + SQLite database
+
+- СДЭК-виджет выбора ПВЗ сохранён и работает в checkout.
+- Выбранный ПВЗ сохраняется в заказ, отображается в админке и добавляется в Telegram-уведомления.
+- Заказы переведены на SQLite mini database.
+- История статусов хранится в таблице `order_status_history`.
+- Telegram-привязка заказа хранится в таблице `orders` через `telegram_chat_id` и `telegram_link_token`.
+- `/api/health` теперь показывает `database: sqlite` и путь к файлу базы.

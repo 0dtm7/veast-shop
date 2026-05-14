@@ -21,6 +21,22 @@ function renderEmpty() {
   `;
 }
 
+
+function deliveryPointBlock(order) {
+  const point = order.deliveryPoint;
+  if (!point) return '';
+  const title = [point.providerTitle || 'СДЭК', point.code ? `ПВЗ ${point.code}` : point.name].filter(Boolean).join(' · ');
+  const details = [point.city, point.address, point.workTime ? `График: ${point.workTime}` : ''].filter(Boolean).join(' · ');
+  return `
+    <div class="telegram-order-card delivery-confirm-card">
+      <p class="eyebrow">delivery point</p>
+      <h2>${t('Пункт выдачи выбран', 'Pickup point selected')}</h2>
+      <p><strong>${escapeHtml(title)}</strong></p>
+      <p class="muted">${escapeHtml(details)}</p>
+    </div>
+  `;
+}
+
 function telegramBlock(order) {
   if (!order.telegramBotLink) {
     return `
@@ -54,6 +70,7 @@ function renderOrder(order) {
       <div><span>${t('Сумма', 'Amount')}</span><strong>${formatPrice(order.total || 0)}</strong></div>
       <div><span>${t('Сохранено через', 'Saved via')}</span><strong>${escapeHtml(order.savedVia || 'backend API')}</strong></div>
     </div>
+    ${deliveryPointBlock(order)}
     ${telegramBlock(order)}
     <h2>${t('Состав заказа', 'Order items')}</h2>
     <div class="order-mini-list">

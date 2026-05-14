@@ -1,6 +1,7 @@
 import http from 'node:http';
 import https from 'node:https';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
@@ -10,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+const DB_PATH = process.env.VEAST_DB_PATH || path.join(DATA_DIR, 'veast.sqlite');
 const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.js');
 
@@ -17,6 +19,15 @@ const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').trim().replace(/^@/, '');
 const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
 const ADMIN_STATUS_KEY = String(process.env.ADMIN_STATUS_KEY || 'veast-admin-demo').trim();
+const CDEK_CLIENT_ID = String(process.env.CDEK_CLIENT_ID || '').trim();
+const CDEK_CLIENT_SECRET = String(process.env.CDEK_CLIENT_SECRET || '').trim();
+const CDEK_FROM_CITY = String(process.env.CDEK_FROM_CITY || 'Москва').trim();
+const CDEK_DEFAULT_LOCATION = String(process.env.CDEK_DEFAULT_LOCATION || 'Москва').trim();
+const YANDEX_MAPS_API_KEY = String(process.env.YANDEX_MAPS_API_KEY || '').trim();
+const CDEK_API_BASE_URL = 'https://api.cdek.ru/v2';
+const CDEK_WIDGET_VERSION = '3.11.1';
+let cdekTokenCache = { token: '', expiresAt: 0 };
+let db = null;
 
 const ORDER_STATUSES = {
   created: {
@@ -61,8 +72,10 @@ const mime = {
 
 async function ensureDataFiles() {
   await mkdir(DATA_DIR, { recursive: true });
+  await mkdir(path.dirname(DB_PATH), { recursive: true });
   if (!existsSync(ORDERS_FILE)) await writeFile(ORDERS_FILE, '[]', 'utf8');
   if (!existsSync(FEEDBACK_FILE)) await writeFile(FEEDBACK_FILE, '[]', 'utf8');
+  await initDatabase();
 }
 
 function send(res, status, body, type = 'application/json; charset=utf-8') {
@@ -78,6 +91,352 @@ function send(res, status, body, type = 'application/json; charset=utf-8') {
 async function readJson(file) {
   try { return JSON.parse(await readFile(file, 'utf8')); }
   catch { return []; }
+}
+
+
+function getDb() {
+  if (!db) throw new Error('VEAST SQLite database is not initialized');
+  return db;
+}
+
+function parseDbJson(value, fallback = null) {
+  if (!value) return fallback;
+  try { return JSON.parse(value); }
+  catch { return fallback; }
+}
+
+function boolToInt(value) {
+  return value ? 1 : 0;
+}
+
+function intToBool(value) {
+  return Number(value) === 1;
+}
+
+async function initDatabase() {
+  db = new DatabaseSync(DB_PATH);
+  db.exec('PRAGMA foreign_keys = ON');
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      status_key TEXT NOT NULL,
+      status TEXT NOT NULL,
+      status_text TEXT,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      customer_email TEXT NOT NULL,
+      customer_city TEXT NOT NULL,
+      customer_address TEXT NOT NULL,
+      customer_delivery TEXT,
+      customer_payment TEXT,
+      customer_comment TEXT,
+      privacy_accepted INTEGER DEFAULT 0,
+      total REAL NOT NULL,
+      delivery_provider TEXT,
+      delivery_point_json TEXT,
+      tracking_number TEXT,
+      current_location TEXT,
+      telegram_chat_id TEXT,
+      telegram_linked_at TEXT,
+      telegram_link_token TEXT UNIQUE,
+      server_saved_at TEXT,
+      updated_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS order_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      line_id TEXT,
+      product_id TEXT NOT NULL,
+      product TEXT,
+      category TEXT,
+      size TEXT,
+      quantity INTEGER NOT NULL,
+      price REAL NOT NULL,
+      subtotal REAL NOT NULL,
+      image TEXT,
+      FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS order_status_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      status_key TEXT NOT NULL,
+      status TEXT NOT NULL,
+      text TEXT,
+      delivery_provider TEXT,
+      tracking_number TEXT,
+      current_location TEXT,
+      date TEXT NOT NULL,
+      FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+    CREATE INDEX IF NOT EXISTS idx_orders_telegram_chat_id ON orders(telegram_chat_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_telegram_link_token ON orders(telegram_link_token);
+    CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+    CREATE INDEX IF NOT EXISTS idx_order_history_order_id ON order_status_history(order_id);
+  `);
+
+  await migrateLegacyOrdersJson();
+}
+
+async function migrateLegacyOrdersJson() {
+  const database = getDb();
+  const countRow = database.prepare('SELECT COUNT(*) AS count FROM orders').get();
+  if (Number(countRow?.count || 0) > 0) return;
+
+  const legacyOrders = await readJson(ORDERS_FILE);
+  if (!Array.isArray(legacyOrders) || legacyOrders.length === 0) return;
+
+  for (const legacyOrder of legacyOrders) {
+    try {
+      saveOrderToDatabase(ensureOrderStatusFields(legacyOrder));
+    } catch (error) {
+      console.error(`Legacy order migration failed: ${legacyOrder?.id || 'unknown'}`, error.message);
+    }
+  }
+}
+
+function orderRowToPublicOrder(row, items = [], history = []) {
+  if (!row) return null;
+  const order = {
+    id: row.id,
+    createdAt: row.created_at,
+    statusKey: row.status_key,
+    status: row.status,
+    statusText: row.status_text || '',
+    customer: {
+      name: row.customer_name || '',
+      phone: row.customer_phone || '',
+      email: row.customer_email || '',
+      city: row.customer_city || '',
+      address: row.customer_address || '',
+      delivery: row.customer_delivery || '',
+      payment: row.customer_payment || '',
+      comment: row.customer_comment || '',
+      privacyAccepted: intToBool(row.privacy_accepted),
+    },
+    items: items.map((item) => ({
+      lineId: item.line_id || '',
+      productId: item.product_id || '',
+      product: item.product || item.product_id || '',
+      category: item.category || '',
+      size: item.size || 'OS',
+      quantity: Number(item.quantity || 0),
+      price: Number(item.price || 0),
+      subtotal: Number(item.subtotal || 0),
+      image: item.image || '',
+    })),
+    total: Number(row.total || 0),
+    deliveryProvider: row.delivery_provider || row.customer_delivery || '',
+    deliveryPoint: parseDbJson(row.delivery_point_json, null),
+    trackingNumber: row.tracking_number || '',
+    currentLocation: row.current_location || '',
+    telegramChatId: row.telegram_chat_id || null,
+    telegramLinkedAt: row.telegram_linked_at || null,
+    telegramLinkToken: row.telegram_link_token || '',
+    statusHistory: history.map((entry) => ({
+      statusKey: entry.status_key,
+      status: entry.status,
+      text: entry.text || '',
+      deliveryProvider: entry.delivery_provider || '',
+      trackingNumber: entry.tracking_number || '',
+      currentLocation: entry.current_location || '',
+      date: entry.date,
+    })),
+    serverSavedAt: row.server_saved_at || row.created_at,
+    updatedAt: row.updated_at || row.server_saved_at || row.created_at,
+  };
+  return publicOrder(order);
+}
+
+function getOrderItems(orderId) {
+  return getDb().prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC').all(orderId);
+}
+
+function getOrderHistory(orderId) {
+  return getDb().prepare('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY id ASC').all(orderId);
+}
+
+function getAllOrdersFromDatabase() {
+  const rows = getDb().prepare('SELECT * FROM orders ORDER BY datetime(created_at) ASC, id ASC').all();
+  return rows.map((row) => orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id)));
+}
+
+function getOrderFromDatabase(orderId) {
+  const row = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+  if (!row) return null;
+  return orderRowToPublicOrder(row, getOrderItems(orderId), getOrderHistory(orderId));
+}
+
+function getOrdersByTelegramChatId(chatId) {
+  const rows = getDb().prepare('SELECT * FROM orders WHERE telegram_chat_id = ? ORDER BY datetime(created_at) ASC, id ASC').all(String(chatId));
+  return rows.map((row) => orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id)));
+}
+
+function getOrderByTelegramToken(token) {
+  const row = getDb().prepare('SELECT * FROM orders WHERE telegram_link_token = ?').get(token);
+  if (!row) return null;
+  return orderRowToPublicOrder(row, getOrderItems(row.id), getOrderHistory(row.id));
+}
+
+function insertHistoryEntry(orderId, entry) {
+  getDb().prepare(`
+    INSERT INTO order_status_history (
+      order_id, status_key, status, text, delivery_provider, tracking_number, current_location, date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    orderId,
+    entry.statusKey || normalizeStatusKey(entry.status_key),
+    entry.status || getStatusInfo(entry.statusKey || entry.status_key).label,
+    entry.text || '',
+    entry.deliveryProvider || entry.delivery_provider || '',
+    entry.trackingNumber || entry.tracking_number || '',
+    entry.currentLocation || entry.current_location || '',
+    entry.date || new Date().toISOString(),
+  );
+}
+
+function saveOrderToDatabase(order) {
+  const database = getDb();
+  const normalized = ensureOrderStatusFields(order);
+  const customer = normalized.customer || {};
+  const now = new Date().toISOString();
+  const deliveryPoint = normalizeDeliveryPoint(normalized.deliveryPoint);
+
+  database.exec('BEGIN');
+  try {
+    database.prepare(`
+      INSERT INTO orders (
+        id, created_at, status_key, status, status_text,
+        customer_name, customer_phone, customer_email, customer_city, customer_address,
+        customer_delivery, customer_payment, customer_comment, privacy_accepted,
+        total, delivery_provider, delivery_point_json, tracking_number, current_location,
+        telegram_chat_id, telegram_linked_at, telegram_link_token, server_saved_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      normalized.id,
+      normalized.createdAt || now,
+      normalizeStatusKey(normalized.statusKey),
+      normalized.status || getStatusInfo(normalized.statusKey).label,
+      normalized.statusText || '',
+      customer.name || '',
+      customer.phone || '',
+      customer.email || '',
+      customer.city || '',
+      customer.address || '',
+      customer.delivery || '',
+      customer.payment || '',
+      customer.comment || '',
+      boolToInt(customer.privacyAccepted),
+      Number(normalized.total || 0),
+      normalized.deliveryProvider || customer.delivery || '',
+      deliveryPoint ? JSON.stringify(deliveryPoint) : null,
+      normalized.trackingNumber || '',
+      normalized.currentLocation || '',
+      normalized.telegramChatId || null,
+      normalized.telegramLinkedAt || null,
+      normalized.telegramLinkToken || createTelegramToken(),
+      normalized.serverSavedAt || now,
+      now,
+    );
+
+    const insertItem = database.prepare(`
+      INSERT INTO order_items (
+        order_id, line_id, product_id, product, category, size, quantity, price, subtotal, image
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const item of normalized.items || []) {
+      insertItem.run(
+        normalized.id,
+        item.lineId || '',
+        item.productId || '',
+        item.product || item.productId || '',
+        item.category || '',
+        item.size || 'OS',
+        Number(item.quantity || 0),
+        Number(item.price || 0),
+        Number(item.subtotal || 0),
+        item.image || '',
+      );
+    }
+
+    const history = Array.isArray(normalized.statusHistory) && normalized.statusHistory.length
+      ? normalized.statusHistory
+      : [makeStatusHistoryEntry(normalized, normalized.statusKey, normalized.statusText)];
+    for (const entry of history) insertHistoryEntry(normalized.id, entry);
+
+    database.exec('COMMIT');
+    return getOrderFromDatabase(normalized.id);
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+function updateOrderTelegramBinding(orderId, chatId) {
+  const linkedAt = new Date().toISOString();
+  getDb().prepare(`
+    UPDATE orders
+    SET telegram_chat_id = ?, telegram_linked_at = COALESCE(telegram_linked_at, ?), updated_at = ?
+    WHERE id = ?
+  `).run(String(chatId), linkedAt, linkedAt, orderId);
+  return getOrderFromDatabase(orderId);
+}
+
+function updateOrderStatusInDatabase(orderId, updates = {}) {
+  const order = getOrderFromDatabase(orderId);
+  if (!order) return null;
+
+  const statusKey = normalizeStatusKey(updates.statusKey || updates.status || order.statusKey);
+  const info = getStatusInfo(statusKey);
+  const has = (field) => Object.prototype.hasOwnProperty.call(updates, field);
+  const statusText = clean(updates.statusText || updates.comment || updates.text || info.message);
+  const deliveryProvider = has('deliveryProvider') ? getProviderLabel(updates.deliveryProvider) : order.deliveryProvider;
+  const trackingNumber = has('trackingNumber') ? clean(updates.trackingNumber) : clean(order.trackingNumber);
+  const currentLocation = has('currentLocation') ? clean(updates.currentLocation) : clean(order.currentLocation);
+  const now = new Date().toISOString();
+
+  const updatedOrder = {
+    ...order,
+    statusKey,
+    status: info.label,
+    statusText,
+    deliveryProvider,
+    trackingNumber,
+    currentLocation,
+  };
+  const entry = makeStatusHistoryEntry(updatedOrder, statusKey, statusText);
+
+  const database = getDb();
+  database.exec('BEGIN');
+  try {
+    database.prepare(`
+      UPDATE orders
+      SET status_key = ?, status = ?, status_text = ?, delivery_provider = ?, tracking_number = ?, current_location = ?, updated_at = ?
+      WHERE id = ?
+    `).run(statusKey, info.label, statusText, deliveryProvider, trackingNumber, currentLocation, now, orderId);
+    insertHistoryEntry(orderId, entry);
+    database.exec('COMMIT');
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  }
+
+  return getOrderFromDatabase(orderId);
+}
+
+function getDatabaseStats() {
+  const row = getDb().prepare('SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS totalRevenue FROM orders').get();
+  return {
+    orders: Number(row?.orders || 0),
+    totalRevenue: Number(row?.totalRevenue || 0),
+    dbPath: DB_PATH,
+  };
 }
 
 async function parseBody(req) {
@@ -128,6 +487,45 @@ function getProviderLabel(provider = '') {
   return value;
 }
 
+function normalizeDeliveryPoint(point = null) {
+  if (!point || typeof point !== 'object') return null;
+  const location = point.location || {};
+  const provider = clean(point.provider || 'cdek').toLowerCase();
+  const providerTitle = clean(point.providerTitle || getProviderLabel(provider) || 'СДЭК');
+  const address = clean(point.address || location.address || location.address_full);
+  const city = clean(point.city || location.city);
+  const code = clean(point.code || point.uuid);
+  if (!address && !code) return null;
+
+  return {
+    provider,
+    providerTitle,
+    type: clean(point.type || 'office'),
+    code,
+    name: clean(point.name || code || 'Пункт выдачи'),
+    address,
+    city,
+    region: clean(point.region || location.region),
+    postalCode: clean(point.postalCode || location.postal_code),
+    latitude: Number(point.latitude || location.latitude || 0) || null,
+    longitude: Number(point.longitude || location.longitude || 0) || null,
+    workTime: clean(point.workTime || point.work_time),
+    tariffCode: point.tariffCode || point.tariff_code || null,
+    tariffName: clean(point.tariffName || point.tariff_name),
+    phones: Array.isArray(point.phones) ? point.phones.map(clean).filter(Boolean) : [],
+  };
+}
+
+function formatDeliveryPoint(point = null) {
+  const normalized = normalizeDeliveryPoint(point);
+  if (!normalized) return '';
+  return [
+    normalized.providerTitle,
+    normalized.code ? `ПВЗ ${normalized.code}` : '',
+    normalized.address,
+  ].filter(Boolean).join(' · ');
+}
+
 function makeStatusHistoryEntry(order, statusKey, text = '') {
   const info = getStatusInfo(statusKey);
   return {
@@ -150,6 +548,7 @@ function ensureOrderStatusFields(order) {
     status: order.status && order.status !== 'New order' ? order.status : info.label,
     statusText: order.statusText || info.message,
     deliveryProvider: order.deliveryProvider || order.customer?.delivery || '',
+    deliveryPoint: normalizeDeliveryPoint(order.deliveryPoint),
     trackingNumber: order.trackingNumber || '',
     currentLocation: order.currentLocation || '',
     telegramChatId: order.telegramChatId || null,
@@ -174,6 +573,7 @@ function validateOrder(order) {
   if (!isEmail(customer.email)) return 'Invalid email address';
   if (!customer.city || String(customer.city).trim().length < 2) return 'City is required';
   if (!customer.address || String(customer.address).trim().length < 6) return 'Shipping address is required';
+  if (String(customer.delivery || '').trim() === 'СДЭК' && !normalizeDeliveryPoint(order.deliveryPoint)) return 'CDEK pickup point is required';
   if (!customer.privacyAccepted) return 'Privacy policy consent is required';
   if (!Array.isArray(order.items) || order.items.length === 0) return 'The order contains no items';
   if (order.items.some((item) => !item.productId || !item.quantity || Number(item.quantity) <= 0)) return 'Invalid items in order';
@@ -215,6 +615,7 @@ function normalizeOrder(order) {
     })),
     total: Number(order.total),
     deliveryProvider: String(order.customer.delivery || '').trim(),
+    deliveryPoint: normalizeDeliveryPoint(order.deliveryPoint),
     trackingNumber: '',
     currentLocation: '',
     telegramChatId: null,
@@ -263,6 +664,175 @@ function isAdminRequest(req, url) {
   const headerKey = req.headers['x-admin-key'];
   const queryKey = url.searchParams.get('key');
   return clean(headerKey || queryKey) === ADMIN_STATUS_KEY;
+}
+
+function getCdekMissingConfig() {
+  return [
+    !CDEK_CLIENT_ID ? 'CDEK_CLIENT_ID' : '',
+    !CDEK_CLIENT_SECRET ? 'CDEK_CLIENT_SECRET' : '',
+    !YANDEX_MAPS_API_KEY ? 'YANDEX_MAPS_API_KEY' : '',
+  ].filter(Boolean);
+}
+
+function httpsRequestRaw(targetUrl, { method = 'GET', headers = {}, body = '' } = {}) {
+  const parsedUrl = new URL(targetUrl);
+  const requestOptions = {
+    hostname: parsedUrl.hostname,
+    path: `${parsedUrl.pathname}${parsedUrl.search}`,
+    method,
+    family: 4,
+    timeout: 20000,
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': `veast-cdek-widget/${CDEK_WIDGET_VERSION}`,
+      ...headers,
+    },
+  };
+
+  if (body) requestOptions.headers['Content-Length'] = Buffer.byteLength(body);
+
+  return new Promise((resolve, reject) => {
+    const request = https.request(requestOptions, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { raw += chunk; });
+      response.on('end', () => {
+        resolve({ statusCode: response.statusCode || 0, headers: response.headers, raw });
+      });
+    });
+
+    request.on('timeout', () => request.destroy(new Error('CDEK API request timed out')));
+    request.on('error', reject);
+    if (body) request.write(body);
+    request.end();
+  });
+}
+
+async function getCdekAuthToken() {
+  if (cdekTokenCache.token && cdekTokenCache.expiresAt > Date.now() + 60000) return cdekTokenCache.token;
+  if (!CDEK_CLIENT_ID || !CDEK_CLIENT_SECRET) throw new Error('CDEK credentials are not configured');
+
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: CDEK_CLIENT_ID,
+    client_secret: CDEK_CLIENT_SECRET,
+  }).toString();
+
+  const response = await httpsRequestRaw(`${CDEK_API_BASE_URL}/oauth/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-App-Name': 'widget_pvz',
+      'X-App-Version': CDEK_WIDGET_VERSION,
+    },
+    body,
+  });
+
+  const data = JSON.parse(response.raw || '{}');
+  if (response.statusCode < 200 || response.statusCode >= 300 || !data.access_token) {
+    throw new Error(data.message || data.error_description || 'CDEK authorization failed');
+  }
+
+  cdekTokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + Math.max(1, Number(data.expires_in || 3600) - 60) * 1000,
+  };
+  return cdekTokenCache.token;
+}
+
+function appendSearchParams(searchParams, data = {}) {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    if (key === 'action') return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => searchParams.append(key, String(item)));
+      return;
+    }
+    if (typeof value === 'object') {
+      searchParams.append(key, JSON.stringify(value));
+      return;
+    }
+    searchParams.append(key, String(value));
+  });
+}
+
+async function cdekAuthorizedRequest(endpoint, { method = 'GET', data = {} } = {}) {
+  const token = await getCdekAuthToken();
+  let targetUrl = `${CDEK_API_BASE_URL}/${endpoint.replace(/^\/+/, '')}`;
+  let body = '';
+  const headers = {
+    Accept: 'application/json',
+    Authorization: `Bearer ${token}`,
+    'X-App-Name': 'widget_pvz',
+    'X-App-Version': CDEK_WIDGET_VERSION,
+  };
+
+  if (method === 'GET') {
+    const search = new URLSearchParams();
+    appendSearchParams(search, data);
+    const query = search.toString();
+    if (query) targetUrl += `?${query}`;
+  } else {
+    const payload = { ...data };
+    delete payload.action;
+    body = JSON.stringify(payload);
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return httpsRequestRaw(targetUrl, { method, headers, body });
+}
+
+function sendCdek(res, status, body) {
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
+    'X-Service-Version': CDEK_WIDGET_VERSION,
+  });
+  res.end(body);
+}
+
+async function handleCdekConfig(req, res) {
+  const missing = getCdekMissingConfig();
+  return send(res, 200, JSON.stringify({
+    ok: true,
+    enabled: missing.length === 0,
+    missing,
+    yandexMapsApiKey: YANDEX_MAPS_API_KEY,
+    servicePath: '/api/cdek/service',
+    from: CDEK_FROM_CITY,
+    defaultLocation: CDEK_DEFAULT_LOCATION,
+  }));
+}
+
+async function handleCdekService(req, res, url) {
+  if (req.method === 'OPTIONS') return sendCdek(res, 204, '');
+  const missing = getCdekMissingConfig().filter((key) => key !== 'YANDEX_MAPS_API_KEY');
+  if (missing.length) {
+    return sendCdek(res, 503, JSON.stringify({ message: `CDEK service is not configured: ${missing.join(', ')}` }));
+  }
+
+  try {
+    const body = req.method === 'POST' ? await parseBody(req) : {};
+    const requestData = Object.fromEntries(url.searchParams.entries());
+    Object.assign(requestData, body || {});
+    const action = clean(requestData.action);
+
+    if (action === 'offices') {
+      const response = await cdekAuthorizedRequest('deliverypoints', { method: 'GET', data: requestData });
+      return sendCdek(res, response.statusCode || 502, response.raw || '{}');
+    }
+
+    if (action === 'calculate') {
+      const response = await cdekAuthorizedRequest('calculator/tarifflist', { method: 'POST', data: requestData });
+      return sendCdek(res, response.statusCode || 502, response.raw || '{}');
+    }
+
+    return sendCdek(res, 400, JSON.stringify({ message: 'Unknown CDEK widget action' }));
+  } catch (error) {
+    return sendCdek(res, 502, JSON.stringify({ message: error.message || 'CDEK service request failed' }));
+  }
 }
 
 function telegramApi(method, payload = {}) {
@@ -330,6 +900,7 @@ function buildTelegramStatusMessage(order, intro = 'Статус заказа о
   const provider = getProviderLabel(normalized.deliveryProvider);
   const tracking = clean(normalized.trackingNumber);
   const location = clean(normalized.currentLocation);
+  const pickupPoint = normalizeDeliveryPoint(normalized.deliveryPoint);
   const lines = [
     'VEAST',
     '',
@@ -342,6 +913,7 @@ function buildTelegramStatusMessage(order, intro = 'Статус заказа о
   if (normalized.statusText) lines.push(normalized.statusText);
   if (location) lines.push(`Где сейчас: ${location}`);
   if (provider) lines.push(`Служба доставки: ${provider}`);
+  if (pickupPoint) lines.push(`Пункт выдачи: ${formatDeliveryPoint(pickupPoint)}`);
   if (tracking) {
     lines.push(`Трек-номер: ${tracking}`);
     lines.push(`Вы можете отслеживать отправление в приложении ${provider || 'службы доставки'}.`);
@@ -384,14 +956,11 @@ async function handleTelegramWebhook(req, res) {
 
     if (!chatId) return send(res, 200, JSON.stringify({ ok: true }));
 
-    const orders = await readJson(ORDERS_FILE);
-    const normalizedOrders = orders.map(ensureOrderStatusFields);
-
     if (text.startsWith('/start')) {
       const payload = clean(text.split(/\s+/)[1] || '');
-      const index = normalizedOrders.findIndex((order) => order.telegramLinkToken === payload);
+      const targetOrder = payload ? getOrderByTelegramToken(payload) : null;
 
-      if (!payload || index < 0) {
+      if (!payload || !targetOrder) {
         await sendTelegramMessage(chatId, [
           'VEAST',
           '',
@@ -401,7 +970,7 @@ async function handleTelegramWebhook(req, res) {
         return send(res, 200, JSON.stringify({ ok: true, linked: false }));
       }
 
-      const alreadyLinkedChatId = clean(normalizedOrders[index].telegramChatId || '');
+      const alreadyLinkedChatId = clean(targetOrder.telegramChatId || '');
       if (alreadyLinkedChatId && alreadyLinkedChatId !== chatId) {
         await sendTelegramMessage(chatId, [
           'VEAST',
@@ -412,19 +981,13 @@ async function handleTelegramWebhook(req, res) {
         return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: 'already_linked' }));
       }
 
-      normalizedOrders[index] = {
-        ...normalizedOrders[index],
-        telegramChatId: chatId,
-        telegramLinkedAt: normalizedOrders[index].telegramLinkedAt || new Date().toISOString(),
-      };
-
-      await writeFile(ORDERS_FILE, JSON.stringify(normalizedOrders, null, 2), 'utf8');
-      await sendTelegramMessage(chatId, buildLinkedOrderMessage(normalizedOrders[index]));
-      return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: normalizedOrders[index].id }));
+      const linkedOrder = updateOrderTelegramBinding(targetOrder.id, chatId);
+      await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkedOrder));
+      return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: linkedOrder.id }));
     }
 
     if (text.startsWith('/status')) {
-      const linkedOrders = normalizedOrders.filter((order) => String(order.telegramChatId || '') === chatId);
+      const linkedOrders = getOrdersByTelegramChatId(chatId);
       await sendTelegramMessage(chatId, buildOrdersStatusMessage(linkedOrders));
       return send(res, 200, JSON.stringify({ ok: true }));
     }
@@ -487,27 +1050,8 @@ async function handleOrderStatusUpdate(req, res, url, orderId) {
 
   try {
     const body = await parseBody(req);
-    const orders = (await readJson(ORDERS_FILE)).map(ensureOrderStatusFields);
-    const index = orders.findIndex((item) => item.id === orderId);
-    if (index < 0) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
-
-    const order = orders[index];
-    const statusKey = normalizeStatusKey(body.statusKey || body.status || order.statusKey);
-    const info = getStatusInfo(statusKey);
-    const has = (field) => Object.prototype.hasOwnProperty.call(body, field);
-
-    order.statusKey = statusKey;
-    order.status = info.label;
-    order.statusText = clean(body.statusText || body.comment || body.text || info.message);
-    if (has('deliveryProvider')) order.deliveryProvider = getProviderLabel(body.deliveryProvider);
-    if (has('trackingNumber')) order.trackingNumber = clean(body.trackingNumber);
-    if (has('currentLocation')) order.currentLocation = clean(body.currentLocation);
-
-    const entry = makeStatusHistoryEntry(order, statusKey, order.statusText);
-    order.statusHistory = [...(Array.isArray(order.statusHistory) ? order.statusHistory : []), entry];
-
-    orders[index] = order;
-    await writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
+    const order = updateOrderStatusInDatabase(orderId, body);
+    if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
 
     const telegram = order.telegramChatId
       ? await sendTelegramMessage(order.telegramChatId, buildTelegramStatusMessage(order))
@@ -531,14 +1075,13 @@ async function handleApi(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
 
   if (url.pathname === '/api/health' && req.method === 'GET') {
-    return send(res, 200, JSON.stringify({ ok: true, project: 'VEAST', timestamp: new Date().toISOString() }));
+    return send(res, 200, JSON.stringify({ ok: true, project: 'VEAST', database: 'sqlite', dbPath: DB_PATH, timestamp: new Date().toISOString() }));
   }
 
   if (url.pathname === '/api/stats' && req.method === 'GET') {
-    const orders = await readJson(ORDERS_FILE);
     const feedback = await readJson(FEEDBACK_FILE);
-    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-    return send(res, 200, JSON.stringify({ ok: true, orders: orders.length, feedback: feedback.length, totalRevenue }));
+    const orderStats = getDatabaseStats();
+    return send(res, 200, JSON.stringify({ ok: true, orders: orderStats.orders, feedback: feedback.length, totalRevenue: orderStats.totalRevenue, database: 'sqlite' }));
   }
 
   if (url.pathname === '/api/products' && req.method === 'GET') {
@@ -552,6 +1095,14 @@ async function handleApi(req, res, url) {
     const product = products.find((item) => item.id === id || item.slug === id);
     if (!product) return send(res, 404, JSON.stringify({ error: 'Product not found' }));
     return send(res, 200, JSON.stringify(product));
+  }
+
+  if (url.pathname === '/api/cdek/config' && req.method === 'GET') {
+    return handleCdekConfig(req, res);
+  }
+
+  if (url.pathname === '/api/cdek/service' && (req.method === 'GET' || req.method === 'POST' || req.method === 'OPTIONS')) {
+    return handleCdekService(req, res, url);
   }
 
   if (url.pathname === '/api/telegram/webhook' && req.method === 'POST') {
@@ -571,8 +1122,7 @@ async function handleApi(req, res, url) {
   const statusRoute = url.pathname.match(/^\/api\/orders\/([^/]+)\/status$/);
   if (statusRoute && req.method === 'GET') {
     const id = decodeURIComponent(statusRoute[1]);
-    const orders = (await readJson(ORDERS_FILE)).map(ensureOrderStatusFields);
-    const order = orders.find((item) => item.id === id);
+    const order = getOrderFromDatabase(id);
     if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
     return send(res, 200, JSON.stringify({
       id: order.id,
@@ -580,6 +1130,7 @@ async function handleApi(req, res, url) {
       status: order.status,
       statusText: order.statusText,
       deliveryProvider: order.deliveryProvider,
+      deliveryPoint: normalizeDeliveryPoint(order.deliveryPoint),
       trackingNumber: order.trackingNumber,
       currentLocation: order.currentLocation,
       statusHistory: order.statusHistory,
@@ -596,13 +1147,12 @@ async function handleApi(req, res, url) {
     if (!isAdminRequest(req, url)) {
       return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
     }
-    return send(res, 200, JSON.stringify((await readJson(ORDERS_FILE)).map(publicOrder)));
+    return send(res, 200, JSON.stringify(getAllOrdersFromDatabase().map(publicOrder)));
   }
 
   if (url.pathname.startsWith('/api/orders/') && req.method === 'GET') {
     const id = decodeURIComponent(url.pathname.replace('/api/orders/', ''));
-    const orders = (await readJson(ORDERS_FILE)).map(publicOrder);
-    const order = orders.find((item) => item.id === id);
+    const order = getOrderFromDatabase(id);
     if (!order) return send(res, 404, JSON.stringify({ error: 'Order not found' }));
     return send(res, 200, JSON.stringify(order));
   }
@@ -612,10 +1162,7 @@ async function handleApi(req, res, url) {
       const order = await parseBody(req);
       const error = await validateBusinessOrder(order);
       if (error) return send(res, 400, JSON.stringify({ error }));
-      const orders = (await readJson(ORDERS_FILE)).map(ensureOrderStatusFields);
-      const savedOrder = normalizeOrder(order);
-      orders.push(savedOrder);
-      await writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
+      const savedOrder = saveOrderToDatabase(normalizeOrder(order));
       return send(res, 201, JSON.stringify({ ok: true, order: publicOrder(savedOrder) }));
     } catch {
       return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));

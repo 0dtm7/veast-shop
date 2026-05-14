@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" type="text/javascript"></script>
   </head>
   <body>
     <div data-header></div>
@@ -28,8 +29,20 @@
             <div class="field"><label for="phone">Телефон / Telegram</label><input id="phone" name="phone" required autocomplete="tel" placeholder="+7... или @username" /><small>Нужно для подтверждения заказа.</small></div>
             <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="email" placeholder="name@example.com" /><small>На него можно отправить подтверждение.</small></div>
             <div class="field"><label for="city">Город</label><input id="city" name="city" required autocomplete="address-level2" placeholder="Москва" /></div>
-            <div class="field full"><label for="address">Адрес доставки</label><textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Улица, дом, квартира или пункт выдачи"></textarea></div>
             <div class="field"><label for="delivery">Доставка</label><select id="delivery" name="delivery" required><option value="СДЭК">СДЭК</option><option value="Почта России">Почта России</option><option value="Самовывоз">Самовывоз</option></select></div>
+            <div class="field full pickup-field" id="pickupField">
+              <label>Пункт выдачи</label>
+              <input id="pickupPointPayload" name="pickupPointPayload" type="hidden" />
+              <div class="pickup-select-card" id="pickupSelectCard">
+                <div>
+                  <strong id="pickupPointTitle">Пункт выдачи не выбран</strong>
+                  <p id="pickupPointText" class="muted">Выберите пункт СДЭК на карте, чтобы не вводить адрес вручную.</p>
+                </div>
+                <button class="button button-ghost" id="openCdekWidget" type="button">Выбрать на карте</button>
+              </div>
+              <small id="cdekWidgetMessage">Пункты выдачи загружаются через официальный виджет СДЭК.</small>
+            </div>
+            <div class="field full"><label for="address">Адрес доставки</label><textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Выберите пункт выдачи на карте"></textarea></div>
             <div class="field"><label for="payment">Оплата</label><select id="payment" name="payment" required><option value="После подтверждения">После подтверждения</option><option value="Картой при получении">Картой при получении</option></select></div>
             <div class="field full"><label for="comment">Комментарий к заказу</label><textarea id="comment" name="comment" placeholder="Например: нужна консультация по размеру"></textarea></div>
           </div>
@@ -40,6 +53,7 @@
         <aside class="summary-card" id="checkoutSummary"></aside>
       </div>
     </main>
+    <div id="cdek-widget-root" class="cdek-widget-root" aria-hidden="true"></div>
     <div data-footer></div>
     <script type="module" src="scripts/checkout.js"></script>
   </body>

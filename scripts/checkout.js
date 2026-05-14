@@ -20,8 +20,23 @@ const summary = document.getElementById('checkoutSummary');
 const form = document.getElementById('checkoutForm');
 const message = document.getElementById('formMessage');
 const submitButton = form.querySelector('button[type="submit"]');
+const deliverySelect = document.getElementById('delivery');
+const cityInput = document.getElementById('city');
+const addressInput = document.getElementById('address');
+const pickupField = document.getElementById('pickupField');
+const pickupPayloadInput = document.getElementById('pickupPointPayload');
+const pickupTitle = document.getElementById('pickupPointTitle');
+const pickupText = document.getElementById('pickupPointText');
+const pickupCard = document.getElementById('pickupSelectCard');
+const cdekButton = document.getElementById('openCdekWidget');
+const cdekMessage = document.getElementById('cdekWidgetMessage');
 const fields = ['name', 'phone', 'email', 'city', 'address'];
 const t = (ru, en) => (isEnglish() ? en : ru);
+
+let selectedPickupPoint = null;
+let cdekWidget = null;
+let cdekConfig = null;
+let cdekConfigLoading = false;
 
 function renderSummary() {
   const cart = getCart();
@@ -62,16 +77,162 @@ function renderSummary() {
     }).join('')}
     <div class="total-row"><span>${t('Позиций', 'Items')}</span><strong>${count}</strong></div>
     <div class="total-row"><span>${t('Товары', 'Products')}</span><strong>${formatPrice(total)}</strong></div>
-    <div class="total-row"><span>${t('Доставка', 'Shipping')}</span><strong>${t('2–5 дней', '2–5 days')}</strong></div>
+    <div class="total-row"><span>${t('Доставка', 'Shipping')}</span><strong>${t('ПВЗ по России', 'Pickup point')}</strong></div>
     <div class="total-row"><span>${t('Оплата', 'Payment')}</span><strong>${t('после подтверждения', 'after confirmation')}</strong></div>
     <div class="total-row total-strong"><span>${t('Итого', 'Total')}</span><strong>${formatPrice(total)}</strong></div>
     <div class="mini-service-list">
       <span>${t('✓ Возврат 14 дней', '✓ 14-day returns')}</span>
-      <span>${t('✓ Проверка заказа менеджером', '✓ Order review by manager')}</span>
-      <span>${t('✓ Заказ сохраняется в backend API', '✓ Order saved in backend API')}</span>
+      <span>${t('✓ Выбор пункта СДЭК на карте', '✓ CDEK pickup map')}</span>
+      <span>${t('✓ Статус заказа в Telegram', '✓ Telegram order status')}</span>
     </div>
-    <p class="muted">${t('При успешной отправке заказ появится в личном кабинете и в файле data/orders.json при запуске через Node.js.', 'After a successful submission, the order appears in the account page and in data/orders.json when the project runs via Node.js.')}</p>
+    <p class="muted">${t('Выберите пункт выдачи на карте, затем оформите заказ. Выбранный ПВЗ сохранится в backend API и будет виден в админке.', 'Choose a pickup point on the map, then place the order. The selected point will be saved in the backend API and visible in admin.')}</p>
   `;
+}
+
+function isCdekDelivery() {
+  return deliverySelect?.value === 'СДЭК';
+}
+
+function normalizePickupPoint(type, tariff, point) {
+  if (!point || typeof point !== 'object') return null;
+  const location = point.location || {};
+  const address = point.address || location.address || [location.city, location.address_full].filter(Boolean).join(', ');
+  const city = location.city || point.city || '';
+  const title = point.name || point.code || 'Пункт выдачи СДЭК';
+
+  return {
+    provider: 'cdek',
+    providerTitle: 'СДЭК',
+    type: type || 'office',
+    tariffCode: tariff?.tariff_code || tariff?.tariffCode || tariff?.code || null,
+    tariffName: tariff?.tariff_name || tariff?.tariffName || tariff?.name || '',
+    code: point.code || point.uuid || '',
+    name: title,
+    address,
+    city,
+    region: location.region || '',
+    postalCode: location.postal_code || '',
+    latitude: Number(location.latitude || point.latitude || 0) || null,
+    longitude: Number(location.longitude || point.longitude || 0) || null,
+    workTime: point.work_time || point.workTime || '',
+    phones: Array.isArray(point.phones) ? point.phones.map((phone) => phone.number || phone).filter(Boolean) : [],
+  };
+}
+
+function setPickupPoint(point) {
+  selectedPickupPoint = point;
+  pickupPayloadInput.value = point ? JSON.stringify(point) : '';
+
+  if (!point) {
+    pickupTitle.textContent = t('Пункт выдачи не выбран', 'Pickup point not selected');
+    pickupText.textContent = t('Выберите пункт СДЭК на карте, чтобы не вводить адрес вручную.', 'Choose a CDEK pickup point on the map.');
+    pickupCard?.classList.remove('pickup-select-card-active');
+    return;
+  }
+
+  pickupTitle.textContent = `${point.providerTitle} · ${point.code || point.name}`;
+  pickupText.textContent = [point.city, point.address, point.workTime ? `График: ${point.workTime}` : ''].filter(Boolean).join(' · ');
+  pickupCard?.classList.add('pickup-select-card-active');
+  if (point.city) cityInput.value = point.city;
+  if (point.address) addressInput.value = point.address;
+}
+
+function setCdekMessage(text, type = '') {
+  cdekMessage.textContent = text;
+  cdekMessage.className = type || '';
+}
+
+function syncDeliveryUi() {
+  const cdek = isCdekDelivery();
+  pickupField.hidden = !cdek;
+  if (cdek) {
+    addressInput.readOnly = true;
+    addressInput.placeholder = t('Выберите пункт выдачи на карте', 'Choose a pickup point on the map');
+    if (!selectedPickupPoint) setPickupPoint(null);
+  } else {
+    addressInput.readOnly = false;
+    addressInput.placeholder = deliverySelect.value === 'Почта России'
+      ? t('Укажите отделение Почты России или адрес доставки', 'Enter a post office or delivery address')
+      : t('Укажите адрес или комментарий по самовывозу', 'Enter an address or pickup note');
+    setPickupPoint(null);
+  }
+}
+
+async function loadCdekConfig() {
+  if (cdekConfig || cdekConfigLoading) return cdekConfig;
+  cdekConfigLoading = true;
+  setCdekMessage(t('Загружаем настройки СДЭК...', 'Loading CDEK settings...'), 'api-alert-loading');
+  try {
+    const response = await fetch('/api/cdek/config');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    cdekConfig = data;
+    if (!data.enabled) {
+      const missing = Array.isArray(data.missing) && data.missing.length ? ` Не хватает: ${data.missing.join(', ')}.` : '';
+      throw new Error(`Виджет СДЭК не настроен в Render.${missing}`);
+    }
+    setCdekMessage(t('СДЭК готов: выберите пункт на карте.', 'CDEK is ready: choose a point on the map.'), 'api-alert-success');
+    return cdekConfig;
+  } finally {
+    cdekConfigLoading = false;
+  }
+}
+
+function buildCdekGoods() {
+  const cart = getCart();
+  const count = Math.max(1, cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+  return [{ width: 30, height: 10, length: 35, weight: Math.max(1, count) }];
+}
+
+async function openCdekWidget() {
+  deliverySelect.value = 'СДЭК';
+  syncDeliveryUi();
+
+  try {
+    const config = await loadCdekConfig();
+    if (!window.CDEKWidget) throw new Error('Скрипт виджета СДЭК не загрузился. Обновите страницу и попробуйте снова.');
+
+    if (!cdekWidget) {
+      cdekWidget = new window.CDEKWidget({
+        from: config.from || 'Москва',
+        root: 'cdek-widget-root',
+        apiKey: config.yandexMapsApiKey,
+        canChoose: true,
+        servicePath: config.servicePath || '/api/cdek/service',
+        hideFilters: {
+          have_cashless: false,
+          have_cash: false,
+          is_dressing_room: false,
+          type: false,
+        },
+        hideDeliveryOptions: {
+          office: false,
+          door: true,
+        },
+        popup: true,
+        debug: false,
+        goods: buildCdekGoods(),
+        defaultLocation: cityInput.value.trim() || config.defaultLocation || 'Москва',
+        lang: 'rus',
+        currency: 'RUB',
+        tariffs: {
+          office: [234, 136, 138],
+          door: [233, 137, 139],
+        },
+        onChoose(type, tariff, point) {
+          const normalized = normalizePickupPoint(type, tariff, point);
+          if (normalized) {
+            setPickupPoint(normalized);
+            setCdekMessage(t('Пункт СДЭК выбран. Можно отправлять заказ.', 'CDEK pickup point selected.'), 'api-alert-success');
+          }
+        },
+      });
+    }
+
+    cdekWidget.open();
+  } catch (error) {
+    setCdekMessage(error.message, 'error-text');
+  }
 }
 
 function validateForm(formData) {
@@ -86,7 +247,8 @@ function validateForm(formData) {
   if (phone.length < 5) errors.phone = t('Укажите телефон или Telegram для связи.', 'Enter a phone number or Telegram handle.');
   if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = t('Введите корректный email.', 'Enter a valid email address.');
   if (city.length < 2) errors.city = t('Укажите город доставки.', 'Enter the delivery city.');
-  if (address.length < 6) errors.address = t('Укажите адрес или пункт выдачи.', 'Enter the address or pickup point.');
+  if (isCdekDelivery() && !selectedPickupPoint) errors.address = t('Выберите пункт СДЭК на карте.', 'Choose a CDEK pickup point on the map.');
+  else if (address.length < 6) errors.address = t('Укажите адрес или пункт выдачи.', 'Enter the address or pickup point.');
   if (!form.privacy.checked) errors.privacy = t('Нужно согласиться с пользовательским соглашением и политикой конфиденциальности.', 'You need to accept the terms and privacy policy.');
 
   return errors;
@@ -95,6 +257,7 @@ function validateForm(formData) {
 function clearErrors() {
   form.querySelectorAll('.field-error').forEach((node) => node.remove());
   form.querySelectorAll('.invalid').forEach((node) => node.classList.remove('invalid'));
+  form.privacy.closest('.policy-check')?.classList.remove('invalid');
 }
 
 function showErrors(errors) {
@@ -126,6 +289,9 @@ form.addEventListener('input', () => {
   message.textContent = '';
 });
 
+deliverySelect.addEventListener('change', syncDeliveryUi);
+cdekButton.addEventListener('click', openCdekWidget);
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const cart = getCart();
@@ -138,6 +304,7 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
+  const deliveryPoint = isCdekDelivery() ? selectedPickupPoint : null;
   const order = {
     id: `VST-${Date.now()}`,
     createdAt: new Date().toISOString(),
@@ -153,6 +320,7 @@ form.addEventListener('submit', async (event) => {
       comment: formData.comment?.trim() || '',
       privacyAccepted: Boolean(form.privacy.checked),
     },
+    deliveryPoint,
     items: buildCartItems(cart),
     total: calculateCart(cart),
   };
@@ -189,4 +357,5 @@ form.addEventListener('submit', async (event) => {
   setTimeout(() => { location.href = `thanks.html?order=${encodeURIComponent(savedOrder.id)}`; }, 850);
 });
 
+syncDeliveryUi();
 renderSummary();
