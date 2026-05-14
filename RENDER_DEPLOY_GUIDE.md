@@ -85,3 +85,7 @@ https://veast-shop-nsdh.onrender.com/api/telegram/webhook
 4. Вернись в `admin-orders.html`.
 5. Поменяй статус заказа и нажми **«Обновить статус и отправить в Telegram»**.
 6. Проверь, что бот прислал уведомление.
+
+
+### CDEK test environment note
+For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. If the widget opens but shows “Произошла непредвиденная ошибка при загрузке карты”, check `YANDEX_MAPS_API_KEY`: it must be a valid Yandex Maps JavaScript API key allowed for `https://veast-shop-nsdh.onrender.com/*`.

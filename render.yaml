@@ -20,6 +20,8 @@ services:
         sync: false
       - key: CDEK_CLIENT_SECRET
         sync: false
+      - key: CDEK_API_BASE_URL
+        value: https://api.edu.cdek.ru/v2
       - key: CDEK_FROM_CITY
         value: Москва
       - key: CDEK_DEFAULT_LOCATION

@@ -212,7 +212,7 @@ async function openCdekWidget() {
         popup: true,
         debug: false,
         goods: buildCdekGoods(),
-        defaultLocation: cityInput.value.trim() || config.defaultLocation || 'Москва',
+        defaultLocation: cityInput.value.trim() || config.defaultLocationCoords || config.defaultLocation || [37.6173, 55.7558],
         lang: 'rus',
         currency: 'RUB',
         tariffs: {

@@ -268,3 +268,7 @@ YANDEX_MAPS_API_KEY=ключ_Яндекс_Карт
 - История статусов хранится в таблице `order_status_history`.
 - Telegram-привязка заказа хранится в таблице `orders` через `telegram_chat_id` и `telegram_link_token`.
 - `/api/health` теперь показывает `database: sqlite` и путь к файлу базы.
+
+
+### CDEK test environment note
+For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. If the widget opens but shows “Произошла непредвиденная ошибка при загрузке карты”, check `YANDEX_MAPS_API_KEY`: it must be a valid Yandex Maps JavaScript API key allowed for `https://veast-shop-nsdh.onrender.com/*`.

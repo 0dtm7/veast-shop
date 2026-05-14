@@ -24,10 +24,17 @@ const CDEK_CLIENT_SECRET = String(process.env.CDEK_CLIENT_SECRET || '').trim();
 const CDEK_FROM_CITY = String(process.env.CDEK_FROM_CITY || 'Москва').trim();
 const CDEK_DEFAULT_LOCATION = String(process.env.CDEK_DEFAULT_LOCATION || 'Москва').trim();
 const YANDEX_MAPS_API_KEY = String(process.env.YANDEX_MAPS_API_KEY || '').trim();
-const CDEK_API_BASE_URL = 'https://api.cdek.ru/v2';
+const CDEK_API_BASE_URL = normalizeCdekApiBaseUrl(process.env.CDEK_API_BASE_URL || 'https://api.cdek.ru/v2');
 const CDEK_WIDGET_VERSION = '3.11.1';
 let cdekTokenCache = { token: '', expiresAt: 0 };
 let db = null;
+
+function normalizeCdekApiBaseUrl(value) {
+  const raw = String(value || '').trim().replace(/\/+$/, '');
+  if (!raw) return 'https://api.cdek.ru/v2';
+  return raw.endsWith('/v2') ? raw : `${raw}/v2`;
+}
+
 
 const ORDER_STATUSES = {
   created: {
@@ -803,6 +810,8 @@ async function handleCdekConfig(req, res) {
     servicePath: '/api/cdek/service',
     from: CDEK_FROM_CITY,
     defaultLocation: CDEK_DEFAULT_LOCATION,
+    defaultLocationCoords: [37.6173, 55.7558],
+    apiBaseUrl: CDEK_API_BASE_URL,
   }));
 }
 
