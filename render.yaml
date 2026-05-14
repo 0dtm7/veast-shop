@@ -26,5 +26,3 @@ services:
         value: Москва
       - key: CDEK_DEFAULT_LOCATION
         value: Москва
-      - key: YANDEX_MAPS_API_KEY
-        sync: false

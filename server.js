@@ -23,7 +23,6 @@ const CDEK_CLIENT_ID = String(process.env.CDEK_CLIENT_ID || '').trim();
 const CDEK_CLIENT_SECRET = String(process.env.CDEK_CLIENT_SECRET || '').trim();
 const CDEK_FROM_CITY = String(process.env.CDEK_FROM_CITY || 'Москва').trim();
 const CDEK_DEFAULT_LOCATION = String(process.env.CDEK_DEFAULT_LOCATION || 'Москва').trim();
-const YANDEX_MAPS_API_KEY = String(process.env.YANDEX_MAPS_API_KEY || '').trim();
 const CDEK_API_BASE_URL = normalizeCdekApiBaseUrl(process.env.CDEK_API_BASE_URL || 'https://api.cdek.ru/v2');
 const CDEK_WIDGET_VERSION = '3.11.1';
 let cdekTokenCache = { token: '', expiresAt: 0 };
@@ -677,7 +676,6 @@ function getCdekMissingConfig() {
   return [
     !CDEK_CLIENT_ID ? 'CDEK_CLIENT_ID' : '',
     !CDEK_CLIENT_SECRET ? 'CDEK_CLIENT_SECRET' : '',
-    !YANDEX_MAPS_API_KEY ? 'YANDEX_MAPS_API_KEY' : '',
   ].filter(Boolean);
 }
 
@@ -806,7 +804,6 @@ async function handleCdekConfig(req, res) {
     ok: true,
     enabled: missing.length === 0,
     missing,
-    yandexMapsApiKey: YANDEX_MAPS_API_KEY,
     servicePath: '/api/cdek/service',
     from: CDEK_FROM_CITY,
     defaultLocation: CDEK_DEFAULT_LOCATION,
@@ -817,7 +814,7 @@ async function handleCdekConfig(req, res) {
 
 async function handleCdekService(req, res, url) {
   if (req.method === 'OPTIONS') return sendCdek(res, 204, '');
-  const missing = getCdekMissingConfig().filter((key) => key !== 'YANDEX_MAPS_API_KEY');
+  const missing = getCdekMissingConfig();
   if (missing.length) {
     return sendCdek(res, 503, JSON.stringify({ message: `CDEK service is not configured: ${missing.join(', ')}` }));
   }
@@ -827,6 +824,11 @@ async function handleCdekService(req, res, url) {
     const requestData = Object.fromEntries(url.searchParams.entries());
     Object.assign(requestData, body || {});
     const action = clean(requestData.action);
+
+    if (action === 'cities') {
+      const response = await cdekAuthorizedRequest('location/suggest/cities', { method: 'GET', data: requestData });
+      return sendCdek(res, response.statusCode || 502, response.raw || '{}');
+    }
 
     if (action === 'offices') {
       const response = await cdekAuthorizedRequest('deliverypoints', { method: 'GET', data: requestData });

@@ -2676,3 +2676,138 @@ a.button {
   .pickup-select-card { align-items: stretch; flex-direction: column; }
   .pickup-select-card .button { width: 100%; }
 }
+
+/* Stable CDEK pickup map modal */
+body.modal-open { overflow: hidden; }
+.pickup-map-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(10px);
+}
+.pickup-map-modal.is-open { display: flex; }
+.pickup-map-panel {
+  position: relative;
+  width: min(1180px, 96vw);
+  height: min(780px, 92vh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+}
+.pickup-map-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 5;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.pickup-map-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: 18px;
+  align-items: end;
+  padding-right: 48px;
+}
+.pickup-map-header h2 { margin: 0; font-size: clamp(28px, 5vw, 54px); line-height: 0.92; }
+.pickup-map-search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.pickup-map-search input {
+  min-width: 0;
+  width: 100%;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0 16px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+}
+.pickup-map-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  min-height: 0;
+}
+.pickup-map-canvas {
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+  background: #f2f3f5;
+}
+.pickup-map-sidebar {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+.pickup-map-status {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  font-size: 14px;
+}
+.pickup-points-list {
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.pickup-point-item {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 14px;
+  background: var(--surface-strong);
+  cursor: pointer;
+}
+.pickup-point-item.is-active,
+.pickup-point-item:hover { border-color: var(--text); }
+.pickup-point-item p,
+.pickup-point-item small { margin: 0; color: var(--muted); }
+.pickup-point-item .button { justify-self: start; padding: 9px 14px; }
+.cdek-popup-select {
+  margin-top: 8px;
+  border: 1px solid #111;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+.leaflet-container { font-family: inherit; }
+
+@media (max-width: 900px) {
+  .pickup-map-modal { padding: 10px; }
+  .pickup-map-panel { height: 94vh; padding: 14px; border-radius: 22px; }
+  .pickup-map-header { grid-template-columns: 1fr; padding-right: 42px; }
+  .pickup-map-body { grid-template-columns: 1fr; grid-template-rows: minmax(280px, 44vh) minmax(0, 1fr); }
+  .pickup-map-canvas { min-height: 280px; }
+  .pickup-map-search { align-items: stretch; }
+  .pickup-map-search .button { white-space: nowrap; }
+}

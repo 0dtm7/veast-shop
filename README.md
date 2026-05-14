@@ -243,9 +243,9 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 - `/api/telegram/set-webhook` now returns a clearer error if Render cannot reach Telegram or the bot token is wrong.
 - Keep `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `PUBLIC_BASE_URL`, and `ADMIN_STATUS_KEY` only in Render Environment Variables.
 
-## СДЭК-виджет пунктов выдачи
+## Карта пунктов выдачи СДЭК
 
-В оформлении заказа добавлен выбор пункта выдачи СДЭК на карте. Пользователь нажимает **«Выбрать на карте»**, выбирает ПВЗ в официальном виджете, после чего сайт сохраняет город, адрес, код ПВЗ и данные пункта в заказ. Выбранный пункт отображается в админке и добавляется в Telegram-сообщения по статусу заказа.
+В оформлении заказа добавлен выбор пункта выдачи СДЭК на карте. Пользователь нажимает **«Выбрать на карте»**, выбирает ПВЗ на встроенной карте, после чего сайт сохраняет город, адрес, код ПВЗ и данные пункта в заказ. Выбранный пункт отображается в админке и добавляется в Telegram-сообщения по статусу заказа.
 
 Для работы на Render нужны переменные окружения:
 
@@ -254,15 +254,14 @@ CDEK_CLIENT_ID=идентификатор_аккаунта_интеграции_
 CDEK_CLIENT_SECRET=пароль_аккаунта_интеграции_СДЭК
 CDEK_FROM_CITY=Москва
 CDEK_DEFAULT_LOCATION=Москва
-YANDEX_MAPS_API_KEY=ключ_Яндекс_Карт
 ```
 
 Секреты не хранить в GitHub. Добавлять их только в Render Environment Variables.
 
 
-## v43 — CDEK widget + SQLite database
+## v43/v45 — CDEK pickup map + SQLite database
 
-- СДЭК-виджет выбора ПВЗ сохранён и работает в checkout.
+- Карта выбора ПВЗ СДЭК сохранена и работает в checkout.
 - Выбранный ПВЗ сохраняется в заказ, отображается в админке и добавляется в Telegram-уведомления.
 - Заказы переведены на SQLite mini database.
 - История статусов хранится в таблице `order_status_history`.
@@ -271,4 +270,4 @@ YANDEX_MAPS_API_KEY=ключ_Яндекс_Карт
 
 
 ### CDEK test environment note
-For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. If the widget opens but shows “Произошла непредвиденная ошибка при загрузке карты”, check `YANDEX_MAPS_API_KEY`: it must be a valid Yandex Maps JavaScript API key allowed for `https://veast-shop-nsdh.onrender.com/*`.
+For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. The pickup map uses OpenStreetMap/Leaflet, so a Yandex Maps key is no longer required.

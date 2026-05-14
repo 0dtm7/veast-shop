@@ -9,7 +9,8 @@
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
   <body>
     <div data-header></div>
@@ -40,7 +41,7 @@
                 </div>
                 <button class="button button-ghost" id="openCdekWidget" type="button">Выбрать на карте</button>
               </div>
-              <small id="cdekWidgetMessage">Пункты выдачи загружаются через официальный виджет СДЭК.</small>
+              <small id="cdekWidgetMessage">Пункты выдачи загружаются через API СДЭК и отображаются на карте.</small>
             </div>
             <div class="field full"><label for="address">Адрес доставки</label><textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Выберите пункт выдачи на карте"></textarea></div>
             <div class="field"><label for="payment">Оплата</label><select id="payment" name="payment" required><option value="После подтверждения">После подтверждения</option><option value="Картой при получении">Картой при получении</option></select></div>
@@ -53,7 +54,29 @@
         <aside class="summary-card" id="checkoutSummary"></aside>
       </div>
     </main>
-    <div id="cdek-widget-root" class="cdek-widget-root" aria-hidden="true"></div>
+    <div id="cdek-map-modal" class="pickup-map-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Выбор пункта выдачи СДЭК">
+      <div class="pickup-map-panel">
+        <button class="pickup-map-close" id="closeCdekMap" type="button" aria-label="Закрыть карту">×</button>
+        <div class="pickup-map-header">
+          <div>
+            <p class="eyebrow">CDEK pickup</p>
+            <h2>Выбор пункта выдачи</h2>
+            <p class="muted">Введите город, выберите ПВЗ на карте или в списке.</p>
+          </div>
+          <div class="pickup-map-search">
+            <input id="cdekCitySearch" type="search" placeholder="Москва" autocomplete="address-level2" />
+            <button class="button button-primary" id="loadCdekPoints" type="button">Найти</button>
+          </div>
+        </div>
+        <div class="pickup-map-body">
+          <div class="pickup-map-canvas" id="cdekMapCanvas"></div>
+          <aside class="pickup-map-sidebar">
+            <div class="pickup-map-status" id="cdekMapStatus">Введите город и нажмите «Найти».</div>
+            <div class="pickup-points-list" id="cdekPointsList"></div>
+          </aside>
+        </div>
+      </div>
+    </div>
     <div data-footer></div>
     <script type="module" src="scripts/checkout.js"></script>
   </body>

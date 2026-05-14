@@ -13,21 +13,16 @@ CDEK_CLIENT_ID=идентификатор_аккаунта_интеграции_
 CDEK_CLIENT_SECRET=пароль_аккаунта_интеграции_СДЭК
 CDEK_FROM_CITY=Москва
 CDEK_DEFAULT_LOCATION=Москва
-YANDEX_MAPS_API_KEY=ключ_Яндекс_Карт
 VEAST_DB_PATH=data/veast.sqlite
 ```
 
 `TELEGRAM_BOT_TOKEN`, `CDEK_CLIENT_SECRET` и другие секреты нельзя выкладывать в GitHub. SQLite-файл базы тоже не нужно коммитить — он создаётся сервером автоматически.
 
-## 1.1. СДЭК-виджет пунктов выдачи
+## 1.1. карта ПВЗ СДЭК пунктов выдачи
 
-В checkout подключён официальный виджет СДЭК. Для работы карты на Render нужны переменные `CDEK_CLIENT_ID`, `CDEK_CLIENT_SECRET` и `YANDEX_MAPS_API_KEY`.
+В checkout подключена стабильная карта ПВЗ СДЭК через API СДЭК и OpenStreetMap/Leaflet. Для работы на Render нужны `CDEK_CLIENT_ID`, `CDEK_CLIENT_SECRET` и `CDEK_API_BASE_URL`. Ключ Яндекс.Карт больше не нужен.
 
-Данные СДЭК берутся в личном кабинете СДЭК: раздел **Интеграция** → **Создать ключ**. Ключ Яндекс.Карт нужен для отображения карты; для него обязательно укажи HTTP Referrer своего сайта:
-
-```text
-https://veast-shop-nsdh.onrender.com/*
-```
+Данные СДЭК берутся в личном кабинете СДЭК: раздел **Интеграция** → **Создать ключ**. В тестовом режиме можно использовать публичные тестовые ключи из документации и `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`.
 
 После добавления переменных нажми **Save, rebuild, and deploy**.
 
@@ -88,4 +83,4 @@ https://veast-shop-nsdh.onrender.com/api/telegram/webhook
 
 
 ### CDEK test environment note
-For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. If the widget opens but shows “Произошла непредвиденная ошибка при загрузке карты”, check `YANDEX_MAPS_API_KEY`: it must be a valid Yandex Maps JavaScript API key allowed for `https://veast-shop-nsdh.onrender.com/*`.
+For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. The pickup map uses OpenStreetMap/Leaflet, so a Yandex Maps key is no longer required.
