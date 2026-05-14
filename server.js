@@ -160,7 +160,7 @@ function intToBool(value) {
 
 async function initDatabase() {
   if (!DATABASE_URL) {
-    console.warn('DATABASE_URL is not configured. VEAST will use temporary JSON fallback for orders. Add PostgreSQL DATABASE_URL on Render for persistent orders.');
+    console.warn('DATABASE_URL is not configured. Orders will use temporary storage until a database is connected.');
     return;
   }
 
@@ -1388,6 +1388,12 @@ async function handleApi(req, res, url) {
 async function serveStatic(req, res, url) {
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === '/') pathname = '/index.html';
+  const blockedPublicPaths = [
+    '/docs/', '/data/', '/README.md', '/RENDER_DEPLOY_GUIDE.md', '/render.yaml', '/package.json', '/pnpm-lock.yaml', '/.env', '/.env.example', '/.gitignore'
+  ];
+  if (blockedPublicPaths.some((blocked) => pathname === blocked || pathname.startsWith(blocked))) {
+    return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
+  }
   const safePath = path.normalize(path.join(__dirname, pathname));
   if (!safePath.startsWith(__dirname)) return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
   try {
@@ -1418,5 +1424,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`VEAST project running: http://localhost:${PORT}`);
+  console.log(`VEAST server running: http://localhost:${PORT}`);
 });

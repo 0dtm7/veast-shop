@@ -13,7 +13,7 @@ function renderEmpty() {
   container.innerHTML = `
     <p class="eyebrow">${t('заказ', 'success')}</p>
     <h1>${t('Заказ создан', 'Order created')}</h1>
-    <p>${t('Заказ был успешно отправлен. Чтобы проверить сценарий ещё раз, вернитесь в каталог и оформите новый тестовый заказ.', 'The order was submitted successfully. If you want to test the flow again, return to the catalog and place another test order.')}</p>
+    <p>${t('Заказ успешно отправлен. Мы свяжемся с вами для подтверждения деталей.', 'The order was submitted successfully. We will contact you to confirm the details.')}</p>
     <div class="inline-actions">
       <a class="button button-primary" href="catalog.html">${t('В каталог', 'Back to catalog')}</a>
       <a class="button button-ghost" href="account.html">${t('В кабинет', 'Account')}</a>
@@ -43,7 +43,7 @@ function telegramBlock(order) {
       <div class="telegram-order-card">
         <p class="eyebrow">telegram status</p>
         <h2>${t('Статус в Telegram', 'Telegram order status')}</h2>
-        <p>${t('Telegram-ссылка появится для заказов, сохранённых через backend API. Если заказ сохранился локально, запусти сервер и оформи заказ ещё раз.', 'The Telegram link appears for orders saved through the backend API. If the order was saved locally, run the server and place the order again.')}</p>
+        <p>${t('Telegram-статус будет доступен после подтверждения заказа. Если кнопка не появилась, напишите нам в поддержку.', 'Telegram status will be available after order confirmation. If the button does not appear, contact support.')}</p>
       </div>
     `;
   }
@@ -61,14 +61,14 @@ function telegramBlock(order) {
 
 function renderOrder(order) {
   container.innerHTML = `
-    <p class="eyebrow">${t('заказ оформлен', 'commercial action complete')}</p>
+    <p class="eyebrow">${t('заказ оформлен', 'order placed')}</p>
     <h1>${t('Заказ оформлен', 'Order placed')}</h1>
-    <p>${t('Путь покупки завершён: товар выбран, корзина проверена, форма отправлена, заказ сохранён.', 'The shopping journey is complete: the item was selected, the cart was reviewed, the form was submitted and the order was saved.')}</p>
+    <p>${t('Заказ принят. Проверьте состав заказа и подключите Telegram-уведомления, чтобы получать обновления статуса.', 'The order has been placed. Review your order and connect Telegram updates to receive status notifications.')}</p>
     <div class="order-confirmation">
       <div><span>${t('Номер заказа', 'Order number')}</span><strong>${escapeHtml(order.id)}</strong></div>
       <div><span>${t('Статус', 'Status')}</span><strong>${escapeHtml(order.status || t('Заказ создан', 'New order'))}</strong></div>
       <div><span>${t('Сумма', 'Amount')}</span><strong>${formatPrice(order.total || 0)}</strong></div>
-      <div><span>${t('Сохранено через', 'Saved via')}</span><strong>${escapeHtml(order.savedVia || 'backend API')}</strong></div>
+      
     </div>
     ${deliveryPointBlock(order)}
     ${telegramBlock(order)}

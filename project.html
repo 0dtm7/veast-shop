@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Дизайн-документ проекта — VEAST</title>
-    <meta name="description" content="Страница проекта VEAST: идея, коммерческая цель, UX, UI, frontend, backend, тестирование и критерии готовности." />
+    <title>О бренде — VEAST</title>
+    <meta name="description" content="VEAST — streetwear / Y2K / techwear бренд с тёмными washed-фактурами, chrome-графикой и свободными силуэтами." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -12,151 +12,33 @@
   </head>
   <body>
     <div data-header></div>
-    <main id="mainContent" class="container-wide">
-      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Проект</span></div>
+    <main id="mainContent" class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>О бренде</span></div>
       <section class="project-hero">
-        <p class="eyebrow">design document / course project</p>
-        <h1>VEAST: коммерческий интернет-магазин одежды</h1>
-        <p class="hero-copy">Эта страница показывает, что сайт сделан как учебный коммерческий веб-продукт: есть идея, целевое действие, аудитория, сценарии, архитектура, компоненты, frontend, backend и план тестирования.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="catalog.html">Проверить путь покупки</a>
-          <a class="button button-ghost" href="checkout.html">Открыть checkout</a>
-          <a class="button button-ghost" href="admin-orders.html">Backend-заказы</a>
-        </div>
+        <p class="eyebrow">about veast</p>
+        <h1>VEAST — одежда для городского ритма</h1>
+        <p class="hero-copy">Мы собираем капсулы в эстетике streetwear, Y2K, techwear и chrome: свободные силуэты, тёмные washed-фактуры, графика на деталях и вещи, которые легко сочетать между собой.</p>
+        <div class="hero-actions"><a class="button button-primary" href="catalog.html">Смотреть каталог</a><a class="button button-ghost" href="contacts.html">Связаться</a></div>
       </section>
-
-      <section class="criteria-panel">
-        <div>
-          <p class="eyebrow">main conversion</p>
-          <h2>Главное целевое действие</h2>
-          <p>Пользователь выбирает одежду в каталоге, открывает карточку товара, добавляет товар в корзину и отправляет форму оформления заказа. Это действие измеряется наличием сохранённого заказа.</p>
-        </div>
-        <div class="criteria-list">
-          <span>Каталог</span>
-          <span>Карточка товара</span>
-          <span>Корзина</span>
-          <span>Оформление заказа</span>
-          <span>Backend API</span>
-          <span>JSON-хранение</span>
-          <span>Подтверждение</span>
-        </div>
-      </section>
-
-      <section class="project-grid">
-        <article class="project-card"><h3>1. Название проекта</h3><p><strong>VEAST</strong> — интернет-магазин одежды и аксессуаров в минималистичной streetwear/Y2K-эстетике.</p></article>
-        <article class="project-card"><h3>2. Краткое описание идеи</h3><p>Сайт продаёт лимитированные вещи бренда: футболки, худи, лонгсливы, верхнюю одежду, брюки и аксессуары. Главный фокус — быстрый путь от выбора товара до оформления заказа.</p></article>
-        <article class="project-card"><h3>3. Коммерческая цель</h3><p>Измеримое целевое действие: пользователь добавляет товар в корзину и отправляет форму заказа. Дополнительные цели: избранное, обратная связь и переход в Telegram-канал.</p></article>
-        <article class="project-card"><h3>4. Модель заработка</h3><p>Доход формируется от продажи одежды. В дальнейшем можно добавить предзаказы, платную доставку, промокоды, email-рассылку и сезонные коллекции.</p></article>
-        <article class="project-card wide"><h3>5. Индивидуальное выполнение и роли</h3><p>Проект выполняется индивидуально. Роли распределены как зоны ответственности одного разработчика: менеджер проекта, UX-аналитик, UI-дизайнер, frontend-разработчик, backend-разработчик и тестировщик.</p><ul><li><strong>Менеджер проекта:</strong> планирование этапов и контроль готовности.</li><li><strong>UX-аналитик:</strong> ЦА, персонажи, сценарии, карта сайта.</li><li><strong>UI-дизайнер:</strong> визуальная система, сетка, компоненты, адаптивность.</li><li><strong>Frontend-разработчик:</strong> страницы, каталог, корзина, интерактив.</li><li><strong>Backend-разработчик:</strong> API, обработка заказов, валидация, JSON-хранение.</li><li><strong>Тестировщик:</strong> сценарии проверки, ошибки, исправления.</li></ul></article>
-        <article class="project-card wide"><h3>6. Целевая аудитория</h3><ul><li>Возраст: 16–28 лет.</li><li>Города: крупные города, где актуальна streetwear-культура.</li><li>Доход: средний или начинающий самостоятельный доход.</li><li>Каналы: Telegram, Instagram/Reels, TikTok, маркетплейсы, локальные бренды.</li><li>Техническая подготовка: уверенно пользуются мобильными сайтами, оплатой онлайн, поиском и фильтрами.</li></ul></article>
-        <article class="project-card"><h3>7. Персонаж 1 — Даниил, 18 лет</h3><p>Студент колледжа, следит за локальными брендами в Telegram и TikTok. Ищет худи или футболку, которые выглядят не массово, но стоят адекватно. Боится ошибиться с размером, поэтому смотрит размерную сетку.</p></article>
-        <article class="project-card"><h3>8. Персонаж 2 — Алина, 22 года</h3><p>Работает part-time, любит минималистичные образы. Покупает онлайн, но хочет видеть нормальные фото, состав и условия возврата. Часто добавляет товары в избранное и возвращается позже.</p></article>
-        <article class="project-card"><h3>9. Персонаж 3 — Никита, 25 лет</h3><p>Дизайнер, выбирает вещи по визуальной системе бренда. Оценивает несколько товаров по цвету, материалу и посадке. Может купить аксессуар как первый контакт с брендом.</p></article>
-        <article class="project-card"><h3>10. Пользовательские цели</h3><ul><li>Быстро найти нужную категорию.</li><li>Понять цену, размер, цвет и наличие.</li><li>Сохранить понравившиеся товары в избранное.</li><li>Добавить вещь в корзину и оформить заказ.</li><li>Получить подтверждение действия.</li></ul></article>
-        <article class="project-card wide"><h3>11. Пользовательские сценарии</h3><ol><li><strong>Контекстный сценарий:</strong> пользователь увидел бренд в соцсети, зашёл на главную, понял стиль, открыл каталог, применил фильтр по худи, открыл карточку, проверил размер и добавил товар в корзину.</li><li><strong>Ключевой путь:</strong> главная → каталог → фильтр/поиск → карточка товара → корзина → оформление заказа → подтверждение.</li><li><strong>«А что, если…»:</strong> если товара нет в избранном — показывается пустое состояние; если корзина пустая — кнопка ведёт в каталог; если API недоступен — заказ сохраняется локально.</li></ol></article>
-        <article class="project-card"><h3>12. Информационная архитектура</h3><p>Используется гибридная структура: каталог и категории — древовидные, карточка товара — линейная, похожие товары, избранное и рекомендации — сетевые связи.</p></article>
-        <article class="project-card"><h3>13. Карта сайта</h3><ul><li>Главная</li><li>Каталог</li><li>Карточка товара</li><li>Корзина</li><li>Оформление заказа</li><li>Личный кабинет</li><li>Избранное</li><li>Контакты</li><li>Оферта и политика конфиденциальности</li><li>Страница подтверждения</li><li>Страница 404</li></ul></article>
-        <article class="project-card"><h3>14. Навигация</h3><p>Верхнее меню содержит основные разделы. Логотип ведёт на главную. Поиск ведёт в каталог. На мобильной версии используется бургер-меню. Важные страницы доступны за 1–3 клика.</p></article>
-        <article class="project-card"><h3>15. Компоненты интерфейса</h3><ul><li>Логотип-ссылка</li><li>Главное меню</li><li>Поиск</li><li>Фильтры и сортировка</li><li>Карточка товара</li><li>Корзина</li><li>Форма заказа</li><li>Контакты</li><li>Футер</li><li>Пустые состояния</li></ul></article>
-        <article class="project-card"><h3>16. Графический дизайн UI</h3><p>Белый фон, холодные серые оттенки, строгая сетка, карточки с тонкими рамками, минимум декоративных элементов. Дизайн помогает коммерческой цели: кнопки покупки заметны, но не выглядят агрессивно.</p></article>
-        <article class="project-card"><h3>17. Frontend-часть</h3><p>Реализованы HTML, CSS и JavaScript-модули. Есть адаптивная вёрстка, каталог, поиск, фильтры, сортировка, корзина, избранное, карточка товара, форма заказа, backend-связь и обработка ошибок.</p></article>
-        <article class="project-card"><h3>18. Backend-часть</h3><p>Node.js сервер отдаёт статические страницы и API. Реализованы эндпоинты: GET /api/products, GET /api/products/:id, GET /api/orders, GET /api/orders/:id, POST /api/orders, POST /api/feedback, GET /api/stats. Заказ проходит серверную валидацию, сверку товаров и суммы, после чего сохраняется в JSON-файл.</p></article>
-        <article class="project-card"><h3>19. Монетизация</h3><p>Основной способ заработка — продажа товаров. Возможные расширения: предзаказы, платная доставка, промокоды, лимитированные капсулы, коллаборации, подписка на ранний доступ.</p></article>
-        <article class="project-card"><h3>20. План тестирования</h3><ul><li>Проверить путь покупки на 5 пользователях.</li><li>Замерить время от входа на сайт до заказа.</li><li>Зафиксировать ошибки, вопросы и эмоции.</li><li>Повторить тест после исправлений.</li></ul></article>
-        <article class="project-card"><h3>21. Критерии готовности</h3><ul><li>Основные страницы свёрстаны.</li><li>Каталог работает.</li><li>Заказ создаётся.</li><li>Backend API отвечает.</li><li>Адаптивная версия работает.</li><li>Документация приложена.</li></ul></article>
-      </section>
-
-      <section class="section concept-section">
-        <div class="section-heading"><div><p class="eyebrow">collection system</p><h2>Почему эта коллекция цельная</h2></div></div>
-        <div class="concept-grid">
-          <article class="concept-card"><h3>Изображения товаров</h3><p>Все full-card и packshot-изображения собраны в единой студийной подаче: светлый фон, одинаковая логика раскладки, front / back / detail / card.</p></article>
-          <article class="concept-card"><h3>Палитра</h3><p>Основу составляют washed black, graphite, silver gray, white и акцентный ice blue. Благодаря этому карточки, галерея и UI воспринимаются как единая система.</p></article>
-          <article class="concept-card"><h3>Названия</h3><p>Названия Orbit, Signal, Metro, Void, Eclipse и Chrome поддерживают одну sci-fi / techwear лексику и усиливают брендовый характер коллекции.</p></article>
-          <article class="concept-card"><h3>Графика</h3><p>Chrome-принты, орбиты, сигнальные волны и холодные логотипы повторяются на вещах, в карточках и в презентационных блоках сайта.</p></article>
-          <article class="concept-card"><h3>UI сайта</h3><p>Белый фон, строгая сетка, тонкие рамки, крупные фото и чистая типографика работают в той же эстетике, что и сама коллекция VEAST ORBIT DROP.</p></article>
-          <article class="concept-card"><h3>Структура каталога</h3><p>Каталог разделён на понятные категории, а внутри карточки есть рекомендации «С чем носить». Это показывает, что коллекция проектировалась как капсула, а не как набор случайных товаров.</p></article>
-        </div>
-      </section>
-
-      <section class="section final-checklist-section">
-        <div class="section-heading"><div><p class="eyebrow">final defense checklist</p><h2>Финальный чек-лист защиты</h2></div></div>
-        <div class="checklist-grid">
-          <article class="check-item"><span>✓</span><div><h3>Frontend</h3><p>Главная, каталог, карточка товара, корзина, checkout и сервисные страницы работают как единая витрина.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Backend</h3><p>Node.js-сервер отдаёт страницы и API, а также обрабатывает запросы на создание заказа.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>API</h3><p>Реализованы эндпоинты для товаров, заказов, статистики и обратной связи.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>orders.json</h3><p>После оформления заказа данные валидируются и сохраняются в data/orders.json.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Адаптив</h3><p>Страницы проверены на мобильных ширинах: сетки перестраиваются, большие изображения сохраняют пропорции.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Dark theme</h3><p>Тёмная тема не ломает карточки, большие изображения и контраст интерфейса.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Путь покупки</h3><p>Главная → каталог → товар → корзина → оформление заказа → подтверждение проходит без разрыва сценария.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Проверка admin-orders</h3><p>Страница admin-orders.html показывает, что заказы реально попадают в backend и доступны для просмотра.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Готовность к демонстрации</h3><p>Проект можно показывать на защите: есть идея коллекции, коммерческая логика, UI-система и полный рабочий сценарий.</p></div></article>
-        </div>
-      </section>
-
-
-
-      <section class="section prototype-evidence-section">
-        <div class="section-heading"><div><p class="eyebrow">moodle / paper / prototype</p><h2>Материалы для сдачи по PDF</h2></div></div>
-        <div class="checklist-grid">
-          <article class="check-item"><span>1</span><div><h3>Дневник Moodle</h3><p>Готовые записи находятся в <code>docs/moodle-diary-ready-to-post.md</code>. Их можно перенести в форум Moodle и дополнить датами публикаций.</p></div></article>
-          <article class="check-item"><span>2</span><div><h3>Бумажный прототип</h3><p>Листы на миллиметровой сетке лежат в <code>docs/paper-prototype/</code>. Там есть главная, каталог, товар, корзина, checkout, thanks и коллаж пользовательского пути.</p></div></article>
-          <article class="check-item"><span>3</span><div><h3>Интерактивный прототип</h3><p>Добавлен локальный прототип <a href="prototype.html">prototype.html</a> и реальная Figma-ссылка: <a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">открыть прототип VEAST в Figma</a>.</p></div></article>
-        </div>
-      </section>
-
-      <section class="section pdf-compliance-section">
-        <div class="section-heading"><div><p class="eyebrow">pdf requirements</p><h2>Соответствие PDF-заданию</h2></div></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Требование</th><th>Где реализовано</th><th>Статус</th></tr></thead>
-            <tbody>
-              <tr><td>Коммерческий веб-продукт</td><td>Главная, каталог, карточка товара, корзина, checkout</td><td>Закрыто</td></tr>
-              <tr><td>Измеримое целевое действие</td><td>Добавление товара в корзину и оформление заказа</td><td>Закрыто</td></tr>
-              <tr><td>Дизайн-документ</td><td>project.html и docs/design-document.md</td><td>Закрыто</td></tr>
-              <tr><td>Персонажи, цели, сценарии</td><td>project.html и docs/design-document.md</td><td>Закрыто</td></tr>
-              <tr><td>Информационная архитектура и карта сайта</td><td>docs/sitemap.md</td><td>Закрыто</td></tr>
-              <tr><td>Обязательные компоненты интерфейса</td><td>header, поиск, footer, каталог, фильтры, корзина, форма, контакты, оферта и политика</td><td>Закрыто</td></tr>
-              <tr><td>Frontend-реализация</td><td>HTML, CSS, JS-модули, адаптив, состояния, ошибки</td><td>Закрыто</td></tr>
-              <tr><td>Backend-реализация</td><td>server.js, /api/products, /api/orders, /api/feedback, data/orders.json</td><td>Закрыто</td></tr>
-              <tr><td>Бумажный прототип</td><td>docs/paper-prototype.md</td><td>Нужны реальные фото</td></tr>
-              <tr><td>Figma / интерактивный прототип</td><td><a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">Figma VEAST</a>, prototype.html, docs/interactive-prototype.md</td><td>Закрыто</td></tr>
-              <tr><td>Юзабилити-тестирование 5 пользователей</td><td>docs/usability-testing-report.md</td><td>Нужно заполнить после тестов</td></tr>
-              <tr><td>Дневник Moodle</td><td>docs/moodle-diary-posts.md</td><td>Нужно перенести в Moodle</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section external-evidence-section">
-        <div class="section-heading"><div><p class="eyebrow">before defense</p><h2>Что нужно приложить вне сайта</h2></div></div>
-        <div class="checklist-grid">
-          <article class="check-item"><span>!</span><div><h3>Moodle-дневник</h3><p>Перенести записи из docs/moodle-diary-posts.md в форум Moodle и добавить даты/комментарии по этапам.</p></div></article>
-          <article class="check-item"><span>!</span><div><h3>Бумажный прототип</h3><p>Нарисовать экраны на миллиметровой бумаге, сфотографировать их и приложить коллаж пользовательского пути.</p></div></article>
-          <article class="check-item"><span>✓</span><div><h3>Figma-ссылка</h3><p>Ссылка добавлена в проект и документацию: <a href="https://www.figma.com/design/u3CLNOluVqsUsrbXidVjXQ/Untitled?node-id=1-15&t=k76jAOBQJ0oYwSoI-1" target="_blank" rel="noreferrer">Figma-прототип VEAST</a>.</p></div></article>
-          <article class="check-item"><span>!</span><div><h3>Тестирование</h3><p>Провести проверку минимум на 5 пользователях, заполнить таблицу времени, ошибок, эмоций и исправлений.</p></div></article>
-        </div>
-      </section>
-
       <section class="section">
-        <div class="section-heading"><div><p class="eyebrow">readiness checklist</p><h2>Чек-лист соответствия сайту</h2></div></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Критерий</th><th>Где реализовано</th><th>Статус</th></tr></thead>
-            <tbody>
-              <tr><td>Коммерческий веб-продукт</td><td>Главная, каталог, корзина, checkout</td><td>Готово</td></tr>
-              <tr><td>Измеримое целевое действие</td><td>POST /api/orders, data/orders.json, thanks.html</td><td>Готово</td></tr>
-              <tr><td>Каталог, фильтры, сортировка</td><td>catalog.html + scripts/catalog.js</td><td>Готово</td></tr>
-              <tr><td>Карточка товара</td><td>product.html + scripts/product.js</td><td>Готово</td></tr>
-              <tr><td>Корзина и оформление заказа</td><td>cart.html, checkout.html</td><td>Готово</td></tr>
-              <tr><td>Backend: API, хранение, валидация</td><td>server.js, data/orders.json, data/feedback.json, admin-orders.html</td><td>Готово</td></tr>
-              <tr><td>Пустые состояния и ошибки</td><td>favorites.html, cart.html, 404.html</td><td>Готово</td></tr>
-              <tr><td>Адаптивная версия</td><td>styles.css media queries</td><td>Готово</td></tr>
-            </tbody>
-          </table>
+        <div class="section-heading"><div><p class="eyebrow">orbit drop</p><h2>Первый дроп</h2></div></div>
+        <div class="project-grid">
+          <article class="project-card"><h3>Washed-фактуры</h3><p>Вещи выглядят не стерильно, а живо: будто они уже стали частью ежедневного гардероба.</p></article>
+          <article class="project-card"><h3>Chrome-графика</h3><p>Холодные логотипы, orbital-элементы и чистые детали создают узнаваемый визуальный язык VEAST.</p></article>
+          <article class="project-card"><h3>Свободная посадка</h3><p>Объёмные худи, куртки, брюки и аксессуары собираются в цельные образы без лишней сложности.</p></article>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-heading"><div><p class="eyebrow">service</p><h2>Как работает заказ</h2></div></div>
+        <div class="process-checklist">
+          <article class="check-item"><span>✓</span><div><h3>Выбор товара</h3><p>Откройте каталог, выберите размер и добавьте товар в корзину.</p></div></article>
+          <article class="check-item"><span>✓</span><div><h3>Оформление</h3><p>Заполните контакты и выберите удобный пункт выдачи на карте.</p></div></article>
+          <article class="check-item"><span>✓</span><div><h3>Подтверждение</h3><p>После оформления мы уточним детали заказа, оплаты и доставки.</p></div></article>
+          <article class="check-item"><span>✓</span><div><h3>Статус в Telegram</h3><p>Подключите @VEAST_Order_Bot, чтобы получать обновления по заказу.</p></div></article>
         </div>
       </section>
     </main>
     <div data-footer></div>
-    <script type="module">import { initCommon } from './app.js'; initCommon('project');</script>
+    <script type="module">import { initCommon } from './app.js'; initCommon('');</script>
   </body>
 </html>

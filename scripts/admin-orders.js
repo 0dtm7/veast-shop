@@ -2,7 +2,7 @@ import { escapeHtml, formatPrice, initCommon, isEnglish } from '../app.js';
 
 initCommon('project');
 
-const stats = document.getElementById('backendStats');
+const stats = document.getElementById('orderStats');
 const list = document.getElementById('ordersApiList');
 const refresh = document.getElementById('refreshOrders');
 const webhookButton = document.getElementById('setupTelegramWebhook');
@@ -48,7 +48,7 @@ function setAdminMessage(text, type = '') {
 }
 
 function renderLoading() {
-  stats.innerHTML = '<article class="info-card"><h3>API</h3><p>Загружаем...</p></article>';
+  stats.innerHTML = '<article class="info-card"><h3>Заказы</h3><p>Загружаем...</p></article>';
   list.innerHTML = '<div class="empty-state"><h3>Загружаем заказы</h3><p>Проверяем защищённый GET /api/orders.</p></div>';
 }
 
@@ -104,7 +104,7 @@ function renderOrders(orders) {
   const linked = orders.filter((order) => order.telegramChatId).length;
 
   stats.innerHTML = `
-    <article class="info-card"><h3>API</h3><p>Доступен</p></article>
+    <article class="info-card"><h3>Панель</h3><p>Активна</p></article>
     <article class="info-card"><h3>Заказы</h3><p>${orders.length}</p></article>
     <article class="info-card"><h3>Telegram</h3><p>${linked} привязано</p></article>
     <article class="info-card"><h3>Сумма</h3><p>${formatPrice(total)}</p></article>
@@ -182,16 +182,16 @@ function renderOrders(orders) {
         </details>
       </article>
     `;
-  }).join('') : '<div class="empty-state"><h3>Заказов пока нет</h3><p>Оформи тестовый заказ через checkout, затем обнови страницу.</p><a class="button button-primary" href="checkout.html">Создать заказ</a></div>';
+  }).join('') : '<div class="empty-state"><h3>Заказов пока нет</h3><p>Оформите заказ через checkout, затем обновите список.</p><a class="button button-primary" href="checkout.html">Создать заказ</a></div>';
 }
 
 function renderError(error) {
-  stats.innerHTML = '<article class="info-card"><h3>API</h3><p>Недоступен</p></article>';
+  stats.innerHTML = '<article class="info-card"><h3>Панель</h3><p>Недоступна</p></article>';
   list.innerHTML = `
     <div class="empty-state api-error-state">
-      <h3>Backend не запущен или endpoint недоступен</h3>
+      <h3>Не удалось загрузить заказы</h3>
       <p><strong>Что произошло:</strong> ${escapeHtml(error.message)}.</p>
-      <p><strong>Как исправить:</strong> запусти проект через <code>pnpm dev</code>, обнови страницу и нажми “Обновить список”.</p>
+      <p><strong>Что сделать:</strong> проверьте деплой, переменные окружения и повторите запрос.</p>
       <div class="inline-actions"><button class="button button-primary" id="retryOrders" type="button">Повторить запрос</button><a class="button button-ghost" href="checkout.html">Создать заказ</a></div>
     </div>
   `;
@@ -201,8 +201,8 @@ async function loadOrders() {
   updateOrdersJsonLink();
   const adminKey = getAdminKey();
   if (!adminKey) {
-    stats.innerHTML = '<article class="info-card"><h3>API</h3><p>Нужен ключ</p></article>';
-    list.innerHTML = '<div class="empty-state"><h3>Введите ADMIN_STATUS_KEY</h3><p>Список заказов закрыт от обычных посетителей. Введите ключ администратора и нажмите “Сохранить ключ”.</p></div>';
+    stats.innerHTML = '<article class="info-card"><h3>Доступ</h3><p>Нужен ключ</p></article>';
+    list.innerHTML = '<div class="empty-state"><h3>Введите ADMIN_STATUS_KEY</h3><p>Введите ключ администратора, чтобы открыть список заказов.</p></div>';
     return;
   }
 
@@ -274,7 +274,7 @@ async function setupWebhook() {
     setAdminMessage(`Webhook подключён: ${data.webhookUrl}`, 'api-alert api-alert-success');
   } catch (error) {
     const text = error.message === 'Failed to fetch'
-      ? 'Админка не смогла достучаться до backend. Проверь, что сайт задеплоился и открылся именно через https://veast-shop-nsdh.onrender.com/admin-orders.html.'
+      ? 'Панель не смогла подключиться к серверу. Проверьте, что сайт задеплоен и открыт по основному адресу.'
       : error.message;
     setAdminMessage(text, 'error-text');
   }

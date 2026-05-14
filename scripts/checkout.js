@@ -96,7 +96,7 @@ function renderSummary() {
       <span>${t('✓ Выбор пункта СДЭК на карте', '✓ CDEK pickup map')}</span>
       <span>${t('✓ Статус заказа в Telegram', '✓ Telegram order status')}</span>
     </div>
-    <p class="muted">${t('Выберите пункт выдачи на карте, затем оформите заказ. Выбранный ПВЗ сохранится в базе и будет виден в админке.', 'Choose a pickup point on the map, then place the order. The selected point will be saved in the database and visible in admin.')}</p>
+    <p class="muted">${t('Выберите пункт выдачи на карте, затем оформите заказ. Адрес автоматически добавится в форму.', 'Choose a pickup point on the map, then place the order. The address will be added to the form automatically.')}</p>
   `;
 }
 
@@ -177,7 +177,7 @@ function syncDeliveryUi() {
 async function loadCdekConfig() {
   if (cdekConfig || cdekConfigLoading) return cdekConfig;
   cdekConfigLoading = true;
-  setCdekMessage(t('Загружаем настройки СДЭК...', 'Loading CDEK settings...'), 'api-alert-loading');
+  setCdekMessage(t('Готовим карту пунктов выдачи...', 'Preparing pickup map...'), 'api-alert-loading');
   try {
     const response = await fetch('/api/cdek/config');
     const data = await response.json().catch(() => ({}));
@@ -185,20 +185,9 @@ async function loadCdekConfig() {
     cdekConfig = data;
     if (!data.enabled) {
       const missing = Array.isArray(data.missing) && data.missing.length ? ` Не хватает: ${data.missing.join(', ')}.` : '';
-      throw new Error(`СДЭК не настроен в Render.${missing}`);
+      throw new Error(`Сервис выбора пункта выдачи временно недоступен.${missing}`);
     }
-
-    if (data.environment === 'test') {
-      setCdekMessage(
-        t(
-          'СДЭК подключён в тестовой среде. Для актуальных ПВЗ по России нужны боевые ключи и CDEK_API_BASE_URL=https://api.cdek.ru/v2.',
-          'CDEK is connected in test mode. Use production credentials and CDEK_API_BASE_URL=https://api.cdek.ru/v2 for current pickup points.'
-        ),
-        'api-alert-warning'
-      );
-    } else {
-      setCdekMessage(t('СДЭК готов: актуальные ПВЗ загружаются через рабочий API.', 'CDEK is ready: current pickup points load through the production API.'), 'api-alert-success');
-    }
+    setCdekMessage(t('Карта пунктов выдачи готова.', 'Pickup map is ready.'), 'api-alert-success');
     return cdekConfig;
   } finally {
     cdekConfigLoading = false;
@@ -213,9 +202,7 @@ function openCdekMapModal() {
   setTimeout(() => {
     initCdekMap();
     cdekMap?.invalidateSize();
-    if (cdekConfig?.environment === 'test') {
-      setCdekMapStatus('Включена тестовая среда СДЭК: список ПВЗ может отличаться от реального. Для актуальных пунктов поставьте рабочие ключи СДЭК.', 'api-alert-warning');
-    }
+    setCdekMapStatus('Введите город России и нажмите «Найти».', '');
   }, 120);
 }
 
@@ -279,7 +266,7 @@ async function loadCdekOffices() {
   cdekLoadButton.textContent = 'Ищем...';
   cdekPointsList.innerHTML = '';
   activePointCode = '';
-  setCdekMapStatus(`Загружаем актуальные ПВЗ СДЭК: ${cityName}...`, 'api-alert-loading');
+  setCdekMapStatus(`Загружаем пункты выдачи: ${cityName}...`, 'api-alert-loading');
 
   try {
     await loadCdekConfig();
@@ -314,10 +301,7 @@ async function loadCdekOffices() {
     });
 
     if (!cdekPoints.length) {
-      const suffix = cdekConfig?.environment === 'test'
-        ? ' В тестовой среде СДЭК список ПВЗ может быть неполным или неактуальным.'
-        : '';
-      setCdekMapStatus(`В этом городе СДЭК не вернул пункты выдачи.${suffix}`, 'api-alert-warning');
+      setCdekMapStatus('В этом городе пока не удалось найти пункты выдачи. Попробуйте соседний город или проверьте написание.', 'api-alert-warning');
       renderCdekPointList([]);
       return;
     }
@@ -325,11 +309,7 @@ async function loadCdekOffices() {
     if (city.city || city.full_name) cityInput.value = city.city || city.full_name;
     renderCdekMarkers();
     renderCdekPointList(cdekPoints);
-
-    const environmentNote = cdekConfig?.environment === 'test'
-      ? ' Сейчас используется тестовая среда — для полностью актуальных ПВЗ нужны боевые ключи СДЭК.'
-      : ' Данные загружены из рабочего API СДЭК.';
-    setCdekMapStatus(`Найдено пунктов: ${cdekPoints.length}. Выберите ПВЗ на карте или в списке.${environmentNote}`, cdekConfig?.environment === 'test' ? 'api-alert-warning' : 'api-alert-success');
+    setCdekMapStatus(`Найдено пунктов: ${cdekPoints.length}. Выберите ПВЗ на карте или в списке.`, 'api-alert-success');
   } catch (error) {
     setCdekMapStatus(error.message || 'Не удалось загрузить ПВЗ СДЭК.', 'error-text');
   } finally {
@@ -552,7 +532,7 @@ form.addEventListener('submit', async (event) => {
 
   submitButton.disabled = true;
   submitButton.textContent = t('Отправляем заказ...', 'Submitting order...');
-  message.innerHTML = `<span class="api-alert api-alert-loading">${t('Создаём заказ через backend API: POST /api/orders...', 'Creating order via backend API: POST /api/orders...')}</span>`;
+  message.innerHTML = `<span class="api-alert api-alert-loading">${t('Оформляем заказ...', 'Placing order...')}</span>`;
 
   let savedOrder = { ...order, savedVia: 'localStorage fallback' };
   try {
@@ -566,14 +546,14 @@ form.addEventListener('submit', async (event) => {
       const status = response.status ? `HTTP ${response.status}` : 'HTTP error';
       throw new Error(`${status}: ${data.error || t('сервер не принял заказ', 'server rejected the order')}`);
     }
-    savedOrder = { ...data.order, savedVia: 'backend API' };
-    message.innerHTML = `<span class="api-alert api-alert-success">${t('Backend подтвердил заказ. Данные сохранены в PostgreSQL базе.', 'Backend confirmed the order. Data was saved to PostgreSQL database.')}</span>`;
+    savedOrder = { ...data.order, savedVia: 'VEAST' };
+    message.innerHTML = `<span class="api-alert api-alert-success">${t('Заказ принят. Открываем страницу подтверждения...', 'Order accepted. Opening confirmation page...')}</span>`;
   } catch (error) {
     const readableError = error instanceof TypeError
-      ? t('Сервер не отвечает. Для полной backend-демонстрации запусти npm run dev.', 'The server is not responding. Run npm run dev for the full backend demo.')
+      ? t('Не удалось отправить заказ. Проверьте интернет и попробуйте ещё раз.', 'Could not submit the order. Check your connection and try again.')
       : error.message;
     savedOrder = { ...order, savedVia: 'localStorage fallback', apiError: readableError };
-    message.innerHTML = `<span class="api-alert api-alert-warning">${escapeHtml(readableError)} ${t('Заказ сохранён локально, чтобы пользовательский сценарий не оборвался.', 'The order was saved locally so the shopping flow is not interrupted.')}</span>`;
+    message.innerHTML = `<span class="api-alert api-alert-warning">${escapeHtml(readableError)}</span>`;
   }
 
   saveOrderLocally(savedOrder);

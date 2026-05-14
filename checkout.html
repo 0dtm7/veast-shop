@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Оформление заказа — VEAST</title>
-    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, проверка корзины и отправка заказа в backend API." />
+    <meta name="description" content="Оформление заказа VEAST: контактные данные, доставка, выбор пункта выдачи и подтверждение заказа." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -19,7 +19,7 @@
       <div class="section-heading"><div><p class="eyebrow">checkout</p><h1>Оформление заказа</h1></div></div>
       <div class="checkout-layout">
         <form class="form-card" id="checkoutForm" novalidate>
-          <div class="notice-card"><strong>Целевое действие проекта</strong><p>После отправки формы создаётся заказ: frontend передаёт данные в backend, сервер валидирует поля и сохраняет заявку.</p></div>
+          <div class="notice-card"><strong>Оформление VEAST</strong><p>Заполните данные, выберите удобный пункт выдачи и отправьте заказ. Мы свяжемся с вами для подтверждения деталей.</p></div>
           <div class="service-grid checkout-service-grid" aria-label="Условия заказа">
             <article class="service-card"><span>01</span><strong>Доставка</strong><p>СДЭК, Почта России или самовывоз. Срок 2–5 дней.</p></article>
             <article class="service-card"><span>02</span><strong>Оплата</strong><p>После подтверждения или картой при получении.</p></article>
@@ -41,7 +41,7 @@
                 </div>
                 <button class="button button-ghost" id="openCdekWidget" type="button">Выбрать на карте</button>
               </div>
-              <small id="cdekWidgetMessage">Пункты выдачи загружаются через API СДЭК и отображаются на карте.</small>
+              <small id="cdekWidgetMessage">Выберите удобный пункт выдачи на карте или в списке.</small>
             </div>
             <div class="field full"><label for="address">Адрес доставки</label><textarea id="address" name="address" required minlength="6" autocomplete="street-address" placeholder="Выберите пункт выдачи на карте"></textarea></div>
             <div class="field"><label for="payment">Оплата</label><select id="payment" name="payment" required><option value="После подтверждения">После подтверждения</option><option value="Картой при получении">Картой при получении</option></select></div>
@@ -59,9 +59,9 @@
         <button class="pickup-map-close" id="closeCdekMap" type="button" aria-label="Закрыть карту">×</button>
         <div class="pickup-map-header">
           <div>
-            <p class="eyebrow">CDEK pickup</p>
+            <p class="eyebrow">пункты выдачи</p>
             <h2>Выбор пункта выдачи</h2>
-            <p class="muted">Введите любой город России, выберите актуальный ПВЗ на карте или в списке.</p>
+            <p class="muted">Введите город России и выберите удобный пункт выдачи на карте или в списке.</p>
           </div>
           <div class="pickup-map-search">
             <input id="cdekCitySearch" type="search" placeholder="Москва" autocomplete="address-level2" />

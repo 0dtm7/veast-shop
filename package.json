@@ -1,5 +1,5 @@
 {
-  "name": "veast-course-commercial-project",
+  "name": "veast-shop",
   "version": "1.4.7",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
   "dependencies": {
     "pg": "^8.13.1"
   },
-  "description": "VEAST commercial fashion e-commerce project v47 with improved CDEK pickup map and PostgreSQL order database",
+  "description": "VEAST fashion e-commerce storefront with CDEK pickup map, Telegram order status and PostgreSQL orders",
   "engines": {
     "node": ">=22.16.0"
   }

@@ -71,7 +71,7 @@ function render() {
     <div class="total-row"><span>${t('Товары', 'Products')}</span><strong>${formatPrice(total)}</strong></div>
     <div class="total-row"><span>${t('Доставка', 'Shipping')}</span><strong>${t('после заявки', 'after confirmation')}</strong></div>
     <div class="total-row total-strong"><span>${t('К оплате', 'Total due')}</span><strong>${formatPrice(total)}</strong></div>
-    <p class="muted">${t('Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта.', 'Next step: checkout. This is the main measurable conversion action of the site.')}</p>
+    <p class="muted">${t('Следующий шаг — оформление заказа. Проверьте данные и выберите удобную доставку.', 'Next step: checkout. Review your details and choose delivery.')}</p>
     <a class="button button-primary full cart-summary-cta checkout-cta" href="checkout.html">${t('Оформить заказ', 'Proceed to checkout')}</a>
     <a class="button button-ghost full product-secondary-action" href="catalog.html">${t('Продолжить покупки', 'Continue shopping')}</a>
     <button class="button button-ghost full product-secondary-action" id="clearCart" type="button">${t('Очистить корзину', 'Clear cart')}</button>`;

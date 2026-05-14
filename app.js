@@ -1,11 +1,11 @@
 import { categories, formatPrice as formatRubPrice, getProductById, products } from './data/products.js';
 
-const CART_KEY = 'veast_course_cart_v1';
-const FAVORITES_KEY = 'veast_course_favorites_v1';
-const ORDERS_KEY = 'veast_course_orders_v1';
-const LAST_ORDER_KEY = 'veast_course_last_order_v1';
-const THEME_KEY = 'veast_course_theme_v1';
-const LANGUAGE_KEY = 'veast_course_language_v1';
+const CART_KEY = 'veast_cart_v1';
+const FAVORITES_KEY = 'veast_favorites_v1';
+const ORDERS_KEY = 'veast_orders_v1';
+const LAST_ORDER_KEY = 'veast_last_order_v1';
+const THEME_KEY = 'veast_theme_v1';
+const LANGUAGE_KEY = 'veast_language_v1';
 
 const I18N_REPLACEMENTS = [
   ['Перейти к содержимому', 'Skip to content'],
@@ -14,7 +14,6 @@ const I18N_REPLACEMENTS = [
   ['Избранное', 'Favorites'],
   ['Кабинет', 'Account'],
   ['Контакты', 'Contacts'],
-  ['Проект', 'Project'],
   ['Поиск', 'Search'],
   ['Все товары', 'All items'],
   ['Все позиции', 'All items'],
@@ -66,30 +65,30 @@ const I18N_REPLACEMENTS = [
   ['S: талия 38 / длина 103, M: 40 / 105, L: 42 / 107 см.', 'S: waist 38 / length 103, M: 40 / 105, L: 42 / 107 cm.'],
   ['Свободные cargo-брюки', 'Loose cargo pants'],
   ['Базовый низ', 'A base layer'],
-  ['Коммерческий fashion-проект', 'Commercial fashion project'],
-  ['Коммерческий fashion продукт', 'Commercial fashion product'],
+  ['streetwear / y2k / techwear', 'streetwear / y2k / techwear'],
+  ['fashion e-commerce', 'fashion e-commerce'],
   ['Распродажа', 'Sale'],
   ['Финальный акцент', 'Final touch'],
   ['Выбор', 'Selection'],
   ['Заказ', 'Order'],
-  ['коммерческий fashion-проект', 'Commercial fashion project'],
+  ['streetwear / y2k / techwear', 'streetwear / y2k / techwear'],
   ['В минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'built in a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
   ['в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'built in a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
   ['Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'Main flow: choose a product, add it to cart and place an order.'],
-  ['Открыть проект', 'Open project'],
+  ['Смотреть дроп', 'View drop'],
   ['Скидки', 'Discounts'],
   ['Слой сверху', 'Top layer'],
   ['Финиш образа', 'Final touch'],
   ['Например: hoodie, cargo, cap', 'For example: hoodie, cargo, cap'],
-  ['Учебный коммерческий веб-продукт: каталог одежды, оформление заказа и backend API.', 'A commercial training web product: fashion catalog, checkout flow and backend API.'],
+  ['Интернет-магазин одежды и аксессуаров в эстетике streetwear, Y2K, techwear и chrome.', 'Fashion and accessories store with a streetwear, Y2K, techwear and chrome aesthetic.'],
   ['Интернет-магазин одежды в минималистичной streetwear/Y2K-эстетике. Основной путь: выбрать товар, добавить в корзину и оформить заказ.', 'A fashion e-commerce store built around a minimalist streetwear / Y2K aesthetic. Main flow: choose a product, add it to cart and place an order.'],
   ['Перейти в каталог', 'Open catalog'],
   ['Быстрые разделы', 'Quick links'],
   ['Chrome-графика', 'Chrome graphics'],
   ['Основной визуальный акцент коллекции — холодный хромовый знак VEAST и орбитальные принты, которые создают ощущение технологичного бренда.', 'The key visual accent of the collection is the cold chrome VEAST symbol and orbital prints that create a clear techwear identity.'],
   ['Washed-фактуры', 'Washed textures'],
-  ['Эффект выстиранной ткани делает вещи живыми и не слишком стерильными. За счёт этого коллекция выглядит как реальный streetwear-дроп, а не как набор макетов.', 'The washed fabric finish makes the pieces feel real and wearable. It helps the collection look like an actual streetwear drop rather than a set of mockups.'],
-  ['Силуэты, палитра и графика соединяют streetwear-посадку, Y2K-вайб и лёгкий techwear-характер. Это удобно объясняет идею коллекции на защите.', 'Silhouettes, palette and graphics combine a streetwear fit, Y2K vibe and a light techwear attitude. It makes the collection concept easy to explain in a presentation.'],
+  ['Эффект выстиранной ткани делает вещи живыми и не слишком стерильными. За счёт этого коллекция выглядит как настоящий streetwear-дроп с характером.', 'The washed fabric finish makes the pieces feel real, worn-in and ready for everyday styling.'],
+  ['Силуэты, палитра и графика соединяют streetwear-посадку, Y2K-вайб и лёгкий techwear-характер.', 'Silhouettes, palette and graphics combine a streetwear fit, Y2K vibe and a light techwear attitude.'],
   ['Путь к покупке за 4 шага', 'Purchase flow in 4 steps'],
   ['Пользователь открывает каталог через меню, поиск или быстрый раздел.', 'The user opens the catalog through the menu, search or a quick tile.'],
   ['Фильтрует товары по категории, размеру, цвету и цене.', 'They filter products by category, size, color and price.'],
@@ -135,8 +134,8 @@ const I18N_REPLACEMENTS = [
   ['В карточке есть цена, размеры, состав, уход, доставка и возврат.', 'Each product page includes price, sizes, fabric, care, shipping and returns.'],
   ['Контроль заказа', 'Order control'],
   ['Корзина показывает количество, размер, стоимость позиции и итоговую сумму.', 'The cart shows quantity, size, line price and total amount.'],
-  ['Backend-процесс', 'Backend flow'],
-  ['Форма заказа отправляет данные в API, где выполняется валидация и сохранение.', 'The checkout form sends data to the API, where it is validated and saved.'],
+  ['Надёжное оформление', 'Reliable checkout'],
+  ['Заказ попадает в обработку, а статус можно получать в Telegram.', 'The order goes into processing, and status updates can be received in Telegram.'],
   ['Приватность', 'Privacy'],
   ['Пользователь видит оферту и политику конфиденциальности до отправки контактных данных.', 'The user sees the public offer and privacy policy before submitting contact details.'],
   ['Один дроп — один визуальный язык', 'One drop — one visual language'],
@@ -146,7 +145,7 @@ const I18N_REPLACEMENTS = [
   ['Можно ли оформить заказ без регистрации?', 'Can I place an order without registration?'],
   ['Да. Для основного сценария достаточно корзины и формы оформления заказа.', 'Yes. The main flow only requires the cart and the checkout form.'],
   ['Что происходит после отправки формы?', 'What happens after I submit the form?'],
-  ['Frontend отправляет заказ в backend API. Сервер проверяет данные и сохраняет заказ в JSON-файл.', 'The frontend sends the order to the backend API. The server validates the data and saves the order to a JSON file.'],
+  ['После оформления заказ попадает в обработку VEAST, а покупатель получает подтверждение.', 'After checkout, the order goes into VEAST processing and the customer receives confirmation.'],
   ['Что будет, если корзина пустая?', 'What happens if the cart is empty?'],
   ['Сайт показывает пустое состояние и ведёт пользователя обратно в каталог.', 'The site shows an empty state and takes the user back to the catalog.'],
   ['Корзина пуста', 'Your cart is empty'],
@@ -161,12 +160,12 @@ const I18N_REPLACEMENTS = [
   ['Доставка', 'Shipping'],
   ['после заявки', 'after confirmation'],
   ['К оплате', 'Total due'],
-  ['Следующий шаг — оформление заказа. Это основное измеримое целевое действие сайта.', 'Next step: checkout. This is the main measurable conversion action of the site.'],
+  ['Следующий шаг — оформление заказа. Проверьте данные и выберите удобную доставку.', 'Next step: checkout. Review your details and choose delivery.'],
   ['Оформить заказ', 'Proceed to checkout'],
   ['Продолжить покупки', 'Continue shopping'],
   ['Очистить корзину', 'Clear cart'],
-  ['Целевое действие проекта', 'Core project action'],
-  ['После отправки формы создаётся заказ: frontend передаёт данные в backend, сервер валидирует поля и сохраняет заявку.', 'After the form is submitted, an order is created: the frontend sends data to the backend, the server validates the fields and saves the order.'],
+  ['Оформление VEAST', 'VEAST checkout'],
+  ['Заполните данные, выберите удобный пункт выдачи и отправьте заказ. Мы свяжемся с вами для подтверждения деталей.', 'Fill in your details, choose a pickup point and submit the order. We will contact you to confirm the details.'],
   ['Условия заказа', 'Order terms'],
   ['СДЭК, Почта России или самовывоз. Срок 2–5 дней.', 'Courier delivery, local post or pickup. Estimated time: 2–5 days.'],
   ['Оплата', 'Payment'],
@@ -531,8 +530,8 @@ export function renderHeader(active = '') {
   if (!el) return;
   const lang = getLanguage();
   const labels = lang === 'en'
-    ? { skip: 'Skip to content', home: 'Home', catalog: 'Catalog', favorites: 'Favorites', account: 'Account', contacts: 'Contacts', project: 'Project', search: 'Search', theme: 'Switch theme', menu: 'Menu' }
-    : { skip: 'Перейти к содержимому', home: 'Главная', catalog: 'Каталог', favorites: 'Избранное', account: 'Кабинет', contacts: 'Контакты', project: 'Проект', search: 'Поиск', theme: 'Переключить тему', menu: 'Меню' };
+    ? { skip: 'Skip to content', home: 'Home', catalog: 'Catalog', favorites: 'Favorites', account: 'Account', contacts: 'Contacts', search: 'Search', theme: 'Switch theme', menu: 'Menu' }
+    : { skip: 'Перейти к содержимому', home: 'Главная', catalog: 'Каталог', favorites: 'Избранное', account: 'Кабинет', contacts: 'Контакты', search: 'Поиск', theme: 'Переключить тему', menu: 'Меню' };
   const heartIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.9a5.4 5.4 0 0 0-7.6 0L12 6.1l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21.3l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const cartIcon = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 8.4h11.6l-.8 10.1a2 2 0 0 1-2 1.8H9a2 2 0 0 1-2-1.8L6.2 8.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8.4V7a3 3 0 0 1 6 0v1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
   el.innerHTML = `
@@ -594,7 +593,6 @@ export function renderFooter() {
         contacts: 'Contacts',
         privacy: 'Privacy policy',
         offer: 'Public offer',
-        admin: 'Admin panel',
         tg: 'Telegram',
         vk: 'VK',
         ctaTitle: 'VEAST Drop',
@@ -617,7 +615,6 @@ export function renderFooter() {
         contacts: 'Контакты',
         privacy: 'Политика конфиденциальности',
         offer: 'Публичная оферта',
-        admin: 'Админка',
         tg: 'Telegram',
         vk: 'VK',
         ctaTitle: 'VEAST Drop',
@@ -662,7 +659,6 @@ export function renderFooter() {
         <span>© 2026 VEAST</span>
         <a href="privacy.html">${labels.privacy}</a>
         <a href="privacy.html">${labels.offer}</a>
-        <a href="admin-orders.html">${labels.admin}</a>
       </div>
     </footer>
   `;
