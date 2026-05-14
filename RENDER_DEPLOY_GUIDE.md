@@ -1,6 +1,6 @@
-# Render deploy guide — VEAST v46
+# Render deploy guide — VEAST v47
 
-## Что изменилось в v46
+## Что изменилось в v47
 
 В v46 заказы перенесены с SQLite-файла на PostgreSQL. Это нужно потому, что на Render Free нельзя подключить Persistent Disk, а обычные файлы сервиса могут обнуляться после redeploy/restart.
 
@@ -10,7 +10,7 @@
 DATABASE_URL=...
 ```
 
-СДЭК-карта ПВЗ, Telegram-бот, админка заказов и уведомления остаются.
+В v47 также исправлено окно выбора ПВЗ СДЭК: карта и список стали читабельнее, а backend загружает офисы постранично. СДЭК-карта ПВЗ, Telegram-бот, админка заказов и уведомления остаются.
 
 ## 1. Создай PostgreSQL на Render
 
@@ -39,32 +39,30 @@ TELEGRAM_BOT_USERNAME=VEAST_Order_Bot
 PUBLIC_BASE_URL=https://veast-shop-nsdh.onrender.com
 ADMIN_STATUS_KEY=290729veastshop
 
-CDEK_CLIENT_ID=wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
-CDEK_CLIENT_SECRET=RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
-CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2
+CDEK_CLIENT_ID=боевой_идентификатор_СДЭК
+CDEK_CLIENT_SECRET=боевой_пароль_СДЭК
+CDEK_API_BASE_URL=https://api.cdek.ru/v2
 CDEK_FROM_CITY=Москва
 CDEK_DEFAULT_LOCATION=Москва
 ```
+
+Для актуальных ПВЗ по всем городам России нужна рабочая среда СДЭК `https://api.cdek.ru/v2` и боевые ключи. Тестовые ключи из документации работают только с `https://api.edu.cdek.ru/v2` и могут показывать неполный или устаревший список пунктов.
 
 `TELEGRAM_BOT_TOKEN`, `ADMIN_STATUS_KEY`, `DATABASE_URL` и CDEK-ключи нельзя выкладывать в GitHub.
 
 ## 3. СДЭК-карта ПВЗ
 
-Checkout использует стабильную карту ПВЗ через API СДЭК и OpenStreetMap/Leaflet.
+Checkout использует стабильную карту ПВЗ через API СДЭК и OpenStreetMap/Leaflet. В v47 окно выбора ПВЗ сделано более читабельным: карта и список отображаются в светлой модалке, список справа показывает код, адрес, график и тип пункта. Backend загружает ПВЗ постранично, поэтому крупные города обрабатываются стабильнее.
 
-Для теста можно использовать тестовые ключи СДЭК из документации:
-
-```env
-CDEK_CLIENT_ID=wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
-CDEK_CLIENT_SECRET=RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
-CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2
-```
-
-Когда будет боевой договор СДЭК, поменяй на боевые ключи и URL:
+Для актуальных пунктов выдачи по России нужны боевые ключи СДЭК и рабочая среда:
 
 ```env
+CDEK_CLIENT_ID=боевой_идентификатор_СДЭК
+CDEK_CLIENT_SECRET=боевой_пароль_СДЭК
 CDEK_API_BASE_URL=https://api.cdek.ru/v2
 ```
+
+Тестовые ключи СДЭК из документации можно использовать только для проверки механики. Они должны работать с `https://api.edu.cdek.ru/v2`, но тестовая среда может возвращать неполный или устаревший список ПВЗ.
 
 Ключ Яндекс.Карт больше не нужен.
 

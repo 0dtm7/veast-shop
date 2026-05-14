@@ -25,6 +25,8 @@ const CDEK_FROM_CITY = String(process.env.CDEK_FROM_CITY || 'Москва').trim
 const CDEK_DEFAULT_LOCATION = String(process.env.CDEK_DEFAULT_LOCATION || 'Москва').trim();
 const CDEK_API_BASE_URL = normalizeCdekApiBaseUrl(process.env.CDEK_API_BASE_URL || 'https://api.cdek.ru/v2');
 const CDEK_WIDGET_VERSION = '3.11.1';
+const CDEK_OFFICES_PAGE_SIZE = Math.min(Math.max(Number(process.env.CDEK_OFFICES_PAGE_SIZE || 1000), 1), 1000);
+const CDEK_OFFICES_MAX_PAGES = Math.min(Math.max(Number(process.env.CDEK_OFFICES_MAX_PAGES || 10), 1), 25);
 let cdekTokenCache = { token: '', expiresAt: 0 };
 let pgPool = null;
 
@@ -32,6 +34,10 @@ function normalizeCdekApiBaseUrl(value) {
   const raw = String(value || '').trim().replace(/\/+$/, '');
   if (!raw) return 'https://api.cdek.ru/v2';
   return raw.endsWith('/v2') ? raw : `${raw}/v2`;
+}
+
+function getCdekEnvironment() {
+  return CDEK_API_BASE_URL.includes('api.edu.cdek.ru') ? 'test' : 'production';
 }
 
 
@@ -929,6 +935,7 @@ function sendCdek(res, status, body) {
 
 async function handleCdekConfig(req, res) {
   const missing = getCdekMissingConfig();
+  const environment = getCdekEnvironment();
   return send(res, 200, JSON.stringify({
     ok: true,
     enabled: missing.length === 0,
@@ -938,7 +945,51 @@ async function handleCdekConfig(req, res) {
     defaultLocation: CDEK_DEFAULT_LOCATION,
     defaultLocationCoords: [37.6173, 55.7558],
     apiBaseUrl: CDEK_API_BASE_URL,
+    environment,
+    actualPickupPoints: environment === 'production',
+    officePageSize: CDEK_OFFICES_PAGE_SIZE,
+    officeMaxPages: CDEK_OFFICES_MAX_PAGES,
   }));
+}
+
+async function fetchCdekDeliveryPoints(requestData = {}) {
+  const requestedSize = Number(requestData.size || CDEK_OFFICES_PAGE_SIZE);
+  const pageSize = Math.min(Math.max(requestedSize || CDEK_OFFICES_PAGE_SIZE, 1), 1000);
+  const requestedMaxPages = Number(requestData.max_pages || CDEK_OFFICES_MAX_PAGES);
+  const maxPages = Math.min(Math.max(requestedMaxPages || CDEK_OFFICES_MAX_PAGES, 1), 25);
+  const offices = [];
+
+  for (let page = 0; page < maxPages; page += 1) {
+    const pageData = {
+      ...requestData,
+      size: String(pageSize),
+      page: String(page),
+      lang: requestData.lang || 'rus',
+    };
+    delete pageData.max_pages;
+
+    const response = await cdekAuthorizedRequest('deliverypoints', { method: 'GET', data: pageData });
+    if (response.statusCode < 200 || response.statusCode >= 300) return response;
+
+    const pageOffices = JSON.parse(response.raw || '[]');
+    if (!Array.isArray(pageOffices)) {
+      return { statusCode: response.statusCode, raw: response.raw || '[]' };
+    }
+
+    offices.push(...pageOffices);
+    if (pageOffices.length < pageSize) break;
+  }
+
+  return {
+    statusCode: 200,
+    raw: JSON.stringify({
+      offices,
+      count: offices.length,
+      environment: getCdekEnvironment(),
+      actualPickupPoints: getCdekEnvironment() === 'production',
+      source: CDEK_API_BASE_URL,
+    }),
+  };
 }
 
 async function handleCdekService(req, res, url) {
@@ -960,7 +1011,7 @@ async function handleCdekService(req, res, url) {
     }
 
     if (action === 'offices') {
-      const response = await cdekAuthorizedRequest('deliverypoints', { method: 'GET', data: requestData });
+      const response = await fetchCdekDeliveryPoints(requestData);
       return sendCdek(res, response.statusCode || 502, response.raw || '{}');
     }
 

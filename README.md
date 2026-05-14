@@ -255,14 +255,25 @@ https://veast-shop-nsdh.onrender.com/admin-orders.html
 Для работы на Render нужны переменные окружения:
 
 ```env
-CDEK_CLIENT_ID=идентификатор_аккаунта_интеграции_СДЭК
-CDEK_CLIENT_SECRET=пароль_аккаунта_интеграции_СДЭК
+CDEK_CLIENT_ID=боевой_идентификатор_СДЭК
+CDEK_CLIENT_SECRET=боевой_пароль_СДЭК
+CDEK_API_BASE_URL=https://api.cdek.ru/v2
 CDEK_FROM_CITY=Москва
 CDEK_DEFAULT_LOCATION=Москва
+CDEK_OFFICES_PAGE_SIZE=1000
+CDEK_OFFICES_MAX_PAGES=10
 ```
 
 Секреты не хранить в GitHub. Добавлять их только в Render Environment Variables.
 
+
+## v47 — Improved CDEK pickup map
+
+- Окно выбора ПВЗ сделано контрастным и читабельным.
+- Список справа показывает код, адрес, график, тип пункта и дополнительные бейджи.
+- Backend загружает офисы СДЭК постранично, чтобы крупные города обрабатывались стабильнее.
+- Для актуальных ПВЗ по всем городам России нужно использовать боевые ключи СДЭК и `CDEK_API_BASE_URL=https://api.cdek.ru/v2`.
+- Тестовая среда `api.edu.cdek.ru` подходит только для проверки механики и может возвращать устаревшие точки.
 
 ## v46 — CDEK pickup map + PostgreSQL database
 
@@ -275,4 +286,4 @@ CDEK_DEFAULT_LOCATION=Москва
 
 
 ### CDEK test environment note
-For the public CDEK test credentials from the documentation, set `CDEK_API_BASE_URL=https://api.edu.cdek.ru/v2`. For production credentials from your signed CDEK contract, switch it to `https://api.cdek.ru/v2`. The pickup map uses OpenStreetMap/Leaflet, so a Yandex Maps key is no longer required.
+For current CDEK pickup points across Russia, use production credentials from your signed CDEK contract and set `CDEK_API_BASE_URL=https://api.cdek.ru/v2`. The public CDEK test credentials from the documentation must be used only with `https://api.edu.cdek.ru/v2` and can return outdated or incomplete pickup point data. The pickup map uses OpenStreetMap/Leaflet, so a Yandex Maps key is no longer required.

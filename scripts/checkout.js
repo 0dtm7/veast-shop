@@ -39,6 +39,7 @@ const cdekMapStatus = document.getElementById('cdekMapStatus');
 const cdekPointsList = document.getElementById('cdekPointsList');
 const fields = ['name', 'phone', 'email', 'city', 'address'];
 const t = (ru, en) => (isEnglish() ? en : ru);
+const CDEK_MAX_VISIBLE_POINTS = 250;
 
 let selectedPickupPoint = null;
 let cdekConfig = null;
@@ -186,7 +187,18 @@ async function loadCdekConfig() {
       const missing = Array.isArray(data.missing) && data.missing.length ? ` Не хватает: ${data.missing.join(', ')}.` : '';
       throw new Error(`СДЭК не настроен в Render.${missing}`);
     }
-    setCdekMessage(t('СДЭК готов: выберите город и пункт на карте.', 'CDEK is ready: choose a city and pickup point.'), 'api-alert-success');
+
+    if (data.environment === 'test') {
+      setCdekMessage(
+        t(
+          'СДЭК подключён в тестовой среде. Для актуальных ПВЗ по России нужны боевые ключи и CDEK_API_BASE_URL=https://api.cdek.ru/v2.',
+          'CDEK is connected in test mode. Use production credentials and CDEK_API_BASE_URL=https://api.cdek.ru/v2 for current pickup points.'
+        ),
+        'api-alert-warning'
+      );
+    } else {
+      setCdekMessage(t('СДЭК готов: актуальные ПВЗ загружаются через рабочий API.', 'CDEK is ready: current pickup points load through the production API.'), 'api-alert-success');
+    }
     return cdekConfig;
   } finally {
     cdekConfigLoading = false;
@@ -201,7 +213,10 @@ function openCdekMapModal() {
   setTimeout(() => {
     initCdekMap();
     cdekMap?.invalidateSize();
-  }, 80);
+    if (cdekConfig?.environment === 'test') {
+      setCdekMapStatus('Включена тестовая среда СДЭК: список ПВЗ может отличаться от реального. Для актуальных пунктов поставьте рабочие ключи СДЭК.', 'api-alert-warning');
+    }
+  }, 120);
 }
 
 function closeCdekMapModal() {
@@ -233,14 +248,26 @@ function cdekServiceUrl(action, params = {}) {
   return url;
 }
 
+function normalizeCdekText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function loadCdekCityCode(cityName) {
+  const normalizedQuery = normalizeCdekText(cityName);
   const response = await fetch(cdekServiceUrl('cities', { name: cityName, country_code: 'RU' }));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.message || data.error || `СДЭК не нашёл город: HTTP ${response.status}`);
   const cities = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : [data].filter(Boolean));
-  const exact = cities.find((city) => String(city.city || city.full_name || '').toLowerCase() === cityName.toLowerCase());
+  const exact = cities.find((city) => {
+    const cityTitle = normalizeCdekText(city.city || city.full_name || city.name || '');
+    return cityTitle === normalizedQuery || cityTitle.startsWith(`${normalizedQuery},`) || cityTitle.includes(` ${normalizedQuery},`);
+  });
   const city = exact || cities[0];
-  if (!city || !city.code) throw new Error('СДЭК не нашёл такой город. Попробуйте ввести город полностью, например: Москва.');
+  if (!city || !city.code) throw new Error('СДЭК не нашёл такой город. Попробуйте ввести город полностью, например: Москва, Казань, Екатеринбург.');
   return city;
 }
 
@@ -251,7 +278,8 @@ async function loadCdekOffices() {
   cdekLoadButton.disabled = true;
   cdekLoadButton.textContent = 'Ищем...';
   cdekPointsList.innerHTML = '';
-  setCdekMapStatus(`Загружаем ПВЗ СДЭК: ${cityName}...`, 'api-alert-loading');
+  activePointCode = '';
+  setCdekMapStatus(`Загружаем актуальные ПВЗ СДЭК: ${cityName}...`, 'api-alert-loading');
 
   try {
     await loadCdekConfig();
@@ -262,25 +290,46 @@ async function loadCdekOffices() {
       type: 'ALL',
       is_handout: 'true',
       size: '1000',
+      max_pages: '10',
       lang: 'rus',
     }));
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || data.error || `Не удалось загрузить ПВЗ: HTTP ${response.status}`);
-    cdekPoints = (Array.isArray(data) ? data : []).filter((point) => {
+
+    const rawPoints = Array.isArray(data) ? data : (Array.isArray(data.offices) ? data.offices : []);
+    const unique = new Map();
+    rawPoints.forEach((point) => {
       const location = point.location || {};
-      return Number(location.latitude) && Number(location.longitude) && (point.is_handout !== false);
+      const code = String(point.code || point.uuid || '').trim();
+      if (!code || unique.has(code)) return;
+      if (!Number(location.latitude) || !Number(location.longitude)) return;
+      if (point.is_handout === false) return;
+      unique.set(code, point);
+    });
+
+    cdekPoints = Array.from(unique.values()).sort((a, b) => {
+      const addressA = String(a.location?.address || a.name || a.code || '');
+      const addressB = String(b.location?.address || b.name || b.code || '');
+      return addressA.localeCompare(addressB, 'ru');
     });
 
     if (!cdekPoints.length) {
-      setCdekMapStatus('В этом городе СДЭК не вернул пункты выдачи. В тестовой среде список ПВЗ может быть неполным.', 'api-alert-warning');
+      const suffix = cdekConfig?.environment === 'test'
+        ? ' В тестовой среде СДЭК список ПВЗ может быть неполным или неактуальным.'
+        : '';
+      setCdekMapStatus(`В этом городе СДЭК не вернул пункты выдачи.${suffix}`, 'api-alert-warning');
       renderCdekPointList([]);
       return;
     }
 
-    if (city.city) cityInput.value = city.city;
+    if (city.city || city.full_name) cityInput.value = city.city || city.full_name;
     renderCdekMarkers();
     renderCdekPointList(cdekPoints);
-    setCdekMapStatus(`Найдено пунктов: ${cdekPoints.length}. Выберите ПВЗ на карте или в списке.`, 'api-alert-success');
+
+    const environmentNote = cdekConfig?.environment === 'test'
+      ? ' Сейчас используется тестовая среда — для полностью актуальных ПВЗ нужны боевые ключи СДЭК.'
+      : ' Данные загружены из рабочего API СДЭК.';
+    setCdekMapStatus(`Найдено пунктов: ${cdekPoints.length}. Выберите ПВЗ на карте или в списке.${environmentNote}`, cdekConfig?.environment === 'test' ? 'api-alert-warning' : 'api-alert-success');
   } catch (error) {
     setCdekMapStatus(error.message || 'Не удалось загрузить ПВЗ СДЭК.', 'error-text');
   } finally {
@@ -328,22 +377,32 @@ function highlightPoint(code) {
 
 function renderCdekPointList(points) {
   if (!points.length) {
-    cdekPointsList.innerHTML = '<p class="muted">Пункты не найдены.</p>';
+    cdekPointsList.innerHTML = '<p class="pickup-list-empty">Пункты не найдены.</p>';
     return;
   }
 
-  cdekPointsList.innerHTML = points.map((point) => {
+  const visiblePoints = points.slice(0, CDEK_MAX_VISIBLE_POINTS);
+  const hiddenCount = Math.max(0, points.length - visiblePoints.length);
+
+  cdekPointsList.innerHTML = `${hiddenCount ? `<p class="pickup-list-note">Показано ${visiblePoints.length} из ${points.length}. Уточните город или район, если нужен другой ПВЗ.</p>` : ''}${visiblePoints.map((point) => {
     const location = point.location || {};
     const active = activePointCode && activePointCode === point.code ? ' is-active' : '';
+    const type = point.type === 'POSTAMAT' ? 'Постамат' : 'ПВЗ';
+    const cashless = point.have_cashless ? 'Карта' : '';
+    const dressing = point.is_dressing_room ? 'Примерочная' : '';
+    const badges = [type, cashless, dressing].filter(Boolean).map((item) => `<span>${escapeHtml(item)}</span>`).join('');
     return `
       <article class="pickup-point-item${active}" data-code="${escapeHtml(point.code || '')}">
-        <strong>${escapeHtml(point.code || 'СДЭК')}</strong>
+        <div class="pickup-point-top">
+          <strong>${escapeHtml(point.code || 'СДЭК')}</strong>
+          <div class="pickup-point-badges">${badges}</div>
+        </div>
         <p>${escapeHtml(location.address || point.name || 'Адрес не указан')}</p>
         ${point.work_time ? `<small>График: ${escapeHtml(point.work_time)}</small>` : ''}
         <button class="button button-ghost" type="button" data-choose-code="${escapeHtml(point.code || '')}">Выбрать</button>
       </article>
     `;
-  }).join('');
+  }).join('')}`;
 
   cdekPointsList.querySelectorAll('[data-choose-code]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -508,7 +567,7 @@ form.addEventListener('submit', async (event) => {
       throw new Error(`${status}: ${data.error || t('сервер не принял заказ', 'server rejected the order')}`);
     }
     savedOrder = { ...data.order, savedVia: 'backend API' };
-    message.innerHTML = `<span class="api-alert api-alert-success">${t('Backend подтвердил заказ. Данные сохранены в SQLite mini database.', 'Backend confirmed the order. Data was saved to SQLite mini database.')}</span>`;
+    message.innerHTML = `<span class="api-alert api-alert-success">${t('Backend подтвердил заказ. Данные сохранены в PostgreSQL базе.', 'Backend confirmed the order. Data was saved to PostgreSQL database.')}</span>`;
   } catch (error) {
     const readableError = error instanceof TypeError
       ? t('Сервер не отвечает. Для полной backend-демонстрации запусти npm run dev.', 'The server is not responding. Run npm run dev for the full backend demo.')
