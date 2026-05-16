@@ -24,7 +24,7 @@ function render() {
     list.innerHTML = `
       <div class="empty-state cart-empty">
         <h3>${t('Корзина пуста', 'Your cart is empty')}</h3>
-        <p>${t('Добавь товар из каталога, чтобы продолжить основной коммерческий сценарий VEAST.', 'Add a product from the catalog to continue the main VEAST shopping flow.')}</p>
+        <p>${t('Добавьте товар из каталога, чтобы продолжить оформление заказа.', 'Add a product from the catalog to continue checkout.')}</p>
         <div class="inline-actions">
           <a class="button button-primary" href="catalog.html">${t('В каталог', 'Go to catalog')}</a>
           <a class="button button-ghost" href="favorites.html">${t('Посмотреть избранное', 'View favorites')}</a>
