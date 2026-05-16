@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Статусы заказов — VEAST</title>
-    <meta name="description" content="Админ-страница VEAST для просмотра заказов, обновления статусов доставки и отправки уведомлений в Telegram." />
+    <title>Панель заказов — VEAST</title>
+    <meta name="description" content="Внутренняя панель VEAST для обработки заказов, статусов доставки и обращений покупателей." />
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -13,31 +13,31 @@
   <body>
     <div data-header></div>
     <main id="mainContent" class="page-section container-wide">
-      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Управление заказами</span></div>
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><span>Панель заказов</span></div>
 
       <section class="project-hero admin-hero">
-        <p class="eyebrow">order control center</p>
-        <h1>Статусы заказов VEAST</h1>
-        <p class="hero-copy">Внутренняя панель VEAST для обработки заказов, статусов доставки, трек-номеров и Telegram-уведомлений клиентам.</p>
+        <p class="eyebrow">veast control</p>
+        <h1>Панель заказов VEAST</h1>
+        <p class="hero-copy">Внутренняя панель для заказов, статусов доставки, трек-номеров и обращений покупателей.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="checkout.html">Создать заказ</a>
           <button class="button button-ghost" id="refreshOrders" type="button">Обновить список</button>
-          <button class="button button-ghost" id="setupTelegramWebhook" type="button">Подключить webhook</button>
+          <button class="button button-ghost" id="setupTelegramWebhook" type="button">Подключить Telegram</button>
         </div>
       </section>
 
       <section class="admin-control-panel panel-card">
         <div>
-          <p class="eyebrow">admin key</p>
+          <p class="eyebrow">access</p>
           <h2>Ключ администратора</h2>
-          <p class="muted">Ключ открывает список заказов, изменение статусов и подключение Telegram webhook. Без ключа заказы не показываются другим посетителям сайта.</p>
+          <p class="muted">Ключ открывает заказы, обращения покупателей и изменение статусов.</p>
         </div>
         <form class="admin-key-form" id="adminKeyForm">
           <label class="field">
-            <span>ADMIN_STATUS_KEY</span>
-            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="ADMIN_STATUS_KEY" />
+            <span>Ключ</span>
+            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="Введите ключ" />
           </label>
-          <button class="button button-primary" type="submit">Сохранить ключ</button>
+          <button class="button button-primary" type="submit">Открыть панель</button>
         </form>
         <p class="form-message" id="adminMessage" role="status" aria-live="polite"></p>
       </section>
@@ -45,20 +45,22 @@
       <section class="info-grid order-stats" id="orderStats" aria-live="polite"></section>
 
       <section class="section">
-        <div class="section-heading">
-          <div><p class="eyebrow">orders api</p><h2>Заказы и Telegram-статусы</h2></div>
-          
-        </div>
+        <div class="section-heading"><div><p class="eyebrow">orders</p><h2>Заказы и статусы</h2></div></div>
         <div id="ordersApiList" class="order-list"></div>
       </section>
 
       <section class="section">
-        <div class="section-heading"><div><p class="eyebrow">order flow</p><h2>Рабочий процесс</h2></div></div>
+        <div class="section-heading"><div><p class="eyebrow">support</p><h2>Обращения покупателей</h2></div></div>
+        <div id="feedbackList" class="order-list"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading"><div><p class="eyebrow">workflow</p><h2>Рабочий процесс</h2></div></div>
         <div class="project-grid">
           <article class="project-card"><h3>1. Новый заказ</h3><p>Покупатель оформляет заказ на сайте, выбирает доставку и пункт выдачи.</p></article>
-          <article class="project-card"><h3>2. Telegram</h3><p>На странице подтверждения появляется кнопка “Получать статус в Telegram”. Она привязывает заказ к боту <strong>@VEAST_Order_Bot</strong>.</p></article>
-          <article class="project-card"><h3>3. Админка</h3><p>Администратор меняет статус, службу доставки, трек-номер и комментарий по заказу.</p></article>
-          <article class="project-card"><h3>4. Уведомление</h3><p>После обновления клиент получает сообщение в Telegram, если заказ привязан к боту.</p></article>
+          <article class="project-card"><h3>2. Уведомления</h3><p>Покупатель подключает статус заказа через Telegram-бота или отправляет код привязки вручную.</p></article>
+          <article class="project-card"><h3>3. Обработка</h3><p>Администратор меняет статус, службу доставки, трек-номер и комментарий по заказу.</p></article>
+          <article class="project-card"><h3>4. Поддержка</h3><p>Обращения с формы контактов появляются в панели и обрабатываются через указанный покупателем контакт.</p></article>
         </div>
       </section>
     </main>

@@ -9,6 +9,7 @@ VEAST — fashion e-commerce storefront в эстетике streetwear / Y2K / t
 - Оформление заказа с выбором пункта выдачи СДЭК на карте.
 - Личный кабинет с заказами текущего устройства.
 - Telegram-уведомления о статусе заказа через @VEAST_Order_Bot.
+- Рабочая форма обратной связи с обработкой обращений в админ-панели.
 - Внутренняя панель управления заказами: `/admin-orders.html`.
 - Хранение заказов в PostgreSQL через `DATABASE_URL`.
 
@@ -25,6 +26,7 @@ npm run dev
 DATABASE_URL=postgresql://...
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_BOT_USERNAME=VEAST_Order_Bot
+SUPPORT_TELEGRAM_USERNAME=veast_support
 PUBLIC_BASE_URL=https://veast-shop-nsdh.onrender.com
 ADMIN_STATUS_KEY=...
 CDEK_CLIENT_ID=...

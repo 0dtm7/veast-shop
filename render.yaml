@@ -12,6 +12,8 @@ services:
         value: VEAST_Order_Bot
       - key: PUBLIC_BASE_URL
         value: https://veast-shop-nsdh.onrender.com
+      - key: SUPPORT_TELEGRAM_USERNAME
+        value: veast_support
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: ADMIN_STATUS_KEY

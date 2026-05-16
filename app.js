@@ -629,7 +629,7 @@ export function renderFooter() {
           <a class="brand footer-brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="assets/veast-logo-mark-strong.png" alt="" /></span><span>VEAST</span></a>
           <p>${labels.about}</p>
           <div class="footer-socials" aria-label="${labels.socials}">
-            <a href="https://t.me/veastshop" target="_blank" rel="noreferrer">${labels.tg}</a>
+            <a href="https://t.me/veast_support" target="_blank" rel="noreferrer">${labels.tg}</a>
             <a href="https://vk.com/veastshop" target="_blank" rel="noreferrer">${labels.vk}</a>
           </div>
         </div>

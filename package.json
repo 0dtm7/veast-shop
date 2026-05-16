@@ -1,6 +1,6 @@
 {
   "name": "veast-shop",
-  "version": "1.4.9",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "pg": "^8.13.1"
   },
-  "description": "VEAST fashion e-commerce storefront with CDEK pickup map, Telegram order status and PostgreSQL orders",
+  "description": "VEAST fashion e-commerce storefront",
   "engines": {
     "node": ">=22.16.0"
   }

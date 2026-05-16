@@ -4,6 +4,7 @@ initCommon('project');
 
 const stats = document.getElementById('orderStats');
 const list = document.getElementById('ordersApiList');
+const feedbackList = document.getElementById('feedbackList');
 const refresh = document.getElementById('refreshOrders');
 const webhookButton = document.getElementById('setupTelegramWebhook');
 const ordersJsonLink = document.getElementById('openOrdersJson');
@@ -49,7 +50,8 @@ function setAdminMessage(text, type = '') {
 
 function renderLoading() {
   stats.innerHTML = '<article class="info-card"><h3>Заказы</h3><p>Загружаем...</p></article>';
-  list.innerHTML = '<div class="empty-state"><h3>Загружаем заказы</h3><p>Проверяем защищённый GET /api/orders.</p></div>';
+  list.innerHTML = '<div class="empty-state"><h3>Загружаем заказы</h3><p>Проверяем доступ к панели.</p></div>';
+  if (feedbackList) feedbackList.innerHTML = '<div class="empty-state"><h3>Загружаем обращения</h3><p>Проверяем новые сообщения покупателей.</p></div>';
 }
 
 function formatDate(value) {
@@ -96,6 +98,124 @@ function historyHtml(order) {
       `).join('')}
     </div>
   `;
+}
+
+
+function feedbackStatusLabel(status = 'new') {
+  if (status === 'answered') return 'Отвечено';
+  if (status === 'in_progress') return 'В работе';
+  return 'Новое';
+}
+
+function feedbackTopicLabel(topic = '') {
+  const topics = {
+    order: 'Заказ',
+    size: 'Размер',
+    delivery: 'Доставка',
+    return: 'Возврат',
+    other: 'Другое',
+    general: 'Общее',
+  };
+  return topics[topic] || 'Обращение';
+}
+
+function telegramContactLink(contact = '') {
+  const value = String(contact || '').trim();
+  if (!value.startsWith('@')) return '';
+  const username = value.replace(/^@+/, '');
+  if (!username) return '';
+  return `https://t.me/${encodeURIComponent(username)}`;
+}
+
+function renderFeedback(items = []) {
+  if (!feedbackList) return;
+  const sorted = items.slice().reverse();
+  feedbackList.innerHTML = sorted.length ? sorted.map((item) => {
+    const link = telegramContactLink(item.contact);
+    return `
+      <article class="panel-card feedback-admin-card" data-feedback-id="${escapeHtml(item.id)}">
+        <div class="account-row order-admin-head">
+          <div>
+            <p class="eyebrow">${escapeHtml(feedbackTopicLabel(item.topic))}</p>
+            <h3>${escapeHtml(item.name || 'Покупатель')}</h3>
+            <p class="muted">${escapeHtml(formatDate(item.createdAt))}${item.orderId ? ` · Заказ ${escapeHtml(item.orderId)}` : ''}</p>
+            <p class="muted">Контакт: ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${escapeHtml(item.contact)}</a>` : escapeHtml(item.contact || 'не указан')}</p>
+          </div>
+          <div class="order-admin-meta">
+            <span class="status-pill ${item.status === 'answered' ? 'status-pill-ok' : ''}">${escapeHtml(feedbackStatusLabel(item.status))}</span>
+          </div>
+        </div>
+        <div class="support-message-box">
+          <p>${escapeHtml(item.message || '')}</p>
+        </div>
+        <form class="feedback-status-form" data-feedback-id="${escapeHtml(item.id)}">
+          <div class="form-grid">
+            <label class="field">
+              <span>Статус</span>
+              <select name="status">
+                <option value="new" ${item.status === 'new' ? 'selected' : ''}>Новое</option>
+                <option value="in_progress" ${item.status === 'in_progress' ? 'selected' : ''}>В работе</option>
+                <option value="answered" ${item.status === 'answered' ? 'selected' : ''}>Отвечено</option>
+              </select>
+            </label>
+            <label class="field full">
+              <span>Заметка по ответу</span>
+              <textarea name="adminReply" rows="3" placeholder="Например: ответили в Telegram">${escapeHtml(item.adminReply || '')}</textarea>
+            </label>
+          </div>
+          <div class="inline-actions">
+            ${link ? `<a class="button button-ghost" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Открыть Telegram</a>` : ''}
+            <button class="button button-primary" type="submit">Сохранить</button>
+          </div>
+          <p class="form-message" data-feedback-message></p>
+        </form>
+      </article>
+    `;
+  }).join('') : '<div class="empty-state"><h3>Обращений пока нет</h3><p>Сообщения с формы контактов появятся здесь.</p></div>';
+}
+
+async function loadFeedback() {
+  if (!feedbackList) return;
+  const adminKey = getAdminKey();
+  if (!adminKey) {
+    feedbackList.innerHTML = '<div class="empty-state"><h3>Введите ключ</h3><p>После входа здесь появятся обращения покупателей.</p></div>';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/feedback', { headers: { 'x-admin-key': adminKey } });
+    const data = await response.json().catch(() => []);
+    if (!response.ok) throw new Error(data.error || 'Не удалось загрузить обращения');
+    renderFeedback(Array.isArray(data) ? data : []);
+  } catch (error) {
+    feedbackList.innerHTML = `<div class="empty-state api-error-state"><h3>Не удалось загрузить обращения</h3><p>${escapeHtml(error.message)}</p></div>`;
+  }
+}
+
+async function updateFeedbackStatus(form) {
+  const feedbackId = form.dataset.feedbackId;
+  const message = form.querySelector('[data-feedback-message]');
+  const adminKey = getAdminKey();
+  if (!adminKey) {
+    message.innerHTML = '<span class="error-text">Сначала укажи ключ.</span>';
+    return;
+  }
+
+  const formData = Object.fromEntries(new FormData(form).entries());
+  message.innerHTML = '<span class="api-alert api-alert-loading">Сохраняем...</span>';
+  try {
+    const response = await fetch(`/api/feedback/${encodeURIComponent(feedbackId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify(formData),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось сохранить обращение');
+    message.innerHTML = '<span class="api-alert api-alert-success">Сохранено.</span>';
+    await loadFeedback();
+  } catch (error) {
+    message.innerHTML = `<span class="error-text">${escapeHtml(error.message)}</span>`;
+  }
 }
 
 function renderOrders(orders) {
@@ -202,7 +322,8 @@ async function loadOrders() {
   const adminKey = getAdminKey();
   if (!adminKey) {
     stats.innerHTML = '<article class="info-card"><h3>Доступ</h3><p>Нужен ключ</p></article>';
-    list.innerHTML = '<div class="empty-state"><h3>Введите ADMIN_STATUS_KEY</h3><p>Введите ключ администратора, чтобы открыть список заказов.</p></div>';
+    list.innerHTML = '<div class="empty-state"><h3>Введите ключ</h3><p>Введите ключ администратора, чтобы открыть список заказов.</p></div>';
+    if (feedbackList) feedbackList.innerHTML = '<div class="empty-state"><h3>Введите ключ</h3><p>После входа здесь появятся обращения покупателей.</p></div>';
     return;
   }
 
@@ -212,6 +333,7 @@ async function loadOrders() {
     const data = await response.json().catch(() => []);
     if (!response.ok) throw new Error(data.error || 'GET /api/orders вернул ошибку');
     renderOrders(Array.isArray(data) ? data : []);
+    await loadFeedback();
   } catch (error) {
     renderError(error);
   }
@@ -310,10 +432,18 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('submit', (event) => {
-  const form = event.target.closest('.order-status-form');
-  if (!form) return;
-  event.preventDefault();
-  updateOrderStatus(form);
+  const orderForm = event.target.closest('.order-status-form');
+  if (orderForm) {
+    event.preventDefault();
+    updateOrderStatus(orderForm);
+    return;
+  }
+
+  const feedbackForm = event.target.closest('.feedback-status-form');
+  if (feedbackForm) {
+    event.preventDefault();
+    updateFeedbackStatus(feedbackForm);
+  }
 });
 
 loadOrders();

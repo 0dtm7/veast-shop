@@ -8,6 +8,8 @@ const orderId = params.get('order');
 const lastOrder = getLastOrder();
 const cachedOrder = lastOrder && (!orderId || lastOrder.id === orderId) ? lastOrder : null;
 const t = (ru, en) => (isEnglish() ? en : ru);
+const BOT_USERNAME = 'VEAST_Order_Bot';
+const SUPPORT_USERNAME = 'veast_support';
 
 function renderEmpty() {
   container.innerHTML = `
@@ -20,7 +22,6 @@ function renderEmpty() {
     </div>
   `;
 }
-
 
 function deliveryPointBlock(order) {
   const point = order.deliveryPoint;
@@ -38,23 +39,34 @@ function deliveryPointBlock(order) {
 }
 
 function telegramBlock(order) {
-  if (!order.telegramBotLink) {
+  const code = order.telegramLinkToken || '';
+  const botLink = order.telegramBotLink || (code ? `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(code)}` : '');
+
+  if (!code) {
     return `
       <div class="telegram-order-card">
-        <p class="eyebrow">telegram status</p>
-        <h2>${t('Статус в Telegram', 'Telegram order status')}</h2>
-        <p>${t('Telegram-статус будет доступен после подтверждения заказа. Если кнопка не появилась, напишите нам в поддержку.', 'Telegram status will be available after order confirmation. If the button does not appear, contact support.')}</p>
+        <p class="eyebrow">order status</p>
+        <h2>${t('Статус заказа', 'Order status')}</h2>
+        <p>${t(`Если нужна помощь по заказу, напишите в поддержку @${SUPPORT_USERNAME}.`, `For order support, message @${SUPPORT_USERNAME}.`)}</p>
       </div>
     `;
   }
 
   return `
-    <div class="telegram-order-card">
-      <p class="eyebrow">telegram status</p>
-      <h2>${t('Статус заказа в Telegram', 'Order status in Telegram')}</h2>
-      <p>${t('Нажмите кнопку, чтобы бот VEAST присылал статус заказа, трек-номер и обновления доставки.', 'Open the bot to receive order status, tracking number and delivery updates.')}</p>
-      <a class="button button-primary full" href="${escapeHtml(order.telegramBotLink)}" target="_blank" rel="noreferrer">${t('Получать статус в Telegram', 'Get Telegram status')}</a>
-      <p class="muted">${t('После привязки в боте команда /status покажет текущий статус заказа.', 'After linking, the /status command will show the current order status.')}</p>
+    <div class="telegram-order-card telegram-connect-card">
+      <p class="eyebrow">order status</p>
+      <h2>${t('Отслеживание в Telegram', 'Telegram tracking')}</h2>
+      <p>${t('Подключите уведомления, чтобы получать статус заказа, трек-номер и обновления доставки.', 'Connect updates to receive order status, tracking number and delivery notifications.')}</p>
+      ${botLink ? `<a class="button button-primary full" href="${escapeHtml(botLink)}" target="_blank" rel="noreferrer">${t('Открыть Telegram-бота', 'Open Telegram bot')}</a>` : ''}
+      <div class="telegram-fallback-box">
+        <strong>${t('Если кнопка не открывается', 'If the button does not open')}</strong>
+        <p>${t(`Откройте Telegram вручную, найдите @${BOT_USERNAME} и отправьте код привязки:`, `Open Telegram manually, find @${BOT_USERNAME}, and send this link code:`)}</p>
+        <div class="link-code-row">
+          <code>${escapeHtml(code)}</code>
+          <button class="button button-ghost" type="button" data-copy-code="${escapeHtml(code)}">${t('Скопировать код', 'Copy code')}</button>
+        </div>
+        <p class="muted">${t(`Поддержка: @${SUPPORT_USERNAME}`, `Support: @${SUPPORT_USERNAME}`)}</p>
+      </div>
     </div>
   `;
 }
@@ -63,12 +75,11 @@ function renderOrder(order) {
   container.innerHTML = `
     <p class="eyebrow">${t('заказ оформлен', 'order placed')}</p>
     <h1>${t('Заказ оформлен', 'Order placed')}</h1>
-    <p>${t('Заказ принят. Проверьте состав заказа и подключите Telegram-уведомления, чтобы получать обновления статуса.', 'The order has been placed. Review your order and connect Telegram updates to receive status notifications.')}</p>
+    <p>${t('Заказ принят. Проверьте состав заказа и подключите уведомления, чтобы получать обновления статуса.', 'The order has been placed. Review your order and connect updates to receive status notifications.')}</p>
     <div class="order-confirmation">
       <div><span>${t('Номер заказа', 'Order number')}</span><strong>${escapeHtml(order.id)}</strong></div>
       <div><span>${t('Статус', 'Status')}</span><strong>${escapeHtml(order.status || t('Заказ создан', 'New order'))}</strong></div>
       <div><span>${t('Сумма', 'Amount')}</span><strong>${formatPrice(order.total || 0)}</strong></div>
-      
     </div>
     ${deliveryPointBlock(order)}
     ${telegramBlock(order)}
@@ -108,5 +119,17 @@ async function init() {
   if (!freshOrder) renderEmpty();
   else renderOrder(freshOrder);
 }
+
+document.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-copy-code]');
+  if (!button) return;
+  const code = button.dataset.copyCode || '';
+  try {
+    await navigator.clipboard.writeText(code);
+    button.textContent = t('Код скопирован', 'Copied');
+  } catch {
+    button.textContent = t('Скопируйте вручную', 'Copy manually');
+  }
+});
 
 init();

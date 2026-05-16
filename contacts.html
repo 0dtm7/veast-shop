@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru">
-  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Контакты — VEAST</title><meta name="description" content="Контакты VEAST: форма обратной связи, поддержка покупателя, адреса и коммуникация с брендом." /><link rel="icon" href="favicon.ico" sizes="any" />
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Контакты — VEAST</title><meta name="description" content="Контакты VEAST: поддержка по заказам, размерам, доставке и возврату." /><link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" /></head>
@@ -12,21 +12,26 @@
       <div class="checkout-layout">
         <form class="form-card" id="feedbackForm">
           <h2>Форма обратной связи</h2>
-          <p class="muted">Оставьте вопрос по заказу, размеру, доставке или возврату — мы ответим в ближайшее время.</p>
+          <p class="muted">Оставьте вопрос по заказу, размеру, доставке или возврату. Мы ответим через указанный контакт.</p>
           <div class="form-grid">
-            <div class="field"><label for="name">Имя</label><input id="name" name="name" required /></div>
-            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required /></div>
-            <div class="field full"><label for="message">Сообщение</label><textarea id="message" name="message" required></textarea></div>
+            <div class="field"><label for="name">Имя</label><input id="name" name="name" required autocomplete="name" /></div>
+            <div class="field"><label for="contact">Telegram или телефон</label><input id="contact" name="contact" required autocomplete="tel" placeholder="@username или +7..." /></div>
+            <div class="field"><label for="orderId">Номер заказа</label><input id="orderId" name="orderId" placeholder="Если вопрос по заказу" /></div>
+            <div class="field"><label for="topic">Тема</label><select id="topic" name="topic"><option value="order">Заказ</option><option value="size">Размер</option><option value="delivery">Доставка</option><option value="return">Возврат</option><option value="other">Другое</option></select></div>
+            <div class="field full"><label for="message">Сообщение</label><textarea id="message" name="message" required minlength="10"></textarea></div>
           </div>
           <button class="button button-primary" type="submit">Отправить</button>
           <p class="form-message" id="feedbackMessage" role="status"></p>
         </form>
-        <aside class="summary-card">
+        <aside class="summary-card contact-summary-card">
           <h3>VEAST</h3>
-          <p>Email: hello@veast.store</p>
-          <p>Telegram: @veast</p>
+          <p>Telegram: <a href="https://t.me/veast_support" target="_blank" rel="noreferrer">@veast_support</a></p>
           <p>Город: Москва</p>
           <p class="muted">Поддержка отвечает на вопросы по заказам, размерам, доставке и возврату.</p>
+          <div class="contact-note">
+            <strong>По заказу</strong>
+            <p>Укажите номер заказа в форме, чтобы мы быстрее нашли детали.</p>
+          </div>
         </aside>
       </div>
     </main>

@@ -2913,3 +2913,89 @@ body.modal-open { overflow: hidden; }
   .pickup-point-top { flex-direction: column; }
   .pickup-point-badges { justify-content: flex-start; }
 }
+
+/* ===== VEAST v50: support form and Telegram fallback ===== */
+.contact-summary-card a {
+  color: inherit;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.contact-note {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,.52);
+}
+
+.telegram-connect-card .button.full {
+  margin: 12px 0 16px;
+}
+
+.telegram-fallback-box {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,.56);
+}
+
+.link-code-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.link-code-row code {
+  flex: 1;
+  min-width: 220px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 900;
+  word-break: break-all;
+}
+
+.feedback-admin-card .support-message-box {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,.58);
+}
+
+.feedback-admin-card .support-message-box p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.feedback-admin-card a {
+  color: inherit;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+:root[data-theme="dark"] .contact-note,
+:root[data-theme="dark"] .telegram-fallback-box,
+:root[data-theme="dark"] .feedback-admin-card .support-message-box {
+  background: rgba(255,255,255,.06);
+}
+
+@media (max-width: 720px) {
+  .link-code-row {
+    align-items: stretch;
+  }
+
+  .link-code-row code,
+  .link-code-row .button {
+    width: 100%;
+  }
+}

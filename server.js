@@ -17,6 +17,7 @@ const PRODUCTS_FILE = path.join(__dirname, 'scripts', 'products.js');
 
 const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').trim().replace(/^@/, '');
+const SUPPORT_TELEGRAM_USERNAME = String(process.env.SUPPORT_TELEGRAM_USERNAME || 'veast_support').trim().replace(/^@/, '');
 const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
 const ADMIN_STATUS_KEY = String(process.env.ADMIN_STATUS_KEY || 'veast-admin-demo').trim();
 const CDEK_CLIENT_ID = String(process.env.CDEK_CLIENT_ID || '').trim();
@@ -93,7 +94,7 @@ function send(res, status, body, type = 'application/json; charset=utf-8') {
   res.writeHead(status, {
     'Content-Type': type,
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
   });
   res.end(body);
@@ -218,14 +219,31 @@ async function initDatabase() {
       date TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS feedback_messages (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      name TEXT NOT NULL,
+      contact TEXT NOT NULL,
+      order_id TEXT,
+      topic TEXT,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'new',
+      admin_reply TEXT,
+      answered_at TEXT,
+      updated_at TEXT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
     CREATE INDEX IF NOT EXISTS idx_orders_telegram_chat_id ON orders(telegram_chat_id);
     CREATE INDEX IF NOT EXISTS idx_orders_telegram_link_token ON orders(telegram_link_token);
     CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
     CREATE INDEX IF NOT EXISTS idx_order_history_order_id ON order_status_history(order_id);
+    CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback_messages(created_at);
+    CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_messages(status);
   `);
 
   await migrateLegacyOrdersJson();
+  await migrateLegacyFeedbackJson();
 }
 
 async function migrateLegacyOrdersJson() {
@@ -244,6 +262,164 @@ async function migrateLegacyOrdersJson() {
       console.error(`Legacy order migration failed: ${legacyOrder?.id || 'unknown'}`, error.message);
     }
   }
+}
+
+async function migrateLegacyFeedbackJson() {
+  if (!DATABASE_URL) return;
+
+  const countResult = await pgQuery('SELECT COUNT(*)::int AS count FROM feedback_messages');
+  if (Number(countResult.rows?.[0]?.count || 0) > 0) return;
+
+  const legacyFeedback = await readJson(FEEDBACK_FILE);
+  if (!Array.isArray(legacyFeedback) || legacyFeedback.length === 0) return;
+
+  for (const item of legacyFeedback) {
+    try {
+      await saveFeedbackToDatabase({
+        id: item.id,
+        createdAt: item.createdAt,
+        name: item.name,
+        contact: item.contact || item.telegram || item.email || '',
+        orderId: item.orderId || '',
+        topic: item.topic || 'general',
+        message: item.message,
+        status: item.status || 'new',
+        adminReply: item.adminReply || '',
+        answeredAt: item.answeredAt || null,
+      });
+    } catch (error) {
+      console.error(`Legacy feedback migration failed: ${item?.id || 'unknown'}`, error.message);
+    }
+  }
+}
+
+function normalizeFeedbackStatus(value = '') {
+  const status = clean(value).toLowerCase();
+  return ['new', 'in_progress', 'answered'].includes(status) ? status : 'new';
+}
+
+function feedbackRowToPublic(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    name: row.name || '',
+    contact: row.contact || '',
+    orderId: row.order_id || '',
+    topic: row.topic || 'general',
+    message: row.message || '',
+    status: normalizeFeedbackStatus(row.status),
+    adminReply: row.admin_reply || '',
+    answeredAt: row.answered_at || null,
+    updatedAt: row.updated_at || row.created_at,
+  };
+}
+
+async function readFallbackFeedback() {
+  const list = await readJson(FEEDBACK_FILE);
+  return Array.isArray(list) ? list.map((item) => ({
+    id: item.id || `FB-${Date.now()}`,
+    createdAt: item.createdAt || new Date().toISOString(),
+    name: item.name || '',
+    contact: item.contact || item.telegram || item.email || '',
+    orderId: item.orderId || '',
+    topic: item.topic || 'general',
+    message: item.message || '',
+    status: normalizeFeedbackStatus(item.status || 'new'),
+    adminReply: item.adminReply || '',
+    answeredAt: item.answeredAt || null,
+    updatedAt: item.updatedAt || item.serverSavedAt || item.createdAt || new Date().toISOString(),
+  })) : [];
+}
+
+async function writeFallbackFeedback(list) {
+  await writeJson(FEEDBACK_FILE, list);
+}
+
+async function saveFeedbackToDatabase(feedback) {
+  const now = new Date().toISOString();
+  const saved = {
+    id: clean(feedback.id) || `FB-${Date.now()}-${randomBytes(3).toString('hex')}`,
+    createdAt: feedback.createdAt || now,
+    name: clean(feedback.name),
+    contact: clean(feedback.contact || feedback.telegram || feedback.phone || feedback.email),
+    orderId: clean(feedback.orderId || feedback.order || ''),
+    topic: clean(feedback.topic || 'general'),
+    message: clean(feedback.message),
+    status: normalizeFeedbackStatus(feedback.status || 'new'),
+    adminReply: clean(feedback.adminReply || ''),
+    answeredAt: feedback.answeredAt || null,
+    updatedAt: now,
+  };
+
+  if (!DATABASE_URL) {
+    const list = await readFallbackFeedback();
+    list.push(saved);
+    await writeFallbackFeedback(list);
+    return saved;
+  }
+
+  await pgQuery(`
+    INSERT INTO feedback_messages (
+      id, created_at, name, contact, order_id, topic, message, status, admin_reply, answered_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+  `, [
+    saved.id,
+    saved.createdAt,
+    saved.name,
+    saved.contact,
+    saved.orderId,
+    saved.topic,
+    saved.message,
+    saved.status,
+    saved.adminReply,
+    saved.answeredAt,
+    saved.updatedAt,
+  ]);
+  return saved;
+}
+
+async function getFeedbackFromDatabase() {
+  if (!DATABASE_URL) return readFallbackFeedback();
+  const result = await pgQuery('SELECT * FROM feedback_messages ORDER BY created_at ASC, id ASC');
+  return result.rows.map(feedbackRowToPublic);
+}
+
+async function updateFeedbackInDatabase(feedbackId, updates = {}) {
+  const now = new Date().toISOString();
+  const status = normalizeFeedbackStatus(updates.status || 'answered');
+  const adminReply = clean(updates.adminReply || updates.reply || '');
+  const answeredAt = status === 'answered' ? now : null;
+
+  if (!DATABASE_URL) {
+    const list = await readFallbackFeedback();
+    const index = list.findIndex((item) => item.id === feedbackId);
+    if (index < 0) return null;
+    list[index] = { ...list[index], status, adminReply, answeredAt: answeredAt || list[index].answeredAt || null, updatedAt: now };
+    await writeFallbackFeedback(list);
+    return list[index];
+  }
+
+  const result = await pgQuery(`
+    UPDATE feedback_messages
+    SET status = $1, admin_reply = $2, answered_at = COALESCE($3, answered_at), updated_at = $4
+    WHERE id = $5
+    RETURNING *
+  `, [status, adminReply, answeredAt, now, feedbackId]);
+  return feedbackRowToPublic(result.rows?.[0]);
+}
+
+async function getFeedbackStats() {
+  if (!DATABASE_URL) {
+    const list = await readFallbackFeedback();
+    return { total: list.length, new: list.filter((item) => item.status === 'new').length };
+  }
+  const result = await pgQuery(`
+    SELECT COUNT(*)::int AS total,
+           COUNT(*) FILTER (WHERE status = 'new')::int AS new
+    FROM feedback_messages
+  `);
+  return { total: Number(result.rows?.[0]?.total || 0), new: Number(result.rows?.[0]?.new || 0) };
 }
 
 function orderRowToPublicOrder(row, items = [], history = []) {
@@ -616,6 +792,29 @@ function getTelegramBotLink(order) {
   return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${encodeURIComponent(order.telegramLinkToken)}`;
 }
 
+function normalizeTelegramLinkCode(value = '') {
+  return clean(value)
+    .replace(/^\/start\s+/i, '')
+    .replace(/^код[:\s-]*/i, '')
+    .replace(/^veast[-_\s]?link[:\s-]*/i, '')
+    .trim();
+}
+
+async function linkOrderToTelegramByCode(rawCode, chatId) {
+  const token = normalizeTelegramLinkCode(rawCode);
+  if (!token || token.length < 8) return { linked: false, reason: 'empty' };
+  const targetOrder = await getOrderByTelegramToken(token);
+  if (!targetOrder) return { linked: false, reason: 'not_found' };
+
+  const alreadyLinkedChatId = clean(targetOrder.telegramChatId || '');
+  if (alreadyLinkedChatId && alreadyLinkedChatId !== String(chatId)) {
+    return { linked: false, reason: 'already_linked', order: targetOrder };
+  }
+
+  const linkedOrder = await updateOrderTelegramBinding(targetOrder.id, chatId);
+  return { linked: true, order: linkedOrder };
+}
+
 function getStatusInfo(statusKey) {
   return ORDER_STATUSES[normalizeStatusKey(statusKey)] || ORDER_STATUSES.created;
 }
@@ -771,9 +970,13 @@ function normalizeOrder(order) {
 }
 
 function validateFeedback(feedback) {
-  if (!feedback.name || String(feedback.name).trim().length < 2) return 'Name must contain at least 2 characters';
-  if (!isEmail(feedback.email)) return 'Invalid email address';
-  if (!feedback.message || String(feedback.message).trim().length < 4) return 'Message is too short';
+  const name = clean(feedback.name);
+  const contact = clean(feedback.contact || feedback.telegram || feedback.phone || feedback.email);
+  const message = clean(feedback.message);
+  if (name.length < 2) return 'Укажите имя от 2 символов';
+  if (contact.length < 3) return 'Укажите Telegram или другой контакт для ответа';
+  if (message.length < 10) return 'Сообщение должно быть не короче 10 символов';
+  if (message.length > 2000) return 'Сообщение слишком длинное';
   return null;
 }
 
@@ -926,7 +1129,7 @@ function sendCdek(res, status, body) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
     'X-Service-Version': CDEK_WIDGET_VERSION,
   });
@@ -1131,7 +1334,7 @@ function buildOrdersStatusMessage(orders) {
       'VEAST',
       '',
       'К этому Telegram пока не привязан заказ.',
-      'Откройте ссылку “Получать статус в Telegram” на странице подтверждения заказа.',
+      'Откройте страницу подтверждения заказа и отправьте боту код привязки.',
     ].join('\n');
   }
 
@@ -1149,32 +1352,32 @@ async function handleTelegramWebhook(req, res) {
 
     if (text.startsWith('/start')) {
       const payload = clean(text.split(/\s+/)[1] || '');
-      const targetOrder = payload ? await getOrderByTelegramToken(payload) : null;
-
-      if (!payload || !targetOrder) {
-        await sendTelegramMessage(chatId, [
-          'VEAST',
-          '',
-          'Не получилось найти заказ для привязки.',
-          'Откройте бота по кнопке “Получать статус в Telegram” на странице подтверждения заказа.',
-        ].join('\n'));
-        return send(res, 200, JSON.stringify({ ok: true, linked: false }));
+      if (payload) {
+        const result = await linkOrderToTelegramByCode(payload, chatId);
+        if (result.linked) {
+          await sendTelegramMessage(chatId, buildLinkedOrderMessage(result.order));
+          return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: result.order.id }));
+        }
+        if (result.reason === 'already_linked') {
+          await sendTelegramMessage(chatId, [
+            'VEAST',
+            '',
+            'Этот заказ уже привязан к другому Telegram.',
+            `Если нужна помощь, напишите в поддержку @${SUPPORT_TELEGRAM_USERNAME}.`,
+          ].join('\n'));
+          return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: result.reason }));
+        }
       }
 
-      const alreadyLinkedChatId = clean(targetOrder.telegramChatId || '');
-      if (alreadyLinkedChatId && alreadyLinkedChatId !== chatId) {
-        await sendTelegramMessage(chatId, [
-          'VEAST',
-          '',
-          'Этот заказ уже привязан к другому Telegram.',
-          'Если это ваш заказ, оформите новую привязку со страницы подтверждения или обратитесь в поддержку VEAST.',
-        ].join('\n'));
-        return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: 'already_linked' }));
-      }
-
-      const linkedOrder = await updateOrderTelegramBinding(targetOrder.id, chatId);
-      await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkedOrder));
-      return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: linkedOrder.id }));
+      await sendTelegramMessage(chatId, [
+        'VEAST',
+        '',
+        'Отправьте сюда код привязки со страницы подтверждения заказа.',
+        'После привязки команда /status покажет текущий статус заказа.',
+        '',
+        `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
+      ].join('\n'));
+      return send(res, 200, JSON.stringify({ ok: true, linked: false }));
     }
 
     if (text.startsWith('/status')) {
@@ -1191,16 +1394,34 @@ async function handleTelegramWebhook(req, res) {
         '/status — посмотреть текущий статус заказа',
         '/help — помощь',
         '',
-        'Чтобы привязать заказ, нажмите кнопку “Получать статус в Telegram” на странице подтверждения заказа.',
+        'Для привязки заказа отправьте сюда код со страницы подтверждения заказа.',
+        `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
       ].join('\n'));
       return send(res, 200, JSON.stringify({ ok: true }));
+    }
+
+    const linkResult = await linkOrderToTelegramByCode(text, chatId);
+    if (linkResult.linked) {
+      await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkResult.order));
+      return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: linkResult.order.id }));
+    }
+
+    if (linkResult.reason === 'already_linked') {
+      await sendTelegramMessage(chatId, [
+        'VEAST',
+        '',
+        'Этот заказ уже привязан к другому Telegram.',
+        `Если нужна помощь, напишите в поддержку @${SUPPORT_TELEGRAM_USERNAME}.`,
+      ].join('\n'));
+      return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: linkResult.reason }));
     }
 
     await sendTelegramMessage(chatId, [
       'VEAST',
       '',
       'Я показываю статусы заказов VEAST.',
-      'Используйте /status, чтобы посмотреть текущий статус.',
+      'Отправьте код привязки заказа или используйте /status.',
+      `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
     ].join('\n'));
     return send(res, 200, JSON.stringify({ ok: true }));
   } catch (error) {
@@ -1270,9 +1491,9 @@ async function handleApi(req, res, url) {
   }
 
   if (url.pathname === '/api/stats' && req.method === 'GET') {
-    const feedback = await readJson(FEEDBACK_FILE);
+    const feedbackStats = await getFeedbackStats();
     const orderStats = await getDatabaseStats();
-    return send(res, 200, JSON.stringify({ ok: true, orders: orderStats.orders, feedback: feedback.length, totalRevenue: orderStats.totalRevenue, database: orderStats.database, persistent: orderStats.persistent }));
+    return send(res, 200, JSON.stringify({ ok: true, orders: orderStats.orders, feedback: feedbackStats.total, feedbackNew: feedbackStats.new, totalRevenue: orderStats.totalRevenue, database: orderStats.database, persistent: orderStats.persistent }));
   }
 
   if (url.pathname === '/api/products' && req.method === 'GET') {
@@ -1360,22 +1581,30 @@ async function handleApi(req, res, url) {
     }
   }
 
+  if (url.pathname === '/api/feedback' && req.method === 'GET') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    return send(res, 200, JSON.stringify(await getFeedbackFromDatabase()));
+  }
+
+  const feedbackRoute = url.pathname.match(/^\/api\/feedback\/([^/]+)$/);
+  if (feedbackRoute && req.method === 'PATCH') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    try {
+      const body = await parseBody(req);
+      const updated = await updateFeedbackInDatabase(decodeURIComponent(feedbackRoute[1]), body);
+      if (!updated) return send(res, 404, JSON.stringify({ error: 'Feedback message not found' }));
+      return send(res, 200, JSON.stringify({ ok: true, feedback: updated }));
+    } catch {
+      return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));
+    }
+  }
+
   if (url.pathname === '/api/feedback' && req.method === 'POST') {
     try {
       const feedback = await parseBody(req);
       const error = validateFeedback(feedback);
       if (error) return send(res, 400, JSON.stringify({ error }));
-      const list = await readJson(FEEDBACK_FILE);
-      const saved = {
-        id: feedback.id || `FB-${Date.now()}`,
-        createdAt: feedback.createdAt || new Date().toISOString(),
-        name: String(feedback.name).trim(),
-        email: String(feedback.email).trim(),
-        message: String(feedback.message).trim(),
-        serverSavedAt: new Date().toISOString(),
-      };
-      list.push(saved);
-      await writeFile(FEEDBACK_FILE, JSON.stringify(list, null, 2), 'utf8');
+      const saved = await saveFeedbackToDatabase(feedback);
       return send(res, 201, JSON.stringify({ ok: true, feedback: saved }));
     } catch {
       return send(res, 400, JSON.stringify({ error: 'Invalid JSON' }));
