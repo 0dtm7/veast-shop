@@ -19,6 +19,7 @@ const TELEGRAM_BOT_TOKEN = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
 const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST_Order_Bot').trim().replace(/^@/, '');
 const SUPPORT_TELEGRAM_USERNAME = String(process.env.SUPPORT_TELEGRAM_USERNAME || 'veast_support').trim().replace(/^@/, '');
 const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
+const VEAST_BOT_BANNER_URL = String(process.env.VEAST_BOT_BANNER_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-order-bot-banner.png`).trim();
 const ADMIN_STATUS_KEY = String(process.env.ADMIN_STATUS_KEY || 'veast-admin-demo').trim();
 const CDEK_CLIENT_ID = String(process.env.CDEK_CLIENT_ID || '').trim();
 const CDEK_CLIENT_SECRET = String(process.env.CDEK_CLIENT_SECRET || '').trim();
@@ -1280,13 +1281,80 @@ function telegramApi(method, payload = {}) {
   });
 }
 
-async function sendTelegramMessage(chatId, text) {
+async function sendTelegramMessage(chatId, text, options = {}) {
   if (!chatId) return { ok: false, skipped: true, description: 'No Telegram chat id' };
   return telegramApi('sendMessage', {
     chat_id: chatId,
     text,
     disable_web_page_preview: true,
+    ...options,
   });
+}
+
+async function sendTelegramPhoto(chatId, photo, caption, options = {}) {
+  if (!chatId) return { ok: false, skipped: true, description: 'No Telegram chat id' };
+  if (!photo) return { ok: false, skipped: true, description: 'No Telegram photo URL' };
+  return telegramApi('sendPhoto', {
+    chat_id: chatId,
+    photo,
+    caption,
+    ...options,
+  });
+}
+
+async function answerTelegramCallback(callbackQueryId, text = '') {
+  if (!callbackQueryId) return { ok: false, skipped: true, description: 'No callback query id' };
+  return telegramApi('answerCallbackQuery', {
+    callback_query_id: callbackQueryId,
+    text,
+    show_alert: false,
+  });
+}
+
+function getTelegramMenuKeyboard() {
+  return {
+    inline_keyboard: [
+      [{ text: '📦 Статус заказа', callback_data: 'veast_status' }],
+      [{ text: '🔗 Привязать заказ', callback_data: 'veast_link_help' }],
+      [
+        { text: '💬 Поддержка', url: `https://t.me/${SUPPORT_TELEGRAM_USERNAME}` },
+        { text: '🛒 Сайт VEAST', url: PUBLIC_BASE_URL },
+      ],
+    ],
+  };
+}
+
+function buildTelegramMenuMessage() {
+  return [
+    'VEAST',
+    '',
+    'Добро пожаловать в бот заказов VEAST.',
+    '',
+    'Здесь можно проверить статус заказа, посмотреть доставку и быстро перейти в поддержку.',
+    '',
+    'Если ссылка с сайта не открылась, отправьте сюда код привязки со страницы подтверждения заказа.',
+  ].join('\n');
+}
+
+function buildTelegramLinkHelpMessage() {
+  return [
+    'VEAST',
+    '',
+    'Как привязать заказ:',
+    '',
+    '1. Откройте страницу подтверждения заказа.',
+    '2. Скопируйте код привязки.',
+    '3. Отправьте код сюда одним сообщением.',
+    '',
+    'После привязки кнопка «📦 Статус заказа» покажет актуальный статус, пункт выдачи и трек-номер.',
+  ].join('\n');
+}
+
+async function sendTelegramMenu(chatId, text = buildTelegramMenuMessage()) {
+  const keyboard = getTelegramMenuKeyboard();
+  const bannerResult = await sendTelegramPhoto(chatId, VEAST_BOT_BANNER_URL, text, { reply_markup: keyboard });
+  if (bannerResult?.ok) return bannerResult;
+  return sendTelegramMessage(chatId, text, { reply_markup: keyboard });
 }
 
 function buildTelegramStatusMessage(order, intro = 'Статус заказа обновлён.') {
@@ -1341,9 +1409,41 @@ function buildOrdersStatusMessage(orders) {
   return linked.map((order) => buildTelegramStatusMessage(order, `Текущий статус заказа ${order.id}:`)).join('\n\n────────────\n\n');
 }
 
+async function handleTelegramCallback(update) {
+  const callback = update.callback_query;
+  const data = clean(callback?.data || '');
+  const chatId = callback?.message?.chat?.id ? String(callback.message.chat.id) : '';
+  const callbackId = callback?.id || '';
+
+  if (!chatId) return { ok: true };
+
+  if (data === 'veast_status') {
+    await answerTelegramCallback(callbackId, 'Проверяю статус заказа');
+    const linkedOrders = await getOrdersByTelegramChatId(chatId);
+    await sendTelegramMessage(chatId, buildOrdersStatusMessage(linkedOrders), { reply_markup: getTelegramMenuKeyboard() });
+    return { ok: true, action: 'status' };
+  }
+
+  if (data === 'veast_link_help') {
+    await answerTelegramCallback(callbackId, 'Инструкция по привязке заказа');
+    await sendTelegramMessage(chatId, buildTelegramLinkHelpMessage(), { reply_markup: getTelegramMenuKeyboard() });
+    return { ok: true, action: 'link_help' };
+  }
+
+  await answerTelegramCallback(callbackId, 'VEAST');
+  await sendTelegramMenu(chatId);
+  return { ok: true, action: 'menu' };
+}
+
 async function handleTelegramWebhook(req, res) {
   try {
     const update = await parseBody(req);
+
+    if (update.callback_query) {
+      const result = await handleTelegramCallback(update);
+      return send(res, 200, JSON.stringify(result));
+    }
+
     const message = update.message || update.edited_message;
     const text = clean(message?.text || '');
     const chatId = message?.chat?.id ? String(message.chat.id) : '';
@@ -1355,7 +1455,7 @@ async function handleTelegramWebhook(req, res) {
       if (payload) {
         const result = await linkOrderToTelegramByCode(payload, chatId);
         if (result.linked) {
-          await sendTelegramMessage(chatId, buildLinkedOrderMessage(result.order));
+          await sendTelegramMessage(chatId, buildLinkedOrderMessage(result.order), { reply_markup: getTelegramMenuKeyboard() });
           return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: result.order.id }));
         }
         if (result.reason === 'already_linked') {
@@ -1364,25 +1464,23 @@ async function handleTelegramWebhook(req, res) {
             '',
             'Этот заказ уже привязан к другому Telegram.',
             `Если нужна помощь, напишите в поддержку @${SUPPORT_TELEGRAM_USERNAME}.`,
-          ].join('\n'));
+          ].join('\n'), { reply_markup: getTelegramMenuKeyboard() });
           return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: result.reason }));
         }
       }
 
-      await sendTelegramMessage(chatId, [
-        'VEAST',
-        '',
-        'Отправьте сюда код привязки со страницы подтверждения заказа.',
-        'После привязки команда /status покажет текущий статус заказа.',
-        '',
-        `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
-      ].join('\n'));
-      return send(res, 200, JSON.stringify({ ok: true, linked: false }));
+      await sendTelegramMenu(chatId);
+      return send(res, 200, JSON.stringify({ ok: true, linked: false, menu: true }));
+    }
+
+    if (text.startsWith('/menu')) {
+      await sendTelegramMenu(chatId);
+      return send(res, 200, JSON.stringify({ ok: true, menu: true }));
     }
 
     if (text.startsWith('/status')) {
       const linkedOrders = await getOrdersByTelegramChatId(chatId);
-      await sendTelegramMessage(chatId, buildOrdersStatusMessage(linkedOrders));
+      await sendTelegramMessage(chatId, buildOrdersStatusMessage(linkedOrders), { reply_markup: getTelegramMenuKeyboard() });
       return send(res, 200, JSON.stringify({ ok: true }));
     }
 
@@ -1391,18 +1489,19 @@ async function handleTelegramWebhook(req, res) {
         'VEAST',
         '',
         'Команды бота:',
+        '/menu — открыть меню',
         '/status — посмотреть текущий статус заказа',
         '/help — помощь',
         '',
         'Для привязки заказа отправьте сюда код со страницы подтверждения заказа.',
         `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
-      ].join('\n'));
+      ].join('\n'), { reply_markup: getTelegramMenuKeyboard() });
       return send(res, 200, JSON.stringify({ ok: true }));
     }
 
     const linkResult = await linkOrderToTelegramByCode(text, chatId);
     if (linkResult.linked) {
-      await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkResult.order));
+      await sendTelegramMessage(chatId, buildLinkedOrderMessage(linkResult.order), { reply_markup: getTelegramMenuKeyboard() });
       return send(res, 200, JSON.stringify({ ok: true, linked: true, orderId: linkResult.order.id }));
     }
 
@@ -1412,16 +1511,15 @@ async function handleTelegramWebhook(req, res) {
         '',
         'Этот заказ уже привязан к другому Telegram.',
         `Если нужна помощь, напишите в поддержку @${SUPPORT_TELEGRAM_USERNAME}.`,
-      ].join('\n'));
+      ].join('\n'), { reply_markup: getTelegramMenuKeyboard() });
       return send(res, 200, JSON.stringify({ ok: true, linked: false, reason: linkResult.reason }));
     }
 
-    await sendTelegramMessage(chatId, [
+    await sendTelegramMenu(chatId, [
       'VEAST',
       '',
       'Я показываю статусы заказов VEAST.',
-      'Отправьте код привязки заказа или используйте /status.',
-      `Поддержка: @${SUPPORT_TELEGRAM_USERNAME}`,
+      'Выберите действие в меню или отправьте код привязки заказа.',
     ].join('\n'));
     return send(res, 200, JSON.stringify({ ok: true }));
   } catch (error) {
@@ -1441,6 +1539,15 @@ async function handleSetTelegramWebhook(req, res, url) {
 
   const webhookUrl = `${baseUrl.replace(/\/+$/, '')}/api/telegram/webhook`;
   const result = await telegramApi('setWebhook', { url: webhookUrl });
+  const commands = await telegramApi('setMyCommands', {
+    commands: [
+      { command: 'start', description: 'Открыть бот VEAST' },
+      { command: 'menu', description: 'Открыть меню' },
+      { command: 'status', description: 'Статус заказа' },
+      { command: 'help', description: 'Помощь' },
+    ],
+  });
+
   return send(res, result.ok ? 200 : 502, JSON.stringify({
     ok: Boolean(result.ok),
     webhookUrl,
@@ -1453,6 +1560,10 @@ async function handleSetTelegramWebhook(req, res, url) {
       hint: result.hint || null,
       skipped: Boolean(result.skipped),
       tokenConfigured: Boolean(TELEGRAM_BOT_TOKEN),
+    },
+    commands: {
+      ok: Boolean(commands.ok),
+      description: commands.description || null,
     },
   }));
 }
