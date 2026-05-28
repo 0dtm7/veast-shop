@@ -245,6 +245,14 @@ async function initDatabase() {
       updated_at TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS catalog_products (
+      id TEXT PRIMARY KEY,
+      product_json JSONB NOT NULL,
+      sort_index INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
     CREATE INDEX IF NOT EXISTS idx_orders_telegram_chat_id ON orders(telegram_chat_id);
     CREATE INDEX IF NOT EXISTS idx_orders_telegram_link_token ON orders(telegram_link_token);
@@ -252,10 +260,12 @@ async function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_order_history_order_id ON order_status_history(order_id);
     CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback_messages(created_at);
     CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_messages(status);
+    CREATE INDEX IF NOT EXISTS idx_catalog_products_sort ON catalog_products(sort_index, created_at);
   `);
 
   await migrateLegacyOrdersJson();
   await migrateLegacyFeedbackJson();
+  await migrateCatalogProductsModule();
 }
 
 async function migrateLegacyOrdersJson() {
@@ -773,7 +783,7 @@ async function parseBody(req) {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
-      if (data.length > 1_000_000) req.destroy();
+      if (data.length > 30_000_000) req.destroy();
     });
     req.on('end', () => {
       try { resolve(data ? JSON.parse(data) : {}); }
@@ -1000,7 +1010,7 @@ async function loadProductsModule() {
 async function validateBusinessOrder(order) {
   const basicError = validateOrder(order);
   if (basicError) return basicError;
-  const { products = [] } = await loadProductsModule();
+  const products = await getCatalogProducts();
   const productMap = new Map(products.map((product) => [product.id, product]));
   let calculatedTotal = 0;
 
@@ -1020,6 +1030,259 @@ function isAdminRequest(req, url) {
   const headerKey = req.headers['x-admin-key'];
   const queryKey = url.searchParams.get('key');
   return clean(headerKey || queryKey) === ADMIN_STATUS_KEY;
+}
+
+
+function slugifyProduct(value = '') {
+  const source = clean(value).toLowerCase();
+  const translit = {
+    а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y',
+    к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f',
+    х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya',
+  };
+  const replaced = source.replace(/[а-яё]/g, (char) => translit[char] || char);
+  const slug = replaced.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || `product-${Date.now()}`;
+}
+
+function parseList(value = '') {
+  if (Array.isArray(value)) return value.map(clean).filter(Boolean);
+  return String(value || '')
+    .split(/[,\n]/)
+    .map(clean)
+    .filter(Boolean);
+}
+
+function getCategoryTitle(categoryId = '') {
+  const map = {
+    hoodie: 'Худи',
+    tee: 'Футболки',
+    longsleeve: 'Лонгсливы',
+    outerwear: 'Верхняя одежда',
+    pants: 'Брюки',
+    accessory: 'Аксессуары',
+  };
+  return map[clean(categoryId)] || clean(categoryId) || 'Товар';
+}
+
+function normalizeAdminProduct(raw = {}, current = null) {
+  const title = clean(raw.title || current?.title || 'VEAST Product');
+  const baseSlug = slugifyProduct(raw.slug || title);
+  const id = clean(raw.id || current?.id || `vst-${baseSlug}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || `vst-${Date.now()}`;
+  const category = clean(raw.category || current?.category || 'accessory');
+  const sizes = parseList(raw.sizes || current?.sizes || 'OS');
+  const stock = Math.max(0, Number(raw.stock ?? current?.stock ?? 0) || 0);
+
+  return {
+    id,
+    slug: clean(raw.slug || current?.slug || baseSlug),
+    title,
+    category,
+    categoryTitle: clean(raw.categoryTitle || current?.categoryTitle || getCategoryTitle(category)),
+    collection: clean(raw.collection || current?.collection || 'Orbit Drop'),
+    price: Math.max(0, Number(raw.price ?? current?.price ?? 0) || 0),
+    oldPrice: raw.oldPrice === '' || raw.oldPrice === null || raw.oldPrice === undefined
+      ? null
+      : Math.max(0, Number(raw.oldPrice) || 0),
+    color: clean(raw.color || current?.color || 'black'),
+    colorTitle: clean(raw.colorTitle || current?.colorTitle || 'Washed Black / Chrome'),
+    sizes: sizes.length ? sizes : ['OS'],
+    stock,
+    status: clean(raw.status || current?.status || (stock > 0 ? 'В наличии' : 'Нет в наличии')),
+    badges: parseList(raw.badges ?? current?.badges ?? ''),
+    featureTags: parseList(raw.featureTags ?? current?.featureTags ?? ''),
+    wearWith: parseList(raw.wearWith ?? current?.wearWith ?? ''),
+    cardImage: clean(raw.cardImage || current?.cardImage || ''),
+    cardImageAlt: clean(raw.cardImageAlt || current?.cardImageAlt || ''),
+    image: clean(raw.image || current?.image || ''),
+    imageAlt: clean(raw.imageAlt || current?.imageAlt || ''),
+    gallery: parseList(raw.gallery ?? current?.gallery ?? ''),
+    description: clean(raw.description || current?.description || ''),
+    material: clean(raw.material || current?.material || ''),
+    fit: clean(raw.fit || current?.fit || ''),
+    care: clean(raw.care || current?.care || ''),
+    measurements: clean(raw.measurements || current?.measurements || ''),
+    rating: Math.min(5, Math.max(0, Number(raw.rating ?? current?.rating ?? 4.8) || 4.8)),
+  };
+}
+
+function isDataImage(value = '') {
+  return /^data:image\/(png|jpe?g|webp);base64,/i.test(String(value || ''));
+}
+
+async function saveAdminProductImage(value = '', productId = 'product', slot = 'image') {
+  const raw = String(value || '').trim();
+  if (!raw || !isDataImage(raw)) return raw;
+  const match = raw.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/i);
+  if (!match) return '';
+  const type = match[1].toLowerCase().replace('jpeg', 'jpg');
+  const safeProductId = productId.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
+  const safeSlot = slot.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
+  const fileName = `${safeProductId}-${safeSlot}-${Date.now()}-${randomBytes(3).toString('hex')}.${type}`;
+  const uploadDir = path.join(__dirname, 'assets', 'admin-products');
+  await mkdir(uploadDir, { recursive: true });
+  await writeFile(path.join(uploadDir, fileName), Buffer.from(match[2], 'base64'));
+  return `assets/admin-products/${fileName}`;
+}
+
+async function normalizeAdminProductImages(product) {
+  const result = { ...product };
+  result.cardImage = await saveAdminProductImage(result.cardImage, result.id, 'card');
+  result.cardImageAlt = await saveAdminProductImage(result.cardImageAlt, result.id, 'card-alt');
+  result.image = await saveAdminProductImage(result.image, result.id, 'front');
+  result.imageAlt = await saveAdminProductImage(result.imageAlt, result.id, 'back');
+  const gallery = [];
+  for (let i = 0; i < (result.gallery || []).length; i += 1) {
+    const saved = await saveAdminProductImage(result.gallery[i], result.id, `gallery-${i + 1}`);
+    if (saved) gallery.push(saved);
+  }
+  result.gallery = gallery;
+  return result;
+}
+
+async function saveProductsModule(products, categories) {
+  const file = [
+    `export const categories = ${JSON.stringify(categories, null, 2)};`,
+    '',
+    `export const products = ${JSON.stringify(products, null, 2)};`,
+    '',
+    `export const formatPrice = (value) => new Intl.NumberFormat('ru-RU', {`,
+    `  style: 'currency',`,
+    `  currency: 'RUB',`,
+    `  maximumFractionDigits: 0,`,
+    `}).format(value);`,
+    '',
+    `export const getProductById = (id) => products.find((product) => product.id === id);`,
+    `export const getProductsByCategory = (category) => category === 'all' ? products : products.filter((product) => product.category === category);`,
+    '',
+  ].join('\n');
+  await writeFile(PRODUCTS_FILE, file, 'utf8');
+}
+
+async function getProductCategories() {
+  const { categories = [] } = await loadProductsModule();
+  return categories;
+}
+
+async function getProductsFromModule() {
+  const { products = [], categories = [] } = await loadProductsModule();
+  return { products, categories };
+}
+
+async function migrateCatalogProductsModule() {
+  const moduleData = await getProductsFromModule();
+  if (!DATABASE_URL) return moduleData;
+
+  const countResult = await pgQuery('SELECT COUNT(*)::int AS count FROM catalog_products');
+  if (Number(countResult.rows?.[0]?.count || 0) > 0) {
+    const products = await getCatalogProducts();
+    await saveProductsModule(products, moduleData.categories);
+    return { products, categories: moduleData.categories };
+  }
+
+  const now = new Date().toISOString();
+  for (let index = 0; index < moduleData.products.length; index += 1) {
+    const product = moduleData.products[index];
+    await pgQuery(`
+      INSERT INTO catalog_products (id, product_json, sort_index, created_at, updated_at)
+      VALUES ($1, $2::jsonb, $3, $4, $5)
+      ON CONFLICT (id) DO NOTHING
+    `, [product.id, JSON.stringify(product), index, now, now]);
+  }
+
+  return moduleData;
+}
+
+async function getCatalogProducts() {
+  if (!DATABASE_URL) {
+    const { products = [] } = await loadProductsModule();
+    return products;
+  }
+
+  const result = await pgQuery('SELECT product_json FROM catalog_products ORDER BY sort_index ASC, created_at ASC, id ASC');
+  return result.rows.map((row) => parseDbJson(row.product_json, {})).filter((item) => item && item.id);
+}
+
+async function syncProductsModuleFromSource(products = null) {
+  const categories = await getProductCategories();
+  const list = products || await getCatalogProducts();
+  await saveProductsModule(list, categories);
+  return { products: list, categories };
+}
+
+async function getAdminProducts() {
+  const categories = await getProductCategories();
+  const products = await getCatalogProducts();
+  return { products, categories };
+}
+
+async function createAdminProduct(raw = {}) {
+  const data = await getAdminProducts();
+  let product = normalizeAdminProduct(raw);
+  product = await normalizeAdminProductImages(product);
+  if (data.products.some((item) => item.id === product.id)) {
+    throw new Error('Товар с таким ID уже есть');
+  }
+
+  if (!DATABASE_URL) {
+    await saveProductsModule([...data.products, product], data.categories);
+    return product;
+  }
+
+  const now = new Date().toISOString();
+  await pgQuery(`
+    INSERT INTO catalog_products (id, product_json, sort_index, created_at, updated_at)
+    VALUES ($1, $2::jsonb, $3, $4, $5)
+  `, [product.id, JSON.stringify(product), data.products.length, now, now]);
+  await syncProductsModuleFromSource();
+  return product;
+}
+
+async function updateAdminProduct(productId, raw = {}) {
+  const data = await getAdminProducts();
+  const index = data.products.findIndex((item) => item.id === productId);
+  if (index < 0) return null;
+  let product = normalizeAdminProduct({ ...raw, id: productId }, data.products[index]);
+  product = await normalizeAdminProductImages(product);
+
+  if (!DATABASE_URL) {
+    data.products[index] = product;
+    await saveProductsModule(data.products, data.categories);
+    return product;
+  }
+
+  await pgQuery(`
+    UPDATE catalog_products
+    SET product_json = $1::jsonb, updated_at = $2
+    WHERE id = $3
+  `, [JSON.stringify(product), new Date().toISOString(), productId]);
+  await syncProductsModuleFromSource();
+  return product;
+}
+
+async function deleteAdminProduct(productId) {
+  const data = await getAdminProducts();
+  const next = data.products.filter((item) => item.id !== productId);
+  if (next.length === data.products.length) return false;
+
+  if (!DATABASE_URL) {
+    await saveProductsModule(next, data.categories);
+    return true;
+  }
+
+  await pgQuery('DELETE FROM catalog_products WHERE id = $1', [productId]);
+  await syncProductsModuleFromSource(next);
+  return true;
+}
+
+function validateAdminProduct(product = {}) {
+  if (clean(product.title).length < 2) return 'Укажи название товара';
+  if (Number(product.price) <= 0) return 'Укажи цену товара';
+  if (!parseList(product.sizes).length) return 'Укажи хотя бы один размер';
+  return null;
 }
 
 function getCdekMissingConfig() {
@@ -1749,16 +2012,59 @@ async function handleApi(req, res, url) {
   }
 
   if (url.pathname === '/api/products' && req.method === 'GET') {
-    const { products = [], categories = [] } = await loadProductsModule();
+    const categories = await getProductCategories();
+    const products = await getCatalogProducts();
     return send(res, 200, JSON.stringify({ categories, products }));
   }
 
   if (url.pathname.startsWith('/api/products/') && req.method === 'GET') {
     const id = decodeURIComponent(url.pathname.replace('/api/products/', ''));
-    const { products = [] } = await loadProductsModule();
+    const products = await getCatalogProducts();
     const product = products.find((item) => item.id === id || item.slug === id);
     if (!product) return send(res, 404, JSON.stringify({ error: 'Product not found' }));
     return send(res, 200, JSON.stringify(product));
+  }
+
+
+  if (url.pathname === '/api/admin/products' && req.method === 'GET') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    const data = await getAdminProducts();
+    return send(res, 200, JSON.stringify(data));
+  }
+
+  if (url.pathname === '/api/admin/products' && req.method === 'POST') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    try {
+      const body = await parseBody(req);
+      const error = validateAdminProduct(body);
+      if (error) return send(res, 400, JSON.stringify({ error }));
+      const product = await createAdminProduct(body);
+      return send(res, 201, JSON.stringify({ ok: true, product }));
+    } catch (error) {
+      return send(res, 400, JSON.stringify({ error: error.message || 'Не удалось сохранить товар' }));
+    }
+  }
+
+  const adminProductRoute = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
+  if (adminProductRoute && req.method === 'PATCH') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    try {
+      const body = await parseBody(req);
+      const error = validateAdminProduct(body);
+      if (error) return send(res, 400, JSON.stringify({ error }));
+      const product = await updateAdminProduct(decodeURIComponent(adminProductRoute[1]), body);
+      if (!product) return send(res, 404, JSON.stringify({ error: 'Товар не найден' }));
+      return send(res, 200, JSON.stringify({ ok: true, product }));
+    } catch (error) {
+      return send(res, 400, JSON.stringify({ error: error.message || 'Не удалось обновить товар' }));
+    }
+  }
+
+  if (adminProductRoute && req.method === 'DELETE') {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    const ok = await deleteAdminProduct(decodeURIComponent(adminProductRoute[1]));
+    if (!ok) return send(res, 404, JSON.stringify({ error: 'Товар не найден' }));
+    return send(res, 200, JSON.stringify({ ok: true }));
   }
 
   if (url.pathname === '/api/cdek/config' && req.method === 'GET') {

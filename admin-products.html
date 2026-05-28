@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Товары — VEAST Admin</title>
+    <meta name="description" content="Внутренняя панель VEAST для добавления и редактирования товаров." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div data-header></div>
+    <main id="mainContent" class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><a href="admin-orders.html">Панель</a><span>/</span><span>Товары</span></div>
+
+      <section class="project-hero admin-hero">
+        <p class="eyebrow">veast control</p>
+        <h1>Товары VEAST</h1>
+        <p class="hero-copy">Добавление карточек, фото, размеров, цен и описаний без редактирования кода вручную.</p>
+        <div class="hero-actions admin-nav-actions">
+          <a class="button button-ghost" href="admin-orders.html">Заказы</a>
+          <a class="button button-primary" href="admin-products.html">Товары</a>
+          <a class="button button-ghost" href="admin-support.html">Поддержка</a>
+          <button class="button button-ghost" id="refreshProducts" type="button">Обновить</button>
+        </div>
+      </section>
+
+      <section class="admin-control-panel panel-card">
+        <div>
+          <p class="eyebrow">access</p>
+          <h2>Ключ администратора</h2>
+          <p class="muted">Ключ нужен для просмотра и сохранения товаров.</p>
+        </div>
+        <form class="admin-key-form" id="adminKeyForm">
+          <label class="field">
+            <span>Ключ</span>
+            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="Введите ключ" />
+          </label>
+          <button class="button button-primary" type="submit">Открыть товары</button>
+        </form>
+        <p class="form-message" id="adminMessage" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="section admin-product-layout">
+        <article class="panel-card admin-product-form-card">
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">product editor</p>
+              <h2 id="productFormTitle">Новый товар</h2>
+            </div>
+            <button class="button button-ghost" id="resetProductForm" type="button">Очистить</button>
+          </div>
+
+          <form id="productForm" class="admin-product-form">
+            <input type="hidden" name="editingId" id="editingId" />
+
+            <div class="form-grid">
+              <label class="field">
+                <span>ID товара</span>
+                <input name="id" placeholder="vst-core-cap" />
+              </label>
+              <label class="field">
+                <span>Slug страницы</span>
+                <input name="slug" placeholder="veast-core-cap" />
+              </label>
+              <label class="field full">
+                <span>Название</span>
+                <input name="title" required placeholder="VEAST Core Cap" />
+              </label>
+              <label class="field">
+                <span>Категория</span>
+                <select name="category">
+                  <option value="hoodie">Худи</option>
+                  <option value="tee">Футболки</option>
+                  <option value="longsleeve">Лонгсливы</option>
+                  <option value="outerwear">Верхняя одежда</option>
+                  <option value="pants">Брюки</option>
+                  <option value="accessory">Аксессуары</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Название категории</span>
+                <input name="categoryTitle" placeholder="Аксессуары" />
+              </label>
+              <label class="field">
+                <span>Коллекция</span>
+                <input name="collection" value="Orbit Drop" />
+              </label>
+              <label class="field">
+                <span>Цена</span>
+                <input name="price" type="number" min="0" step="1" required placeholder="2700" />
+              </label>
+              <label class="field">
+                <span>Старая цена</span>
+                <input name="oldPrice" type="number" min="0" step="1" placeholder="3200" />
+              </label>
+              <label class="field">
+                <span>Цвет</span>
+                <input name="color" placeholder="black" />
+              </label>
+              <label class="field">
+                <span>Название цвета</span>
+                <input name="colorTitle" placeholder="Washed Black / Chrome" />
+              </label>
+              <label class="field">
+                <span>Размеры</span>
+                <input name="sizes" placeholder="S, M, L, XL" />
+              </label>
+              <label class="field">
+                <span>Остаток</span>
+                <input name="stock" type="number" min="0" step="1" placeholder="10" />
+              </label>
+              <label class="field">
+                <span>Статус</span>
+                <input name="status" placeholder="В наличии" />
+              </label>
+              <label class="field">
+                <span>Рейтинг</span>
+                <input name="rating" type="number" min="0" max="5" step="0.1" placeholder="4.9" />
+              </label>
+              <label class="field full">
+                <span>Бейджи</span>
+                <input name="badges" placeholder="new, drop, limited" />
+              </label>
+              <label class="field full">
+                <span>Теги</span>
+                <input name="featureTags" placeholder="limited drop, washed cotton, chrome embroidery" />
+              </label>
+              <label class="field full">
+                <span>С чем носить</span>
+                <input name="wearWith" placeholder="vst-core-cap, vst-chrome-cargo-pants" />
+              </label>
+            </div>
+
+            <div class="admin-image-grid">
+              <label class="field image-field">
+                <span>Фото карточки</span>
+                <input name="cardImage" placeholder="assets/.../product.jpg" />
+                <input name="cardImageFile" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+              <label class="field image-field">
+                <span>Фото hover / второе</span>
+                <input name="cardImageAlt" placeholder="assets/.../front.jpg" />
+                <input name="cardImageAltFile" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+              <label class="field image-field">
+                <span>Вид спереди</span>
+                <input name="image" placeholder="assets/.../front.jpg" />
+                <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+              <label class="field image-field">
+                <span>Вид сзади</span>
+                <input name="imageAlt" placeholder="assets/.../back.jpg" />
+                <input name="imageAltFile" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+              <label class="field image-field full">
+                <span>Галерея</span>
+                <textarea name="gallery" rows="3" placeholder="Каждая ссылка с новой строки или через запятую"></textarea>
+                <input name="galleryFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label class="field full">
+                <span>Описание</span>
+                <textarea name="description" rows="4" placeholder="Короткое описание товара"></textarea>
+              </label>
+              <label class="field full">
+                <span>Материал</span>
+                <input name="material" placeholder="100% хлопок, металлическая фурнитура" />
+              </label>
+              <label class="field">
+                <span>Посадка</span>
+                <input name="fit" placeholder="Oversize / boxy fit" />
+              </label>
+              <label class="field">
+                <span>Уход</span>
+                <input name="care" placeholder="Стирка при 30°C" />
+              </label>
+              <label class="field full">
+                <span>Мерки</span>
+                <input name="measurements" placeholder="S: 56/69, M: 58/71..." />
+              </label>
+            </div>
+
+            <div class="inline-actions">
+              <button class="button button-primary" type="submit">Сохранить товар</button>
+              <button class="button button-ghost" id="previewProductData" type="button">Проверить данные</button>
+            </div>
+            <p class="form-message" id="productFormMessage" role="status" aria-live="polite"></p>
+          </form>
+        </article>
+
+        <aside class="panel-card admin-products-side">
+          <p class="eyebrow">catalog</p>
+          <h2>Каталог</h2>
+          <p class="muted">Здесь отображаются товары, которые видит публичный каталог.</p>
+          <div id="productsList" class="admin-products-list"></div>
+        </aside>
+      </section>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/admin-products.js"></script>
+  </body>
+</html>

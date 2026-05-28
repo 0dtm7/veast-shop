@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Поддержка — VEAST Admin</title>
+    <meta name="description" content="Внутренняя панель VEAST для обращений покупателей." />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div data-header></div>
+    <main id="mainContent" class="page-section container-wide">
+      <div class="breadcrumbs"><a href="index.html">Главная</a><span>/</span><a href="admin-orders.html">Панель</a><span>/</span><span>Поддержка</span></div>
+
+      <section class="project-hero admin-hero">
+        <p class="eyebrow">veast support</p>
+        <h1>Обращения покупателей</h1>
+        <p class="hero-copy">Сообщения с формы контактов, статусы обработки и заметки по ответам.</p>
+        <div class="hero-actions admin-nav-actions">
+          <a class="button button-ghost" href="admin-orders.html">Заказы</a>
+          <a class="button button-ghost" href="admin-products.html">Товары</a>
+          <a class="button button-primary" href="admin-support.html">Поддержка</a>
+          <button class="button button-ghost" id="refreshSupport" type="button">Обновить</button>
+        </div>
+      </section>
+
+      <section class="admin-control-panel panel-card">
+        <div>
+          <p class="eyebrow">access</p>
+          <h2>Ключ администратора</h2>
+          <p class="muted">Ключ открывает обращения и сохранение статусов.</p>
+        </div>
+        <form class="admin-key-form" id="adminKeyForm">
+          <label class="field">
+            <span>Ключ</span>
+            <input id="adminKeyInput" type="password" autocomplete="off" placeholder="Введите ключ" />
+          </label>
+          <button class="button button-primary" type="submit">Открыть поддержку</button>
+        </form>
+        <p class="form-message" id="adminMessage" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="info-grid order-stats" id="supportStats" aria-live="polite"></section>
+
+      <section class="section">
+        <div class="section-heading"><div><p class="eyebrow">support</p><h2>Входящие обращения</h2></div></div>
+        <div id="feedbackList" class="order-list"></div>
+      </section>
+    </main>
+    <div data-footer></div>
+    <script type="module" src="scripts/admin-support.js"></script>
+  </body>
+</html>

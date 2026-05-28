@@ -19,8 +19,11 @@
         <p class="eyebrow">veast control</p>
         <h1>Панель заказов VEAST</h1>
         <p class="hero-copy">Внутренняя панель для заказов, статусов доставки, трек-номеров и обращений покупателей.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="checkout.html">Создать заказ</a>
+        <div class="hero-actions admin-nav-actions">
+          <a class="button button-primary" href="admin-orders.html">Заказы</a>
+          <a class="button button-ghost" href="admin-products.html">Товары</a>
+          <a class="button button-ghost" href="admin-support.html">Поддержка</a>
+          <a class="button button-ghost" href="checkout.html">Создать заказ</a>
           <button class="button button-ghost" id="refreshOrders" type="button">Обновить список</button>
           <button class="button button-ghost" id="setupTelegramWebhook" type="button">Подключить Telegram</button>
         </div>
@@ -30,7 +33,7 @@
         <div>
           <p class="eyebrow">access</p>
           <h2>Ключ администратора</h2>
-          <p class="muted">Ключ открывает заказы, обращения покупателей и изменение статусов.</p>
+          <p class="muted">Ключ открывает заказы и изменение статусов.</p>
         </div>
         <form class="admin-key-form" id="adminKeyForm">
           <label class="field">
@@ -49,10 +52,6 @@
         <div id="ordersApiList" class="order-list"></div>
       </section>
 
-      <section class="section">
-        <div class="section-heading"><div><p class="eyebrow">support</p><h2>Обращения покупателей</h2></div></div>
-        <div id="feedbackList" class="order-list"></div>
-      </section>
 
       <section class="section">
         <div class="section-heading"><div><p class="eyebrow">workflow</p><h2>Рабочий процесс</h2></div></div>
