@@ -20,6 +20,17 @@ const TELEGRAM_BOT_USERNAME = String(process.env.TELEGRAM_BOT_USERNAME || 'VEAST
 const SUPPORT_TELEGRAM_USERNAME = String(process.env.SUPPORT_TELEGRAM_USERNAME || 'veast_support').trim().replace(/^@/, '');
 const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
 const VEAST_BOT_BANNER_URL = String(process.env.VEAST_BOT_BANNER_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-order-bot-banner.png`).trim();
+const VEAST_COMMENT_BOT_TOKEN = String(process.env.VEAST_COMMENT_BOT_TOKEN || '').trim();
+const VEAST_DISCUSSION_CHAT_ID = String(process.env.VEAST_DISCUSSION_CHAT_ID || '').trim();
+const VEAST_COMMENT_PHOTO_URL = String(process.env.VEAST_COMMENT_PHOTO_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-comment-banner.png`).trim();
+const VEAST_COMMENT_SITE_URL = String(process.env.VEAST_COMMENT_SITE_URL || PUBLIC_BASE_URL).trim().replace(/\/+$/, '');
+const VEAST_COMMENT_BOT_CAPTION = String(process.env.VEAST_COMMENT_BOT_CAPTION || [
+  'а в чём прикол?',
+  '',
+  'VEAST — тёмный streetwear, chrome-детали и вещи, с которых собирается образ.',
+  '',
+  'сайт ниже.',
+].join('\n')).trim().replace(/\\n/g, '\n');
 const ADMIN_STATUS_KEY = String(process.env.ADMIN_STATUS_KEY || 'veast-admin-demo').trim();
 const CDEK_CLIENT_ID = String(process.env.CDEK_CLIENT_ID || '').trim();
 const CDEK_CLIENT_SECRET = String(process.env.CDEK_CLIENT_SECRET || '').trim();
@@ -1302,6 +1313,136 @@ async function sendTelegramPhoto(chatId, photo, caption, options = {}) {
   });
 }
 
+function commentBotApi(method, payload = {}) {
+  if (!VEAST_COMMENT_BOT_TOKEN) {
+    return Promise.resolve({ ok: false, skipped: true, description: 'VEAST_COMMENT_BOT_TOKEN is not configured' });
+  }
+
+  const body = JSON.stringify(payload);
+  const requestOptions = {
+    hostname: 'api.telegram.org',
+    path: `/bot${VEAST_COMMENT_BOT_TOKEN}/${method}`,
+    method: 'POST',
+    family: 4,
+    timeout: 15000,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
+
+  return new Promise((resolve) => {
+    const request = https.request(requestOptions, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { raw += chunk; });
+      response.on('end', () => {
+        try {
+          const parsed = raw ? JSON.parse(raw) : {};
+          resolve({ ok: Boolean(parsed.ok), httpStatus: response.statusCode, ...parsed });
+        } catch {
+          resolve({ ok: false, httpStatus: response.statusCode, description: `Telegram returned non-JSON response: ${raw.slice(0, 120)}` });
+        }
+      });
+    });
+
+    request.on('timeout', () => {
+      request.destroy(new Error('Telegram API request timed out'));
+    });
+
+    request.on('error', (error) => {
+      resolve({
+        ok: false,
+        description: error.message || 'Telegram API request failed',
+        code: error.code || null,
+        hint: 'Check VEAST_COMMENT_BOT_TOKEN in Render Environment Variables, then redeploy and set the comment bot webhook.',
+      });
+    });
+
+    request.write(body);
+    request.end();
+  });
+}
+
+function isDiscussionAutoForward(message) {
+  return Boolean(message?.is_automatic_forward);
+}
+
+async function handleCommentBotWebhook(req, res) {
+  try {
+    const update = await parseBody(req);
+    const message = update.message;
+
+    if (!message) return send(res, 200, JSON.stringify({ ok: true, ignored: 'no_message' }));
+
+    if (!VEAST_COMMENT_BOT_TOKEN || !VEAST_DISCUSSION_CHAT_ID) {
+      return send(res, 200, JSON.stringify({ ok: true, skipped: true, reason: 'comment_bot_not_configured' }));
+    }
+
+    if (String(message.chat?.id || '') !== String(VEAST_DISCUSSION_CHAT_ID)) {
+      return send(res, 200, JSON.stringify({ ok: true, ignored: 'wrong_chat' }));
+    }
+
+    if (!isDiscussionAutoForward(message)) {
+      return send(res, 200, JSON.stringify({ ok: true, ignored: 'not_channel_post' }));
+    }
+
+    const payload = {
+      chat_id: message.chat.id,
+      photo: VEAST_COMMENT_PHOTO_URL,
+      caption: VEAST_COMMENT_BOT_CAPTION,
+      reply_to_message_id: message.message_id,
+      allow_sending_without_reply: true,
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'сайт VEAST', url: VEAST_COMMENT_SITE_URL }],
+        ],
+      },
+    };
+
+    if (message.message_thread_id) {
+      payload.message_thread_id = message.message_thread_id;
+    }
+
+    const result = await commentBotApi('sendPhoto', payload);
+
+    if (!result.ok) {
+      console.error('VEAST comment bot error:', result.description || result);
+      return send(res, 200, JSON.stringify({ ok: false, telegram: result }));
+    }
+
+    return send(res, 200, JSON.stringify({ ok: true, sent: true }));
+  } catch (error) {
+    console.error('VEAST comment bot webhook error:', error.message || error);
+    return send(res, 200, JSON.stringify({ ok: false, error: error.message || 'Comment bot webhook failed' }));
+  }
+}
+
+async function handleSetCommentBotWebhook(req, res, url) {
+  if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+  const baseUrl = clean(PUBLIC_BASE_URL || url.searchParams.get('baseUrl'));
+  if (!baseUrl) {
+    return send(res, 400, JSON.stringify({ error: 'PUBLIC_BASE_URL is not configured' }));
+  }
+
+  const webhookUrl = `${baseUrl.replace(/\/+$/, '')}/api/telegram/comment-bot`;
+  const result = await commentBotApi('setWebhook', { url: webhookUrl });
+
+  return send(res, result.ok ? 200 : 502, JSON.stringify({
+    ok: Boolean(result.ok),
+    webhookUrl,
+    telegram: {
+      ok: Boolean(result.ok),
+      description: result.description || null,
+      errorCode: result.error_code || null,
+      httpStatus: result.httpStatus || null,
+      skipped: Boolean(result.skipped),
+      tokenConfigured: Boolean(VEAST_COMMENT_BOT_TOKEN),
+      discussionChatConfigured: Boolean(VEAST_DISCUSSION_CHAT_ID),
+    },
+  }));
+}
+
 async function answerTelegramCallback(callbackQueryId, text = '') {
   if (!callbackQueryId) return { ok: false, skipped: true, description: 'No callback query id' };
   return telegramApi('answerCallbackQuery', {
@@ -1632,6 +1773,20 @@ async function handleApi(req, res, url) {
     return handleTelegramWebhook(req, res);
   }
 
+  if (url.pathname === '/api/telegram/comment-bot' && req.method === 'POST') {
+    return handleCommentBotWebhook(req, res);
+  }
+
+  if (url.pathname === '/api/telegram/comment-set-webhook' && (req.method === 'GET' || req.method === 'POST')) {
+    return handleSetCommentBotWebhook(req, res, url);
+  }
+
+  if (url.pathname === '/api/telegram/comment-webhook-info' && (req.method === 'GET' || req.method === 'POST')) {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    const result = await commentBotApi('getWebhookInfo', {});
+    return send(res, result.ok ? 200 : 502, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
+  }
+
   if (url.pathname === '/api/telegram/set-webhook' && (req.method === 'GET' || req.method === 'POST')) {
     return handleSetTelegramWebhook(req, res, url);
   }
@@ -1729,7 +1884,7 @@ async function serveStatic(req, res, url) {
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === '/') pathname = '/index.html';
   const blockedPublicPaths = [
-    '/docs/', '/data/', '/README.md', '/RENDER_DEPLOY_GUIDE.md', '/render.yaml', '/package.json', '/pnpm-lock.yaml', '/.env', '/.env.example', '/.gitignore'
+    '/docs/', '/data/', '/README.md', '/RENDER_DEPLOY_GUIDE.md', '/render.yaml', '/package.json', '/pnpm-lock.yaml', '/.env', '/.env.example', '/.gitignore', '/.git/'
   ];
   if (blockedPublicPaths.some((blocked) => pathname === blocked || pathname.startsWith(blocked))) {
     return send(res, 404, 'Not found', 'text/plain; charset=utf-8');
@@ -1759,6 +1914,9 @@ if (process.env.VEAST_CHECK === '1') {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  if (url.pathname === '/telegram/comment-bot' && req.method === 'POST') {
+    return handleCommentBotWebhook(req, res);
+  }
   if (url.pathname.startsWith('/api/')) return handleApi(req, res, url);
   return serveStatic(req, res, url);
 });
