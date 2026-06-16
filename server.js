@@ -106,7 +106,7 @@ function send(res, status, body, type = 'application/json; charset=utf-8') {
   res.writeHead(status, {
     'Content-Type': type,
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,HEAD,POST,PATCH,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
   });
   res.end(body);
@@ -947,6 +947,16 @@ function normalizeOrder(order) {
   const now = new Date().toISOString();
   const statusKey = normalizeStatusKey(order.statusKey || 'created');
   const statusInfo = getStatusInfo(statusKey);
+  const telegramInfo = order.telegram && typeof order.telegram === 'object' ? order.telegram : {};
+  const telegramChatId = clean(order.telegramChatId || telegramInfo.id || telegramInfo.chatId || '');
+  const telegramUsername = clean(order.telegramUsername || telegramInfo.username || '');
+  const telegramName = clean([telegramInfo.firstName || telegramInfo.first_name, telegramInfo.lastName || telegramInfo.last_name].filter(Boolean).join(' '));
+  const telegramComment = [
+    telegramUsername ? `Telegram: @${telegramUsername}` : '',
+    telegramChatId ? `Telegram ID: ${telegramChatId}` : '',
+    telegramName ? `Telegram name: ${telegramName}` : '',
+  ].filter(Boolean).join('\n');
+  const customerComment = [String(order.customer.comment || '').trim(), telegramComment].filter(Boolean).join('\n');
   const normalized = {
     id: order.id || `VST-${Date.now()}`,
     createdAt: order.createdAt || now,
@@ -961,7 +971,7 @@ function normalizeOrder(order) {
       address: String(order.customer.address).trim(),
       delivery: String(order.customer.delivery || 'Not specified'),
       payment: String(order.customer.payment || 'Not specified'),
-      comment: String(order.customer.comment || '').trim(),
+      comment: customerComment,
       privacyAccepted: Boolean(order.customer.privacyAccepted),
     },
     items: order.items.map((item) => ({
@@ -980,8 +990,8 @@ function normalizeOrder(order) {
     deliveryPoint: normalizeDeliveryPoint(order.deliveryPoint),
     trackingNumber: '',
     currentLocation: '',
-    telegramChatId: null,
-    telegramLinkedAt: null,
+    telegramChatId: telegramChatId || null,
+    telegramLinkedAt: telegramChatId ? now : null,
     telegramLinkToken: createTelegramToken(),
     statusHistory: [],
     serverSavedAt: now,
@@ -1404,7 +1414,7 @@ function sendCdek(res, status, body) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,HEAD,POST,PATCH,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
     'X-Service-Version': CDEK_WIDGET_VERSION,
   });
@@ -2001,8 +2011,9 @@ async function handleOrderStatusUpdate(req, res, url, orderId) {
 async function handleApi(req, res, url) {
   if (req.method === 'OPTIONS') return send(res, 204, '');
 
-  if (url.pathname === '/api/health' && req.method === 'GET') {
-    return send(res, 200, JSON.stringify({ ok: true, project: 'VEAST', database: getDatabaseMode(), persistent: Boolean(DATABASE_URL), timestamp: new Date().toISOString() }));
+  if (url.pathname === '/api/health' && (req.method === 'GET' || req.method === 'HEAD')) {
+    const payload = { ok: true, project: 'VEAST', database: getDatabaseMode(), persistent: Boolean(DATABASE_URL), timestamp: new Date().toISOString() };
+    return send(res, 200, req.method === 'HEAD' ? '' : JSON.stringify(payload));
   }
 
   if (url.pathname === '/api/stats' && req.method === 'GET') {
@@ -2189,6 +2200,7 @@ async function handleApi(req, res, url) {
 async function serveStatic(req, res, url) {
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === '/') pathname = '/index.html';
+  if (pathname === '/tg' || pathname === '/tg/') pathname = '/tg.html';
   const blockedPublicPaths = [
     '/docs/', '/data/', '/README.md', '/RENDER_DEPLOY_GUIDE.md', '/render.yaml', '/package.json', '/pnpm-lock.yaml', '/.env', '/.env.example', '/.gitignore', '/.git/'
   ];

@@ -1,0 +1,266 @@
+:root {
+  --tg-bg: #0b0d0f;
+  --tg-panel: #121518;
+  --tg-panel-soft: #181c20;
+  --tg-text: #f3f5f4;
+  --tg-muted: #8b9495;
+  --tg-line: rgba(255, 255, 255, .08);
+  --tg-accent: #b8ff9a;
+  --tg-accent-soft: rgba(184, 255, 154, .14);
+  --tg-danger: #ff5f64;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--tg-bg); color-scheme: dark; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(184, 255, 154, .08), transparent 34%),
+    radial-gradient(circle at 90% 20%, rgba(255, 255, 255, .06), transparent 28%),
+    var(--tg-bg);
+  color: var(--tg-text);
+  font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+button, input, textarea, select { font: inherit; }
+button { color: inherit; }
+img { display: block; max-width: 100%; }
+
+.tg-app-shell {
+  width: min(100%, 560px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 14px 12px calc(82px + var(--safe-bottom));
+}
+
+.tg-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 56px 1fr 72px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 12px;
+  background: linear-gradient(180deg, rgba(11, 13, 15, .98), rgba(11, 13, 15, .78) 70%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.tg-brand { text-align: center; text-transform: uppercase; letter-spacing: .18em; }
+.tg-brand-title { display: block; font-weight: 800; font-size: 16px; }
+.tg-brand-subtitle { display: block; margin-top: 2px; font-size: 9px; color: var(--tg-muted); letter-spacing: .22em; }
+
+.tg-ghost-button,
+.tg-icon-button,
+.tg-link-button,
+.tg-button,
+.tg-bottom-nav button,
+.tg-chip,
+.tg-size {
+  border: 1px solid var(--tg-line);
+  background: rgba(255, 255, 255, .04);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, opacity .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tg-ghost-button { height: 40px; color: var(--tg-accent); font-weight: 800; letter-spacing: .1em; }
+.tg-icon-button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: var(--tg-text); }
+.tg-icon-button b { min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: 99px; background: var(--tg-accent); color: #10140f; font-size: 11px; }
+.tg-link-button { padding: 8px 12px; color: var(--tg-accent); background: var(--tg-accent-soft); border-color: rgba(184, 255, 154, .18); }
+.tg-button { padding: 12px 16px; color: var(--tg-text); font-weight: 750; letter-spacing: .02em; }
+.tg-button-primary { background: var(--tg-accent); color: #10140f; border-color: var(--tg-accent); }
+.tg-button.full { width: 100%; }
+.tg-button:disabled { opacity: .45; cursor: not-allowed; }
+
+.tg-main { position: relative; }
+.tg-screen { display: none; animation: vstIn .22s ease both; }
+.tg-screen.is-active { display: block; }
+@keyframes vstIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.tg-hero-card,
+.tg-card,
+.tg-search-card,
+.tg-total-card,
+.tg-success-card,
+.tg-empty {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--tg-line);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.025)), var(--tg-panel);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+}
+
+.tg-hero-card { min-height: 270px; padding: 26px; display: flex; flex-direction: column; justify-content: flex-end; }
+.tg-hero-noise {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(135deg, transparent 0 38%, rgba(255,255,255,.09) 38.3% 38.8%, transparent 39%),
+    radial-gradient(circle at 72% 18%, rgba(184,255,154,.13), transparent 20%),
+    url('hero-orbit-drop.jpg') center/cover no-repeat;
+  opacity: .62;
+  filter: grayscale(.35) contrast(1.08);
+}
+.tg-hero-card > *:not(.tg-hero-noise) { position: relative; z-index: 2; }
+.tg-kicker { margin: 0 0 8px; color: var(--tg-accent); text-transform: uppercase; letter-spacing: .22em; font-size: 10px; font-weight: 800; }
+.tg-hero-card h1, .tg-section-head h1, .tg-section-head h2, .tg-success-card h1 {
+  margin: 0;
+  line-height: .96;
+  letter-spacing: -.045em;
+  text-transform: lowercase;
+}
+.tg-hero-card h1 { max-width: 10ch; font-size: clamp(42px, 12vw, 68px); }
+.tg-hero-card p:not(.tg-kicker) { max-width: 29ch; color: rgba(243,245,244,.76); }
+.tg-hero-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+
+.tg-strip { display: flex; gap: 8px; overflow: auto; padding: 14px 2px 6px; scrollbar-width: none; }
+.tg-strip::-webkit-scrollbar { display: none; }
+.tg-strip span { flex: 0 0 auto; padding: 8px 11px; border: 1px solid var(--tg-line); border-radius: 99px; color: var(--tg-muted); background: rgba(255,255,255,.035); text-transform: uppercase; font-size: 10px; letter-spacing: .12em; }
+
+.tg-section { margin-top: 20px; }
+.tg-section-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 12px 0 14px; }
+.tg-section-head h1, .tg-section-head h2 { font-size: 32px; }
+.sticky-head { position: sticky; top: 58px; z-index: 10; padding: 8px 0; background: linear-gradient(180deg, rgba(11,13,15,.96), rgba(11,13,15,.72)); backdrop-filter: blur(16px); }
+
+.tg-product-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.tg-product-row::-webkit-scrollbar { display: none; }
+.tg-product-row .tg-product-card { min-width: 72%; scroll-snap-align: start; }
+
+.tg-product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tg-product-card { overflow: hidden; border: 1px solid var(--tg-line); border-radius: 24px; background: var(--tg-panel); }
+.tg-product-media { position: relative; aspect-ratio: 4 / 5.15; background: #111; overflow: hidden; }
+.tg-product-media img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.92) contrast(1.02); transition: transform .28s ease; }
+.tg-product-card:active .tg-product-media img { transform: scale(1.035); }
+.tg-save {
+  position: absolute; right: 8px; top: 8px;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.38); backdrop-filter: blur(12px);
+  color: var(--tg-text);
+}
+.tg-save.active { background: var(--tg-accent); color: #10140f; border-color: var(--tg-accent); }
+.tg-product-info { padding: 11px; }
+.tg-product-line { display: flex; justify-content: space-between; gap: 8px; color: var(--tg-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
+.tg-product-title { margin: 8px 0 6px; min-height: 40px; font-weight: 800; letter-spacing: -.02em; }
+.tg-product-price { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 850; }
+.tg-product-price span { color: var(--tg-accent); }
+
+.tg-search-card { padding: 12px; margin-bottom: 14px; border-radius: 22px; }
+.tg-input {
+  width: 100%;
+  border: 1px solid var(--tg-line);
+  border-radius: 18px;
+  background: rgba(0,0,0,.22);
+  color: var(--tg-text);
+  padding: 13px 14px;
+  outline: none;
+}
+.tg-input:focus { border-color: rgba(184,255,154,.45); box-shadow: 0 0 0 4px rgba(184,255,154,.08); }
+.tg-category-chips { display: flex; gap: 8px; overflow-x: auto; padding-top: 10px; scrollbar-width: none; }
+.tg-category-chips::-webkit-scrollbar { display: none; }
+.tg-chip { flex: 0 0 auto; padding: 8px 12px; color: var(--tg-muted); }
+.tg-chip.active { color: #10140f; background: var(--tg-accent); border-color: var(--tg-accent); }
+
+.tg-cart-item { display: grid; grid-template-columns: 76px 1fr; gap: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--tg-line); border-radius: 22px; background: var(--tg-panel); }
+.tg-cart-item img { width: 76px; height: 92px; border-radius: 16px; object-fit: cover; }
+.tg-cart-title { margin: 0; font-weight: 850; }
+.tg-muted { color: var(--tg-muted); }
+.tg-cart-controls { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.tg-qty { display: inline-flex; align-items: center; border: 1px solid var(--tg-line); border-radius: 999px; overflow: hidden; }
+.tg-qty button { width: 34px; height: 30px; border: 0; background: rgba(255,255,255,.04); }
+.tg-qty span { min-width: 34px; text-align: center; }
+
+.tg-total-card { padding: 16px; margin-top: 14px; }
+.tg-total-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--tg-line); }
+.tg-total-row:last-child { border-bottom: 0; }
+.tg-total-row strong { color: var(--tg-accent); }
+
+.tg-checkout-form { display: grid; gap: 12px; }
+.tg-checkout-form label span { display: block; margin: 0 0 6px 4px; color: var(--tg-muted); font-size: 12px; }
+.tg-checkout-form label em { color: rgba(139,148,149,.8); font-style: normal; }
+.tg-checkbox { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--tg-line); border-radius: 18px; background: rgba(255,255,255,.035); }
+.tg-checkbox input { margin-top: 4px; accent-color: var(--tg-accent); }
+.tg-checkbox span { margin: 0 !important; color: var(--tg-text) !important; font-size: 13px !important; }
+
+.tg-success-card { margin-top: 18vh; padding: 26px; text-align: center; }
+.tg-success-card h1 { font-size: 48px; }
+.tg-success-card p:not(.tg-kicker) { color: var(--tg-muted); }
+
+.tg-empty { padding: 22px; text-align: center; color: var(--tg-muted); }
+.tg-empty strong { display: block; margin-bottom: 6px; color: var(--tg-text); font-size: 18px; }
+
+.tg-bottom-nav {
+  position: fixed;
+  left: 50%; bottom: 10px;
+  z-index: 30;
+  transform: translateX(-50%);
+  width: min(calc(100% - 20px), 540px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--tg-line);
+  border-radius: 24px;
+  background: rgba(17, 20, 23, .82);
+  backdrop-filter: blur(22px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  padding-bottom: calc(8px + var(--safe-bottom));
+}
+.tg-bottom-nav button { padding: 11px 4px; color: var(--tg-muted); font-size: 12px; }
+.tg-bottom-nav button.active { color: #10140f; background: var(--tg-accent); border-color: var(--tg-accent); font-weight: 800; }
+
+.tg-product-sheet { position: fixed; inset: 0; z-index: 50; display: none; }
+.tg-product-sheet.is-open { display: block; }
+.tg-sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.58); backdrop-filter: blur(6px); }
+.tg-sheet-panel {
+  position: absolute; left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: min(100%, 560px);
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 30px 30px 0 0;
+  background: #101316;
+  border: 1px solid var(--tg-line);
+  box-shadow: 0 -24px 80px rgba(0,0,0,.55);
+  padding-bottom: calc(22px + var(--safe-bottom));
+  animation: sheetUp .24s ease both;
+}
+@keyframes sheetUp { from { transform: translate(-50%, 24px); opacity: .6; } to { transform: translate(-50%, 0); opacity: 1; } }
+.tg-sheet-image { width: 100%; aspect-ratio: 4 / 4.5; object-fit: cover; background: #151515; }
+.tg-sheet-body { padding: 16px; }
+.tg-sheet-title { margin: 0 0 8px; font-size: 30px; line-height: 1; letter-spacing: -.045em; }
+.tg-sheet-description { color: rgba(243,245,244,.75); }
+.tg-size-grid { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.tg-size { padding: 10px 14px; color: var(--tg-text); }
+.tg-size.active { color: #10140f; background: var(--tg-accent); border-color: var(--tg-accent); }
+.tg-detail-list { display: grid; gap: 8px; margin: 14px 0; }
+.tg-detail-list div { padding: 10px 12px; border: 1px solid var(--tg-line); border-radius: 16px; color: var(--tg-muted); background: rgba(255,255,255,.03); }
+.tg-detail-list strong { display: block; color: var(--tg-text); }
+
+.tg-toast {
+  position: fixed;
+  left: 50%; bottom: calc(86px + var(--safe-bottom));
+  z-index: 80;
+  transform: translate(-50%, 12px);
+  width: min(calc(100% - 32px), 480px);
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(243,245,244,.95);
+  color: #101316;
+  font-weight: 750;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.tg-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 390px) {
+  .tg-product-grid { gap: 10px; }
+  .tg-product-title { font-size: 13px; }
+  .tg-hero-card { min-height: 245px; padding: 22px; }
+}
