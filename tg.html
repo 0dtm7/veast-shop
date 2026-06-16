@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0d0f" />
+  <meta name="theme-color" content="#08111d" />
   <title>VEAST Mini App</title>
   <meta name="description" content="VEAST Telegram Mini App: каталог, корзина и оформление заказа внутри Telegram." />
   <link rel="icon" href="assets/favicon.png" />
@@ -33,13 +33,19 @@
     <main class="tg-main" id="tgMain">
       <section class="tg-screen is-active" data-screen="drop" aria-labelledby="dropTitle">
         <div class="tg-hero-card">
-          <div class="tg-hero-noise"></div>
-          <p class="tg-kicker">orbit drop / активен</p>
-          <h1 id="dropTitle">тёмный streetwear внутри Telegram</h1>
-          <p>Каталог VEAST, избранное, корзина и оформление заказа — без выхода из мессенджера.</p>
-          <div class="tg-hero-actions">
-            <button class="tg-button tg-button-primary" type="button" data-view="catalog">Смотреть каталог</button>
-            <button class="tg-button" type="button" data-view="favorites">Избранное</button>
+          <div class="tg-hero-grid">
+            <div class="tg-hero-copy">
+              <p class="tg-kicker">orbit drop / активен</p>
+              <h1 id="dropTitle">тёмный streetwear внутри telegram</h1>
+              <p>Каталог VEAST, избранное, корзина и оформление заказа — прямо внутри Telegram.</p>
+              <div class="tg-hero-actions">
+                <button class="tg-button tg-button-primary" type="button" data-view="catalog">Смотреть каталог</button>
+                <button class="tg-button" type="button" data-view="favorites">Избранное</button>
+              </div>
+            </div>
+            <div class="tg-hero-visual" aria-hidden="true">
+              <div class="tg-hero-glow"></div>
+            </div>
           </div>
         </div>
 
@@ -148,12 +154,37 @@
         </form>
       </section>
 
+      <section class="tg-screen" data-screen="profile" aria-labelledby="profileTitle">
+        <div class="tg-section-head">
+          <div>
+            <p class="tg-kicker">аккаунт</p>
+            <h1 id="profileTitle">профиль</h1>
+          </div>
+          <button class="tg-link-button" type="button" data-theme-toggle>сменить тему</button>
+        </div>
+
+        <div class="tg-profile-card" data-profile-card></div>
+
+        <section class="tg-section tg-section-tight">
+          <div class="tg-section-head">
+            <div>
+              <p class="tg-kicker">заказы</p>
+              <h2>история</h2>
+            </div>
+          </div>
+          <div class="tg-history-list" data-order-history></div>
+        </section>
+      </section>
+
       <section class="tg-screen" data-screen="success" aria-labelledby="successTitle">
         <div class="tg-success-card">
           <p class="tg-kicker">заказ создан</p>
           <h1 id="successTitle">заказ принят</h1>
           <p data-success-text>VEAST получил заявку. Скоро можно будет связать статус с Telegram.</p>
-          <button class="tg-button tg-button-primary full" type="button" data-view="catalog">Вернуться в каталог</button>
+          <div class="tg-success-actions">
+            <button class="tg-button tg-button-primary full" type="button" data-view="catalog">Вернуться в каталог</button>
+            <button class="tg-button full" type="button" data-view="profile">Открыть профиль</button>
+          </div>
         </div>
       </section>
     </main>
@@ -163,6 +194,7 @@
       <button type="button" data-nav="catalog">Каталог</button>
       <button type="button" data-nav="favorites">Избранное</button>
       <button type="button" data-nav="cart">Корзина <span data-cart-count-small>0</span></button>
+      <button type="button" data-nav="profile">Профиль</button>
     </nav>
   </div>
 

@@ -14,6 +14,7 @@ const state = {
 const CART_KEY = 'veast_tg_cart';
 const FAVORITES_KEY = 'veast_tg_favorites';
 const LAST_ORDER_KEY = 'veast_tg_last_order';
+const ORDER_HISTORY_KEY = 'veast_tg_order_history';
 const THEME_KEY = 'veast_tg_theme';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -63,9 +64,11 @@ function getStartParam() {
 }
 
 function cart() { return read(CART_KEY, []); }
-function saveCart(next) { write(CART_KEY, next); renderCart(); renderProducts(); renderFeatured(); }
+function saveCart(next) { write(CART_KEY, next); renderCart(); renderProducts(); renderFeatured(); renderProfile(); }
 function favorites() { return read(FAVORITES_KEY, []); }
-function saveFavorites(next) { write(FAVORITES_KEY, next); renderFavorites(); renderProducts(); renderFeatured(); }
+function saveFavorites(next) { write(FAVORITES_KEY, next); renderFavorites(); renderProducts(); renderFeatured(); renderProfile(); }
+function orderHistory() { return read(ORDER_HISTORY_KEY, []); }
+function saveOrderHistory(next) { localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(next)); }
 function productById(id) { return state.products.find((item) => item.id === id || item.slug === id); }
 
 function detectSystemTheme() {
@@ -84,13 +87,13 @@ function setTheme(theme, persist = true) {
   state.theme = theme === 'light' ? 'light' : 'dark';
   document.documentElement.classList.remove('theme-light', 'theme-dark');
   document.documentElement.classList.add(`theme-${state.theme}`);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', state.theme === 'light' ? '#f2f7ff' : '#08111d');
   updateThemeButton();
 
   if (tg) {
     try {
-      if (tg.setHeaderColor) tg.setHeaderColor(state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
-      if (tg.setBackgroundColor) tg.setBackgroundColor(state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
+      if (tg.setHeaderColor) tg.setHeaderColor(state.theme === 'light' ? '#f2f7ff' : '#08111d');
+      if (tg.setBackgroundColor) tg.setBackgroundColor(state.theme === 'light' ? '#f2f7ff' : '#08111d');
     } catch {}
   }
 
@@ -136,6 +139,8 @@ function setView(view) {
   state.view = view;
   $$('[data-screen]').forEach((screen) => screen.classList.toggle('is-active', screen.dataset.screen === view));
   $$('[data-nav]').forEach((button) => button.classList.toggle('active', button.dataset.nav === view));
+  if (view === 'checkout') prefillCheckout();
+  if (view === 'profile') renderProfile();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   renderTelegramButtons();
 }
@@ -143,9 +148,7 @@ function setView(view) {
 function renderTelegramButtons() {
   if (!tg) return;
   const canGoBack = !['drop'].includes(state.view);
-  if (tg.BackButton) {
-    canGoBack ? tg.BackButton.show() : tg.BackButton.hide();
-  }
+  if (tg.BackButton) canGoBack ? tg.BackButton.show() : tg.BackButton.hide();
   if (!tg.MainButton) return;
   if (state.view === 'cart' && cart().length) {
     tg.MainButton.setText(`Оформить · ${money(cartTotal())}`);
@@ -216,6 +219,65 @@ function renderFavorites() {
   node.innerHTML = items.length
     ? items.map((product) => productCard(product)).join('')
     : `<div class="tg-empty"><strong>избранное пустое</strong><span>сохраняй вещи, чтобы быстро вернуться к ним.</span></div>`;
+}
+
+function renderProfile() {
+  const profile = $('[data-profile-card]');
+  const historyNode = $('[data-order-history]');
+  if (!profile || !historyNode) return;
+
+  const user = getTelegramUser();
+  const history = orderHistory();
+  const initials = (user?.firstName?.[0] || user?.username?.[0] || 'V').toUpperCase();
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() || user?.username || 'Гость VEAST';
+  const username = user?.username ? `@${user.username}` : 'username не указан';
+  const favCount = favorites().length;
+  const orderCount = history.length;
+  const totalSpent = history.reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+  profile.innerHTML = `
+    <div class="tg-profile-head">
+      <div class="tg-avatar">${escapeHtml(initials)}</div>
+      <div>
+        <p class="tg-profile-name">${escapeHtml(displayName)}</p>
+        <p class="tg-profile-meta">${escapeHtml(username)}${user?.id ? ` · ID ${escapeHtml(user.id)}` : ''}</p>
+      </div>
+    </div>
+    <div class="tg-profile-stats">
+      <div class="tg-stat"><strong>${orderCount}</strong><span>заказов</span></div>
+      <div class="tg-stat"><strong>${favCount}</strong><span>в избранном</span></div>
+      <div class="tg-stat"><strong>${money(totalSpent)}</strong><span>сумма</span></div>
+    </div>
+    <div class="tg-profile-actions">
+      <button class="tg-link-button" type="button" data-view="catalog">перейти в каталог</button>
+      <button class="tg-link-button" type="button" data-view="favorites">моё избранное</button>
+    </div>
+  `;
+
+  historyNode.innerHTML = history.length
+    ? history.slice().reverse().map((order) => historyCard(order)).join('')
+    : `<div class="tg-empty"><strong>история пока пустая</strong><span>после первого заказа он появится здесь.</span></div>`;
+}
+
+function historyCard(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemText = items.length
+    ? items.slice(0, 2).map((item) => `${item.product || item.title || 'Товар'} × ${item.quantity || 1}`).join(', ')
+    : 'Состав заказа недоступен';
+  const statusText = order.statusText || order.status || 'Принят';
+  const dateText = formatDate(order.createdAt || order.created_at || Date.now());
+  return `
+    <article class="tg-history-card">
+      <div class="tg-history-top">
+        <div>
+          <p class="tg-history-id">${escapeHtml(order.id || 'Заказ')}</p>
+          <div class="tg-history-date">${escapeHtml(dateText)}</div>
+        </div>
+        <span class="tg-history-status">${escapeHtml(statusText)}</span>
+      </div>
+      <p class="tg-history-items"><strong>${money(order.total || 0)}</strong> · ${escapeHtml(itemText)}</p>
+    </article>
+  `;
 }
 
 function loadingSkeleton() {
@@ -349,8 +411,7 @@ function prefillCheckout() {
 function buildOrder(form) {
   const items = buildCartItems();
   const user = getTelegramUser();
-  const email = String(form.elements.email.value || '').trim()
-    || `telegram-${user?.id || Date.now()}@veast.local`;
+  const email = String(form.elements.email.value || '').trim() || `telegram-${user?.id || Date.now()}@veast.local`;
   const commentParts = [
     String(form.elements.comment.value || '').trim(),
     user?.username ? `Telegram: @${user.username}` : '',
@@ -375,6 +436,21 @@ function buildOrder(form) {
   };
 }
 
+function rememberOrder(order) {
+  const publicOrder = {
+    id: order.id,
+    total: order.total,
+    items: order.items || [],
+    status: order.status || 'created',
+    statusText: order.statusText || 'Принят',
+    createdAt: order.createdAt || new Date().toISOString(),
+  };
+  localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(publicOrder));
+  const history = orderHistory();
+  history.push(publicOrder);
+  saveOrderHistory(history.slice(-20));
+}
+
 async function submitOrder(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -397,9 +473,10 @@ async function submitOrder(event) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
-    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(data.order));
+    rememberOrder(data.order || {});
     saveCart([]);
     $('[data-success-text]').textContent = `Заказ ${data.order?.id || ''} создан. VEAST свяжется с тобой для подтверждения.`;
+    renderProfile();
     setView('success');
     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   } catch (error) {
@@ -441,7 +518,16 @@ function renderAll() {
   renderFeatured();
   renderFavorites();
   renderCart();
+  renderProfile();
   updateCounters();
+}
+
+function formatDate(value) {
+  try {
+    return new Date(value).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return 'дата неизвестна';
+  }
 }
 
 function bindEvents() {
@@ -449,10 +535,7 @@ function bindEvents() {
     const target = event.target.closest('button, [data-open-product]');
     if (!target) return;
 
-    if (target.dataset.view) {
-      setView(target.dataset.view);
-      if (target.dataset.view === 'checkout') prefillCheckout();
-    }
+    if (target.dataset.view) setView(target.dataset.view);
     if (target.dataset.nav) setView(target.dataset.nav);
     if (target.dataset.openCart !== undefined) setView('cart');
     if (target.dataset.refresh !== undefined) loadProducts();
@@ -496,7 +579,6 @@ function bindEvents() {
     tg.MainButton.onClick(() => {
       if (state.view === 'cart' && cart().length) {
         setView('checkout');
-        prefillCheckout();
       }
     });
   }
