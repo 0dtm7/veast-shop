@@ -22,12 +22,89 @@ function productById(id) { return state.products.find((item) => item.id === id |
 function saveOrderHistory(next) { localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(next.slice(-20))); }
 function toast(message) { const node = $('[data-toast]'); if (!node) return; node.textContent = message; node.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => node.classList.remove('show'), 2300); }
 
-function getTelegramUser() {
-  const user = tg?.initDataUnsafe?.user || null;
-  if (!user) return null;
-  return { id: user.id ? String(user.id) : '', username: user.username || '', firstName: user.first_name || '', lastName: user.last_name || '', languageCode: user.language_code || '' };
+function normalizeTelegramUser(user) {
+  if (!user || typeof user !== 'object') return null;
+  return {
+    id: user.id ? String(user.id) : '',
+    username: user.username || '',
+    firstName: user.first_name || user.firstName || '',
+    lastName: user.last_name || user.lastName || '',
+    languageCode: user.language_code || user.languageCode || '',
+  };
 }
-function getStartParam() { return new URLSearchParams(window.location.search).get('product') || tg?.initDataUnsafe?.start_param || ''; }
+
+function parseUserFromInitData(raw) {
+  if (!raw) return null;
+  try {
+    const params = new URLSearchParams(String(raw));
+    const rawUser = params.get('user');
+    if (!rawUser) return null;
+    try { return normalizeTelegramUser(JSON.parse(rawUser)); }
+    catch { return normalizeTelegramUser(JSON.parse(decodeURIComponent(rawUser))); }
+  } catch {
+    return null;
+  }
+}
+
+function getTelegramRawDataCandidates() {
+  const candidates = [];
+  if (tg?.initData) candidates.push(tg.initData);
+
+  const hash = String(window.location.hash || '').replace(/^#/, '');
+  if (hash) {
+    candidates.push(hash);
+    try {
+      const hashParams = new URLSearchParams(hash);
+      const nested = hashParams.get('tgWebAppData');
+      if (nested) candidates.push(nested);
+    } catch {}
+  }
+
+  const search = String(window.location.search || '').replace(/^\?/, '');
+  if (search) {
+    candidates.push(search);
+    try {
+      const searchParams = new URLSearchParams(search);
+      const nested = searchParams.get('tgWebAppData');
+      if (nested) candidates.push(nested);
+    } catch {}
+  }
+
+  return candidates.filter(Boolean);
+}
+
+function getTelegramUser() {
+  const direct = normalizeTelegramUser(tg?.initDataUnsafe?.user || null);
+  if (direct?.id) return direct;
+
+  for (const raw of getTelegramRawDataCandidates()) {
+    const parsed = parseUserFromInitData(raw);
+    if (parsed?.id) return parsed;
+  }
+
+  return null;
+}
+
+function readStartParamFromRaw(raw) {
+  if (!raw) return '';
+  try {
+    const params = new URLSearchParams(String(raw));
+    return params.get('start_param') || params.get('tgWebAppStartParam') || '';
+  } catch {
+    return '';
+  }
+}
+
+function getStartParam() {
+  const direct = new URLSearchParams(window.location.search).get('product');
+  if (direct) return direct;
+  if (tg?.initDataUnsafe?.start_param) return tg.initDataUnsafe.start_param;
+  for (const raw of getTelegramRawDataCandidates()) {
+    const value = readStartParamFromRaw(raw);
+    if (value) return value;
+  }
+  return '';
+}
 function detectSystemTheme() { return (tg?.colorScheme === 'light' || tg?.colorScheme === 'dark') ? tg.colorScheme : (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); }
 function updateThemeButton() { const icon = $('[data-theme-icon]'); if (icon) icon.textContent = state.theme === 'light' ? '☀︎' : '☾'; }
 function setTheme(theme, persist = true) {
