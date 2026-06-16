@@ -2276,6 +2276,24 @@ async function handleApi(req, res, url) {
     return handleCommentBotWebhook(req, res);
   }
 
+  if (url.pathname === '/api/telegram/store-webhook' && req.method === 'POST') {
+    return handleStoreBotWebhook(req, res);
+  }
+
+  if (url.pathname === '/api/telegram/store-set-webhook' && (req.method === 'GET' || req.method === 'POST')) {
+    return handleSetStoreBotWebhook(req, res, url);
+  }
+
+  if (url.pathname === '/api/telegram/store-webhook-info' && (req.method === 'GET' || req.method === 'POST')) {
+    if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+    const result = await storeBotApi('getWebhookInfo', {});
+    return send(res, result.ok ? 200 : 502, JSON.stringify({
+      ok: Boolean(result.ok),
+      telegram: result,
+      tokenConfigured: Boolean(VEAST_STORE_BOT_TOKEN),
+    }));
+  }
+
   if (url.pathname === '/api/telegram/comment-set-webhook' && (req.method === 'GET' || req.method === 'POST')) {
     return handleSetCommentBotWebhook(req, res, url);
   }
