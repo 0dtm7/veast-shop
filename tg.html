@@ -17,19 +17,24 @@
       <button class="tg-ghost-button" type="button" data-view="drop" aria-label="Открыть стартовый экран">VST</button>
       <div class="tg-brand">
         <span class="tg-brand-title">VEAST</span>
-        <span class="tg-brand-subtitle">telegram mini app</span>
+        <span class="tg-brand-subtitle">мини‑приложение telegram</span>
       </div>
-      <button class="tg-icon-button" type="button" data-open-cart aria-label="Открыть корзину">
-        <span>bag</span>
-        <b data-cart-count>0</b>
-      </button>
+      <div class="tg-top-actions">
+        <button class="tg-theme-button" type="button" data-theme-toggle aria-label="Переключить тему">
+          <span data-theme-icon>◐</span>
+        </button>
+        <button class="tg-icon-button" type="button" data-open-cart aria-label="Открыть корзину">
+          <span>корзина</span>
+          <b data-cart-count>0</b>
+        </button>
+      </div>
     </header>
 
     <main class="tg-main" id="tgMain">
       <section class="tg-screen is-active" data-screen="drop" aria-labelledby="dropTitle">
         <div class="tg-hero-card">
           <div class="tg-hero-noise"></div>
-          <p class="tg-kicker">orbit drop / active</p>
+          <p class="tg-kicker">orbit drop / активен</p>
           <h1 id="dropTitle">тёмный streetwear внутри Telegram</h1>
           <p>Каталог VEAST, избранное, корзина и оформление заказа — без выхода из мессенджера.</p>
           <div class="tg-hero-actions">
@@ -47,7 +52,7 @@
         <section class="tg-section">
           <div class="tg-section-head">
             <div>
-              <p class="tg-kicker">featured</p>
+              <p class="tg-kicker">главное</p>
               <h2>главные позиции</h2>
             </div>
             <button class="tg-link-button" type="button" data-view="catalog">все</button>
@@ -59,7 +64,7 @@
       <section class="tg-screen" data-screen="catalog" aria-labelledby="catalogTitle">
         <div class="tg-section-head sticky-head">
           <div>
-            <p class="tg-kicker">shop</p>
+            <p class="tg-kicker">магазин</p>
             <h1 id="catalogTitle">каталог</h1>
           </div>
           <button class="tg-link-button" type="button" data-refresh>обновить</button>
@@ -74,7 +79,7 @@
       <section class="tg-screen" data-screen="favorites" aria-labelledby="favoritesTitle">
         <div class="tg-section-head">
           <div>
-            <p class="tg-kicker">saved</p>
+            <p class="tg-kicker">сохранённое</p>
             <h1 id="favoritesTitle">избранное</h1>
           </div>
           <button class="tg-link-button" type="button" data-view="catalog">каталог</button>
@@ -85,7 +90,7 @@
       <section class="tg-screen" data-screen="cart" aria-labelledby="cartTitle">
         <div class="tg-section-head">
           <div>
-            <p class="tg-kicker">checkout</p>
+            <p class="tg-kicker">покупка</p>
             <h1 id="cartTitle">корзина</h1>
           </div>
           <button class="tg-link-button" type="button" data-clear-cart>очистить</button>
@@ -97,7 +102,7 @@
       <section class="tg-screen" data-screen="checkout" aria-labelledby="checkoutTitle">
         <div class="tg-section-head">
           <div>
-            <p class="tg-kicker">order</p>
+            <p class="tg-kicker">заказ</p>
             <h1 id="checkoutTitle">оформление</h1>
           </div>
           <button class="tg-link-button" type="button" data-view="cart">назад</button>
@@ -145,7 +150,7 @@
 
       <section class="tg-screen" data-screen="success" aria-labelledby="successTitle">
         <div class="tg-success-card">
-          <p class="tg-kicker">order created</p>
+          <p class="tg-kicker">заказ создан</p>
           <h1 id="successTitle">заказ принят</h1>
           <p data-success-text>VEAST получил заявку. Скоро можно будет связать статус с Telegram.</p>
           <button class="tg-button tg-button-primary full" type="button" data-view="catalog">Вернуться в каталог</button>
@@ -154,10 +159,10 @@
     </main>
 
     <nav class="tg-bottom-nav" aria-label="Mini app navigation">
-      <button type="button" data-nav="drop" class="active">Drop</button>
-      <button type="button" data-nav="catalog">Catalog</button>
-      <button type="button" data-nav="favorites">Saved</button>
-      <button type="button" data-nav="cart">Bag <span data-cart-count-small>0</span></button>
+      <button type="button" data-nav="drop" class="active">Главная</button>
+      <button type="button" data-nav="catalog">Каталог</button>
+      <button type="button" data-nav="favorites">Избранное</button>
+      <button type="button" data-nav="cart">Корзина <span data-cart-count-small>0</span></button>
     </nav>
   </div>
 

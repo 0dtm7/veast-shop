@@ -8,11 +8,13 @@ const state = {
   selectedProduct: null,
   selectedSize: '',
   loading: false,
+  theme: 'dark',
 };
 
 const CART_KEY = 'veast_tg_cart';
 const FAVORITES_KEY = 'veast_tg_favorites';
 const LAST_ORDER_KEY = 'veast_tg_last_order';
+const THEME_KEY = 'veast_tg_theme';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -65,6 +67,45 @@ function saveCart(next) { write(CART_KEY, next); renderCart(); renderProducts();
 function favorites() { return read(FAVORITES_KEY, []); }
 function saveFavorites(next) { write(FAVORITES_KEY, next); renderFavorites(); renderProducts(); renderFeatured(); }
 function productById(id) { return state.products.find((item) => item.id === id || item.slug === id); }
+
+function detectSystemTheme() {
+  const telegramTheme = tg?.colorScheme;
+  if (telegramTheme === 'light' || telegramTheme === 'dark') return telegramTheme;
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function updateThemeButton() {
+  const icon = $('[data-theme-icon]');
+  if (!icon) return;
+  icon.textContent = state.theme === 'light' ? '☀︎' : '☾';
+}
+
+function setTheme(theme, persist = true) {
+  state.theme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.classList.remove('theme-light', 'theme-dark');
+  document.documentElement.classList.add(`theme-${state.theme}`);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
+  updateThemeButton();
+
+  if (tg) {
+    try {
+      if (tg.setHeaderColor) tg.setHeaderColor(state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
+      if (tg.setBackgroundColor) tg.setBackgroundColor(state.theme === 'light' ? '#eef2f5' : '#0b0d0f');
+    } catch {}
+  }
+
+  if (persist) localStorage.setItem(THEME_KEY, state.theme);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  setTheme(saved || detectSystemTheme(), false);
+}
+
+function toggleTheme() {
+  setTheme(state.theme === 'dark' ? 'light' : 'dark');
+  toast(state.theme === 'dark' ? 'Включена тёмная тема' : 'Включена светлая тема');
+}
 
 function buildCartItems() {
   return cart().map((item) => {
@@ -136,7 +177,7 @@ function productCard(product, compact = false) {
       <div class="tg-product-info">
         <div class="tg-product-line"><span>${escapeHtml(product.categoryTitle || product.category || 'VEAST')}</span><span>${escapeHtml(product.status || '')}</span></div>
         <div class="tg-product-title">${escapeHtml(product.title)}</div>
-        ${compact ? '' : `<div class="tg-product-price"><span>${money(product.price)}</span><button class="tg-link-button" type="button" data-quick-add="${escapeHtml(product.id)}">в bag</button></div>`}
+        ${compact ? '' : `<div class="tg-product-price"><span>${money(product.price)}</span><button class="tg-link-button" type="button" data-quick-add="${escapeHtml(product.id)}">в корзину</button></div>`}
       </div>
     </article>
   `;
@@ -152,7 +193,7 @@ function renderFeatured() {
 function renderCategories() {
   const node = $('[data-categories]');
   if (!node) return;
-  const categories = state.categories.length ? state.categories : [{ id: 'all', title: 'Все' }];
+  const categories = state.categories.length ? state.categories : [{ id: 'all', title: 'Все товары' }];
   node.innerHTML = categories.map((category) => `
     <button class="tg-chip ${state.activeCategory === category.id ? 'active' : ''}" type="button" data-category="${escapeHtml(category.id)}">${escapeHtml(category.title)}</button>
   `).join('');
@@ -181,7 +222,7 @@ function loadingSkeleton() {
   return Array.from({ length: 4 }, () => `
     <article class="tg-product-card">
       <div class="tg-product-media"></div>
-      <div class="tg-product-info"><div class="tg-product-title">loading...</div></div>
+      <div class="tg-product-info"><div class="tg-product-title">загрузка...</div></div>
     </article>
   `).join('');
 }
@@ -223,7 +264,7 @@ function productSheet(product) {
         <div><strong>Материал</strong>${escapeHtml(product.material || 'Материал уточняется')}</div>
         <div><strong>Уход</strong>${escapeHtml(product.care || 'Деликатный уход')}</div>
       </div>
-      <button class="tg-button tg-button-primary full" type="button" data-add-selected="${escapeHtml(product.id)}">Добавить в bag</button>
+      <button class="tg-button tg-button-primary full" type="button" data-add-selected="${escapeHtml(product.id)}">Добавить в корзину</button>
       <button class="tg-button full" type="button" data-toggle-favorite="${escapeHtml(product.id)}">${favSet.has(product.id) ? 'Убрать из избранного' : 'Сохранить в избранное'}</button>
     </div>
   `;
@@ -239,7 +280,7 @@ function addToCart(productId, size = '') {
   if (existing) existing.quantity += 1;
   else next.push({ lineId, productId: product.id, size: selectedSize, quantity: 1 });
   saveCart(next);
-  toast(`${product.title} добавлен в bag`);
+  toast(`${product.title} добавлен в корзину`);
   if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 }
 
@@ -262,7 +303,7 @@ function renderCart() {
   if (!list || !summary) return;
   const items = buildCartItems();
   if (!items.length) {
-    list.innerHTML = `<div class="tg-empty"><strong>bag пустой</strong><span>добавь вещь из каталога, чтобы оформить заказ.</span></div>`;
+    list.innerHTML = `<div class="tg-empty"><strong>корзина пустая</strong><span>добавь вещь из каталога, чтобы оформить заказ.</span></div>`;
     summary.innerHTML = `<button class="tg-button tg-button-primary full" type="button" data-view="catalog">В каталог</button>`;
     renderTelegramButtons();
     return;
@@ -338,7 +379,7 @@ async function submitOrder(event) {
   event.preventDefault();
   const form = event.currentTarget;
   if (!cart().length) {
-    toast('Сначала добавь товар в bag');
+    toast('Сначала добавь товар в корзину');
     setView('catalog');
     return;
   }
@@ -358,7 +399,7 @@ async function submitOrder(event) {
     if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
     localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(data.order));
     saveCart([]);
-    $('[data-success-text]').textContent = `Заказ ${data.order?.id || ''} создан. VEAST свяжется для подтверждения.`;
+    $('[data-success-text]').textContent = `Заказ ${data.order?.id || ''} создан. VEAST свяжется с тобой для подтверждения.`;
     setView('success');
     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   } catch (error) {
@@ -378,7 +419,7 @@ async function loadProducts() {
     const response = await fetch('/api/products', { headers: { Accept: 'application/json' } });
     const data = await response.json();
     state.products = Array.isArray(data.products) ? data.products : [];
-    state.categories = Array.isArray(data.categories) ? data.categories : [{ id: 'all', title: 'Все' }];
+    state.categories = Array.isArray(data.categories) ? data.categories : [{ id: 'all', title: 'Все товары' }];
     renderAll();
 
     const start = getStartParam();
@@ -435,6 +476,7 @@ function bindEvents() {
     if (target.dataset.qty) changeQuantity(target.dataset.lineId, Number(target.dataset.qty));
     if (target.dataset.removeLine) changeQuantity(target.dataset.removeLine, -9999);
     if (target.dataset.clearCart !== undefined) saveCart([]);
+    if (target.dataset.themeToggle !== undefined) toggleTheme();
   });
 
   $('[data-search]')?.addEventListener('input', (event) => {
@@ -465,11 +507,9 @@ function initTelegram() {
   tg.ready();
   tg.expand();
   document.documentElement.classList.add('is-telegram');
-  const params = tg.themeParams || {};
-  if (params.bg_color) document.documentElement.style.setProperty('--tg-bg', params.bg_color);
-  if (params.text_color) document.documentElement.style.setProperty('--tg-text', params.text_color);
 }
 
+initTheme();
 initTelegram();
 bindEvents();
 updateCounters();
