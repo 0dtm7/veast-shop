@@ -21,6 +21,11 @@ const SUPPORT_TELEGRAM_USERNAME = String(process.env.SUPPORT_TELEGRAM_USERNAME |
 const PUBLIC_BASE_URL = String(process.env.PUBLIC_BASE_URL || 'https://veast-shop-nsdh.onrender.com').trim().replace(/\/+$/, '');
 const VEAST_BOT_BANNER_URL = String(process.env.VEAST_BOT_BANNER_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-order-bot-banner.png`).trim();
 const VEAST_COMMENT_BOT_TOKEN = String(process.env.VEAST_COMMENT_BOT_TOKEN || '').trim();
+const VEAST_STORE_BOT_TOKEN = String(process.env.VEAST_STORE_BOT_TOKEN || '').trim();
+const VEAST_STORE_BOT_USERNAME = String(process.env.VEAST_STORE_BOT_USERNAME || 'VEASTStoreBot').trim().replace(/^@/, '');
+const VEAST_STORE_MINI_APP_URL = String(process.env.VEAST_STORE_MINI_APP_URL || `${PUBLIC_BASE_URL}/tg`).trim();
+const VEAST_STORE_CHANNEL_URL = String(process.env.VEAST_STORE_CHANNEL_URL || 'https://t.me/veastshop').trim();
+const VEAST_STORE_BOT_BANNER_URL = String(process.env.VEAST_STORE_BOT_BANNER_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-store-bot-banner.png`).trim();
 const VEAST_DISCUSSION_CHAT_ID = String(process.env.VEAST_DISCUSSION_CHAT_ID || '').trim();
 const VEAST_COMMENT_PHOTO_URL = String(process.env.VEAST_COMMENT_PHOTO_URL || `${PUBLIC_BASE_URL}/assets/bot/veast-comment-banner.png`).trim();
 const VEAST_COMMENT_SITE_URL = String(process.env.VEAST_COMMENT_SITE_URL || PUBLIC_BASE_URL).trim().replace(/\/+$/, '');
@@ -1713,6 +1718,183 @@ async function handleSetCommentBotWebhook(req, res, url) {
       tokenConfigured: Boolean(VEAST_COMMENT_BOT_TOKEN),
       discussionChatConfigured: Boolean(VEAST_DISCUSSION_CHAT_ID),
     },
+  }));
+}
+
+
+function storeBotApi(method, payload = {}) {
+  if (!VEAST_STORE_BOT_TOKEN) {
+    return Promise.resolve({ ok: false, skipped: true, description: 'VEAST_STORE_BOT_TOKEN is not configured' });
+  }
+
+  const body = JSON.stringify(payload);
+  const requestOptions = {
+    hostname: 'api.telegram.org',
+    path: `/bot${VEAST_STORE_BOT_TOKEN}/${method}`,
+    method: 'POST',
+    family: 4,
+    timeout: 15000,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
+
+  return new Promise((resolve) => {
+    const request = https.request(requestOptions, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { raw += chunk; });
+      response.on('end', () => {
+        try {
+          const parsed = raw ? JSON.parse(raw) : {};
+          resolve({ ok: Boolean(parsed.ok), httpStatus: response.statusCode, ...parsed });
+        } catch {
+          resolve({ ok: false, httpStatus: response.statusCode, description: `Telegram returned non-JSON response: ${raw.slice(0, 120)}` });
+        }
+      });
+    });
+
+    request.on('timeout', () => {
+      request.destroy(new Error('Telegram API request timed out'));
+    });
+
+    request.on('error', (error) => {
+      resolve({
+        ok: false,
+        description: error.message || 'Telegram API request failed',
+        code: error.code || null,
+        hint: 'Check VEAST_STORE_BOT_TOKEN in Render Environment Variables, then redeploy and connect the store bot webhook.',
+      });
+    });
+
+    request.write(body);
+    request.end();
+  });
+}
+
+function makeStoreMiniAppUrl(startParam = '') {
+  const base = VEAST_STORE_MINI_APP_URL || `${PUBLIC_BASE_URL}/tg`;
+  if (!startParam) return base;
+  const separator = base.includes('?') ? '&' : '?';
+  return `${base}${separator}product=${encodeURIComponent(startParam)}`;
+}
+
+function getStoreBotKeyboard(startParam = '') {
+  return {
+    inline_keyboard: [
+      [{ text: 'Открыть VEAST Store', web_app: { url: makeStoreMiniAppUrl(startParam) } }],
+      [
+        { text: 'Каталог', web_app: { url: makeStoreMiniAppUrl() } },
+        { text: 'Канал VEAST', url: VEAST_STORE_CHANNEL_URL },
+      ],
+      [{ text: 'Поддержка', url: `https://t.me/${SUPPORT_TELEGRAM_USERNAME}` }],
+    ],
+  };
+}
+
+function buildStoreBotWelcomeMessage(startParam = '') {
+  return [
+    'VEAST Store',
+    '',
+    'мини-магазин VEAST внутри Telegram.',
+    '',
+    'Здесь можно открыть каталог, сохранить вещи в избранное, собрать корзину и оформить заказ без перехода в браузер.',
+    startParam ? '' : null,
+    startParam ? `Открываю товар: ${startParam}` : null,
+  ].filter(Boolean).join('\n');
+}
+
+async function sendStoreBotMenu(chatId, startParam = '') {
+  const text = buildStoreBotWelcomeMessage(startParam);
+  const keyboard = getStoreBotKeyboard(startParam);
+  const photoResult = await storeBotApi('sendPhoto', {
+    chat_id: chatId,
+    photo: VEAST_STORE_BOT_BANNER_URL,
+    caption: text,
+    reply_markup: keyboard,
+  });
+  if (photoResult?.ok) return photoResult;
+  return storeBotApi('sendMessage', {
+    chat_id: chatId,
+    text,
+    disable_web_page_preview: true,
+    reply_markup: keyboard,
+  });
+}
+
+async function handleStoreBotWebhook(req, res) {
+  try {
+    const update = await parseBody(req);
+    const message = update.message || update.edited_message;
+    if (!message?.chat?.id) return send(res, 200, JSON.stringify({ ok: true, ignored: 'no_message' }));
+
+    const chatId = message.chat.id;
+    const text = clean(message.text || '');
+    const [command, startParamRaw = ''] = text.split(/\s+/, 2);
+    const isStart = command === '/start' || command.startsWith('/start@');
+    const startParam = isStart ? clean(startParamRaw) : '';
+
+    if (isStart || command === '/menu' || command === '/catalog') {
+      const result = await sendStoreBotMenu(chatId, startParam);
+      return send(res, 200, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
+    }
+
+    if (command === '/help') {
+      const result = await storeBotApi('sendMessage', {
+        chat_id: chatId,
+        text: 'VEAST Store: нажмите кнопку «Открыть VEAST Store», чтобы перейти в мини-приложение.',
+        reply_markup: getStoreBotKeyboard(),
+      });
+      return send(res, 200, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
+    }
+
+    const result = await sendStoreBotMenu(chatId);
+    return send(res, 200, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
+  } catch (error) {
+    return send(res, 200, JSON.stringify({ ok: false, error: error.message || 'Store bot webhook failed' }));
+  }
+}
+
+async function handleSetStoreBotWebhook(req, res, url) {
+  if (!isAdminRequest(req, url)) return send(res, 401, JSON.stringify({ error: 'Admin key is required' }));
+  const baseUrl = clean(PUBLIC_BASE_URL || url.searchParams.get('baseUrl'));
+  if (!baseUrl) return send(res, 400, JSON.stringify({ error: 'PUBLIC_BASE_URL is not configured' }));
+
+  const webhookUrl = `${baseUrl.replace(/\/+$/, '')}/api/telegram/store-webhook`;
+  const miniAppUrl = VEAST_STORE_MINI_APP_URL || `${baseUrl.replace(/\/+$/, '')}/tg`;
+  const webhook = await storeBotApi('setWebhook', { url: webhookUrl });
+  const commands = await storeBotApi('setMyCommands', {
+    commands: [
+      { command: 'start', description: 'Открыть VEAST Store' },
+      { command: 'catalog', description: 'Открыть каталог' },
+      { command: 'menu', description: 'Меню магазина' },
+      { command: 'help', description: 'Помощь' },
+    ],
+  });
+  const menuButton = await storeBotApi('setChatMenuButton', {
+    menu_button: {
+      type: 'web_app',
+      text: 'Открыть VEAST',
+      web_app: { url: miniAppUrl },
+    },
+  });
+
+  return send(res, webhook.ok ? 200 : 502, JSON.stringify({
+    ok: Boolean(webhook.ok),
+    webhookUrl,
+    miniAppUrl,
+    storeBotUsername: VEAST_STORE_BOT_USERNAME,
+    telegram: {
+      ok: Boolean(webhook.ok),
+      description: webhook.description || null,
+      errorCode: webhook.error_code || null,
+      httpStatus: webhook.httpStatus || null,
+      skipped: Boolean(webhook.skipped),
+      tokenConfigured: Boolean(VEAST_STORE_BOT_TOKEN),
+    },
+    commands: { ok: Boolean(commands.ok), description: commands.description || null },
+    menuButton: { ok: Boolean(menuButton.ok), description: menuButton.description || null },
   }));
 }
 
