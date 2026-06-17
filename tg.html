@@ -23,7 +23,7 @@
       </div>
       <div class="tg-top-actions">
         <button class="tg-theme-button" type="button" data-theme-toggle aria-label="Переключить тему"><span data-theme-icon>◐</span></button>
-        <button class="tg-icon-button" type="button" data-open-cart aria-label="Открыть корзину"><span>корзина</span><b data-cart-count>0</b></button>
+        <button class="tg-icon-button" type="button" data-open-cart aria-label="Открыть корзину"><span class="tg-cart-symbol" aria-hidden="true">🛒</span><span>корзина</span><b data-cart-count>0</b></button>
       </div>
     </header>
 
@@ -101,10 +101,11 @@
       </section>
     </main>
 
-    <nav class="tg-bottom-nav" aria-label="Mini app navigation"><button type="button" data-nav="drop" class="active">Главная</button><button type="button" data-nav="catalog">Каталог</button><button type="button" data-nav="favorites">Избранное</button><button type="button" data-nav="cart">Корзина <span data-cart-count-small>0</span></button><button type="button" data-nav="profile">Профиль</button></nav>
+    <nav class="tg-bottom-nav" aria-label="Mini app navigation"><button type="button" data-nav="drop" class="active">Главная</button><button type="button" data-nav="catalog">Каталог</button><button type="button" data-nav="favorites">Избранное</button><button type="button" data-nav="cart"><span class="tg-nav-icon">🛒</span> Корзина <span data-cart-count-small>0</span></button><button type="button" data-nav="profile">Профиль</button></nav>
   </div>
 
   <div class="tg-product-sheet" data-product-sheet aria-hidden="true"><div class="tg-sheet-backdrop" data-close-sheet></div><article class="tg-sheet-panel" data-sheet-panel></article></div>
+  <div class="tg-lightbox" data-lightbox aria-hidden="true"><button class="tg-lightbox-close" type="button" data-close-lightbox>×</button><img data-lightbox-image alt="VEAST photo" /></div>
   <div class="tg-toast" data-toast></div>
   <script type="module" src="assets/tg.js"></script>
 </body>

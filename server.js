@@ -2314,6 +2314,17 @@ async function handleApi(req, res, url) {
     return send(res, result.ok ? 200 : 502, JSON.stringify({ ok: Boolean(result.ok), telegram: result }));
   }
 
+
+  if (url.pathname === '/api/telegram/orders' && req.method === 'GET') {
+    const chatId = String(url.searchParams.get('chatId') || '').trim();
+    if (!chatId) return send(res, 400, JSON.stringify({ ok: false, error: 'Telegram chat id is required' }));
+    const orders = await getOrdersByTelegramChatId(chatId);
+    return send(res, 200, JSON.stringify({
+      ok: true,
+      orders: orders.map(publicOrder).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
+    }));
+  }
+
   const statusRoute = url.pathname.match(/^\/api\/orders\/([^/]+)\/status$/);
   if (statusRoute && req.method === 'GET') {
     const id = decodeURIComponent(statusRoute[1]);
